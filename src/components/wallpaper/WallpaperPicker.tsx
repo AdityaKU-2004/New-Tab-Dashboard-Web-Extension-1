@@ -54,24 +54,58 @@ export const WallpaperPicker: React.FC = () => {
     setSelectedWallpaper(customWP);
   };
 
+  const compressImageDataUrl = (dataUrl: string, maxWidth = 1600, maxHeight = 900): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            maxHeight && (height = maxHeight);
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => resolve(dataUrl);
+    });
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
+    reader.onload = async (event) => {
+      const rawDataUrl = event.target?.result as string;
+      if (rawDataUrl) {
+        const compressedUrl = await compressImageDataUrl(rawDataUrl);
         const uploadedWP: Wallpaper = {
           id: 'uploaded_' + Date.now(),
           name: file.name.replace(/\.[^/.]+$/, ''),
-          url: dataUrl,
-          thumbnail: dataUrl,
+          url: compressedUrl,
+          thumbnail: compressedUrl,
           category: 'minimal',
           author: 'Uploaded File'
         };
-        setCustomUrl(dataUrl);
-        setCustomInput(dataUrl);
+        setCustomUrl(compressedUrl);
+        setCustomInput(compressedUrl);
         setSelectedWallpaper(uploadedWP);
       }
     };

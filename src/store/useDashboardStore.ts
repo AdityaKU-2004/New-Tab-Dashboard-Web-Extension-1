@@ -104,6 +104,45 @@ interface DashboardStore {
   setFavoritesModalOpen: (open: boolean) => void;
 }
 
+// Safe LocalStorage wrapper to handle QuotaExceededError gracefully
+const safeLocalStorage = {
+  getItem: (name: string) => {
+    try {
+      return localStorage.getItem(name);
+    } catch (e) {
+      console.warn('Failed to read from localStorage:', e);
+      return null;
+    }
+  },
+  setItem: (name: string, value: string) => {
+    try {
+      localStorage.setItem(name, value);
+    } catch (e) {
+      console.warn('LocalStorage setItem failed (QuotaExceededError):', e);
+      try {
+        // Fallback: strip heavy base64 data URLs to save quota
+        const parsed = JSON.parse(value);
+        if (parsed?.state?.selectedWallpaper?.url?.startsWith('data:')) {
+          parsed.state.selectedWallpaper = INITIAL_WALLPAPERS[0];
+        }
+        if (parsed?.state?.customWallpaperUrl?.startsWith('data:')) {
+          parsed.state.customWallpaperUrl = '';
+        }
+        localStorage.setItem(name, JSON.stringify(parsed));
+      } catch (fallbackError) {
+        console.warn('Storage fallback failed:', fallbackError);
+      }
+    }
+  },
+  removeItem: (name: string) => {
+    try {
+      localStorage.removeItem(name);
+    } catch (e) {
+      console.warn('Failed to remove item from localStorage:', e);
+    }
+  }
+};
+
 export const useDashboardStore = create<DashboardStore>()(
   persist(
     (set, get) => ({
@@ -235,16 +274,29 @@ export const useDashboardStore = create<DashboardStore>()(
     }),
     {
       name: 'new_tab_dashboard_store_v1',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        settings: state.settings,
-        selectedWallpaper: state.selectedWallpaper,
-        customWallpaperUrl: state.customWallpaperUrl,
-        bookmarks: state.bookmarks,
-        todos: state.todos,
-        favoriteQuoteIds: state.favoriteQuoteIds,
-        recentTabs: state.recentTabs
-      })
+      storage: createJSONStorage(() => safeLocalStorage),
+      partialize: (state) => {
+        // Prevent storing huge base64 data strings > 300KB in localStorage
+        const cleanSelectedWallpaper =
+          state.selectedWallpaper?.url && state.selectedWallpaper.url.length > 300000
+            ? INITIAL_WALLPAPERS[0]
+            : state.selectedWallpaper;
+
+        const cleanCustomWallpaperUrl =
+          state.customWallpaperUrl && state.customWallpaperUrl.length > 300000
+            ? ''
+            : state.customWallpaperUrl;
+
+        return {
+          settings: state.settings,
+          selectedWallpaper: cleanSelectedWallpaper,
+          customWallpaperUrl: cleanCustomWallpaperUrl,
+          bookmarks: state.bookmarks,
+          todos: state.todos,
+          favoriteQuoteIds: state.favoriteQuoteIds,
+          recentTabs: state.recentTabs
+        };
+      }
     }
   )
 );
