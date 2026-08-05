@@ -56,11 +56,11 @@ export const TodoList: React.FC = () => {
           value={inputTask}
           onChange={(e) => setInputTask(e.target.value)}
           placeholder="Add a new task..."
-          className="flex-1 px-3 py-2 bg-white/10 dark:bg-slate-900/50 backdrop-blur-md rounded-xl border border-white/15 text-white placeholder-white/40 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 light:bg-slate-100 light:text-slate-900 light:placeholder-slate-400 light:border-slate-300"
+          className="flex-1 px-3.5 py-2.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-white placeholder-white/40 text-xs focus:outline-none focus:ring-2 focus:ring-white/30 light:bg-slate-100 light:text-slate-900 light:placeholder-slate-400 light:border-slate-300 transition-all"
         />
         <button
           type="submit"
-          className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shadow-md"
+          className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-lg backdrop-blur-md"
         >
           <Plus className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Add</span>
@@ -84,15 +84,15 @@ export const TodoList: React.FC = () => {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 bg-white/5 light:bg-slate-200/60 p-1 rounded-xl mb-3 border border-white/10 light:border-slate-300">
+      <div className="flex items-center gap-1 bg-white/5 light:bg-slate-200/60 p-1 rounded-2xl mb-3 border border-white/10 light:border-slate-300">
         {(['all', 'active', 'completed'] as TodoFilter[]).map((f) => (
           <button
             key={f}
             type="button"
             onClick={() => setFilter(f)}
-            className={`flex-1 py-1 rounded-lg text-[11px] font-semibold capitalize transition-all cursor-pointer ${
+            className={`flex-1 py-1 rounded-xl text-[11px] font-semibold capitalize transition-all cursor-pointer ${
               filter === f
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-white/20 border border-white/20 text-white shadow-md backdrop-blur-md'
                 : 'text-white/70 hover:text-white light:text-slate-600 light:hover:text-slate-900'
             }`}
           >

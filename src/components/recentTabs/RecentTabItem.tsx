@@ -35,10 +35,10 @@ export const RecentTabItem: React.FC<RecentTabItemProps> = ({ tab }) => {
     <motion.div
       layout
       className={cn(
-        'group flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-all',
+        'group flex items-center justify-between gap-3 p-3 rounded-2xl border transition-all backdrop-blur-md',
         tab.pinned
-          ? 'bg-indigo-900/30 border-indigo-500/30 text-white light:bg-indigo-50 light:border-indigo-200'
-          : 'bg-white/10 hover:bg-white/15 border-white/10 text-white light:bg-white light:border-slate-200 light:text-slate-800'
+          ? 'bg-white/15 border-white/20 text-white light:bg-indigo-50 light:border-indigo-200'
+          : 'bg-white/5 hover:bg-white/10 border-white/10 text-white light:bg-white light:border-slate-200 light:text-slate-800'
       )}
     >
       <a

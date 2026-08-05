@@ -23,13 +23,13 @@ export const RecentTabsList: React.FC = () => {
     >
       {/* Search Filter input */}
       <div className="relative mb-3">
-        <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-white/40 light:text-slate-400" />
+        <Search className="absolute left-3.5 top-2.5 w-3.5 h-3.5 text-white/40 light:text-slate-400" />
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Filter recent tabs..."
-          className="w-full pl-8 pr-3 py-1.5 bg-white/10 dark:bg-slate-900/40 rounded-xl border border-white/10 text-xs text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-indigo-500 light:bg-slate-100 light:text-slate-900 light:border-slate-300"
+          className="w-full pl-9 pr-3.5 py-2 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-xs text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 light:bg-slate-100 light:text-slate-900 light:border-slate-300 transition-all"
         />
       </div>
 

@@ -36,9 +36,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showGreeting: true,
   userName: 'Creator',
   searchEngine: 'google',
-  backgroundBlur: 8,
-  cardOpacity: 0.65,
-  darkOverlayOpacity: 0.45,
+  backgroundBlur: 16,
+  cardOpacity: 0.08,
+  darkOverlayOpacity: 0.35,
   enableAnimations: true,
   widgetVisibility: {
     clock: true,

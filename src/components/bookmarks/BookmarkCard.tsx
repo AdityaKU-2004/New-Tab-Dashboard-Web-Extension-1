@@ -23,9 +23,9 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ bookmark }) => {
 
   return (
     <motion.div
-      whileHover={enableAnimations ? { scale: 1.03, y: -2 } : undefined}
-      whileTap={enableAnimations ? { scale: 0.98 } : undefined}
-      className="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-white/10 dark:bg-slate-900/40 backdrop-blur-md border border-white/15 dark:border-white/10 hover:border-indigo-400/50 hover:bg-white/20 transition-all shadow-sm cursor-pointer overflow-hidden text-center light:bg-white/70 light:border-slate-200 light:hover:bg-white light:shadow-slate-200/60"
+      whileHover={enableAnimations ? { scale: 1.04, y: -2 } : undefined}
+      whileTap={enableAnimations ? { scale: 0.97 } : undefined}
+      className="group relative flex flex-col items-center justify-center p-3.5 rounded-2xl bg-white/10 dark:bg-white/10 backdrop-blur-md border border-white/15 hover:border-white/30 hover:bg-white/20 transition-all shadow-lg cursor-pointer overflow-hidden text-center light:bg-white/70 light:border-slate-200 light:hover:bg-white light:shadow-slate-200/60"
     >
       {/* Delete button on hover */}
       <button

@@ -28,12 +28,12 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       style={{
         backdropFilter: `blur(${backgroundBlur}px)`,
         WebkitBackdropFilter: `blur(${backgroundBlur}px)`,
-        backgroundColor: `rgba(15, 23, 42, ${cardOpacity})`
+        backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`
       }}
       className={cn(
-        'relative rounded-2xl border border-white/15 dark:border-white/10 shadow-lg text-white transition-all overflow-hidden',
-        'light:bg-white/80 light:text-slate-900 light:border-slate-200/80 light:shadow-slate-200/50',
-        noPadding ? 'p-0' : 'p-5',
+        'relative rounded-3xl border border-white/10 shadow-2xl text-slate-50 transition-all overflow-hidden backdrop-blur-xl',
+        'light:bg-white/75 light:text-slate-900 light:border-slate-200/80 light:shadow-slate-300/50',
+        noPadding ? 'p-0' : 'p-5 sm:p-6',
         className
       )}
       {...props}

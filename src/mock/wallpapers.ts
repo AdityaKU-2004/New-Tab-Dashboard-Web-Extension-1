@@ -2,6 +2,14 @@ import { Wallpaper } from '../types';
 
 export const INITIAL_WALLPAPERS: Wallpaper[] = [
   {
+    id: 'frosted-glass-1',
+    name: 'Frosted Twilight Mesh',
+    category: 'gradient',
+    url: 'gradient:linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%)',
+    thumbnail: 'gradient:linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%)',
+    author: 'Frosted Glass Theme'
+  },
+  {
     id: 'nature-1',
     name: 'Misty Alpine Forest',
     category: 'nature',

@@ -36,9 +36,14 @@ export const DashboardLayout: React.FC = () => {
           />
         )}
 
+        {/* Frosted Glass Mesh Gradient Blur Glows */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-600/25 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/25 blur-[120px] pointer-events-none" />
+        <div className="absolute top-[35%] right-[25%] w-[40%] h-[40%] rounded-full bg-rose-600/20 blur-[130px] pointer-events-none" />
+
         {/* Customizable Dark/Light Tint Overlay */}
         <div
-          className="absolute inset-0 bg-slate-950 transition-opacity duration-300 light:bg-slate-100"
+          className="absolute inset-0 bg-slate-950/80 transition-opacity duration-300 light:bg-slate-100/60"
           style={{ opacity: darkOverlayOpacity }}
         />
       </div>

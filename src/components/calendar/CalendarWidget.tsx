@@ -115,9 +115,9 @@ export const CalendarWidget: React.FC = () => {
                   key={`day-${dayNumber}`}
                   type="button"
                   onClick={() => setSelectedDate(new Date(year, month, dayNumber))}
-                  className={`h-7 sm:h-8 rounded-xl text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
+                  className={`h-7 sm:h-8 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
                     isToday
-                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/40 ring-2 ring-indigo-400'
+                      ? 'bg-blue-500 text-white font-bold shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/50'
                       : isSelected
                       ? 'bg-white/20 text-white border border-white/40 light:bg-slate-300 light:text-slate-900'
                       : 'hover:bg-white/10 text-white/80 light:text-slate-700 light:hover:bg-slate-200'
