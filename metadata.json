@@ -1,0 +1,6 @@
+{
+  "name": "New Tab Dashboard",
+  "description": "A modern, customizable new tab dashboard browser extension UI with clock, search, widgets, wallpapers, and settings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

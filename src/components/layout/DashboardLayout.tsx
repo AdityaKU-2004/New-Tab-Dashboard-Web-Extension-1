@@ -1,0 +1,102 @@
+import React from 'react';
+import { useDashboardStore } from '../../store/useDashboardStore';
+import { Header } from './Header';
+import { ClockDisplay } from '../clock/ClockDisplay';
+import { SearchBar } from '../search/SearchBar';
+import { BookmarkGrid } from '../bookmarks/BookmarkGrid';
+import { TodoList } from '../todo/TodoList';
+import { CalendarWidget } from '../calendar/CalendarWidget';
+import { QuoteCard } from '../quote/QuoteCard';
+import { RecentTabsList } from '../recentTabs/RecentTabsList';
+import { SettingsDrawer } from '../settings/SettingsDrawer';
+import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
+import { useTheme } from '../../hooks/useTheme';
+
+export const DashboardLayout: React.FC = () => {
+  const selectedWallpaper = useDashboardStore((state) => state.selectedWallpaper);
+  const { widgetVisibility, darkOverlayOpacity } = useDashboardStore((state) => state.settings);
+  useTheme(); // Initializes light/dark theme class and accent variables
+
+  const isGradient = selectedWallpaper.url.startsWith('gradient:');
+
+  return (
+    <div className="relative min-h-screen w-full overflow-x-hidden font-sans text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+      {/* Wallpaper Background Layer */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        {isGradient ? (
+          <div
+            className="w-full h-full transition-all duration-700"
+            style={{ background: selectedWallpaper.url.replace('gradient:', '') }}
+          />
+        ) : (
+          <img
+            src={selectedWallpaper.url}
+            alt={selectedWallpaper.name}
+            className="w-full h-full object-cover transition-all duration-700 scale-105"
+          />
+        )}
+
+        {/* Customizable Dark/Light Tint Overlay */}
+        <div
+          className="absolute inset-0 bg-slate-950 transition-opacity duration-300 light:bg-slate-100"
+          style={{ opacity: darkOverlayOpacity }}
+        />
+      </div>
+
+      {/* Main Content Container */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col min-h-screen justify-between">
+        <Header />
+
+        <main className="flex-1 my-4 space-y-6">
+          {/* Row 1: Clock & Search Bar */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            {widgetVisibility.clock && (
+              <div className={widgetVisibility.search ? 'lg:col-span-5' : 'lg:col-span-12'}>
+                <ClockDisplay />
+              </div>
+            )}
+            {widgetVisibility.search && (
+              <div className={widgetVisibility.clock ? 'lg:col-span-7' : 'lg:col-span-12'}>
+                <SearchBar />
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Calendar, Todo, Quote */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {widgetVisibility.calendar && <CalendarWidget />}
+            {widgetVisibility.todo && <TodoList />}
+            {widgetVisibility.quote && <QuoteCard />}
+          </div>
+
+          {/* Row 3: Bookmarks & Recent Tabs */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {widgetVisibility.bookmarks && (
+              <div className={widgetVisibility.recentTabs ? 'lg:col-span-7' : 'lg:col-span-12'}>
+                <BookmarkGrid />
+              </div>
+            )}
+            {widgetVisibility.recentTabs && (
+              <div className={widgetVisibility.bookmarks ? 'lg:col-span-5' : 'lg:col-span-12'}>
+                <RecentTabsList />
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* Footer info bar */}
+        <footer className="py-3 text-center text-xs text-white/60 light:text-slate-600 font-medium select-none">
+          <span>Press </span>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/10 light:bg-slate-200 border border-white/20 font-mono text-[11px]">
+            /
+          </kbd>
+          <span> to quick search • Built for Manifest V3 Extensions</span>
+        </footer>
+      </div>
+
+      {/* Drawers & Modals */}
+      <SettingsDrawer />
+      <WallpaperPicker />
+    </div>
+  );
+};
