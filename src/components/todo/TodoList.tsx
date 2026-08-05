@@ -78,7 +78,7 @@ export const TodoList: React.FC = () => {
             className={`p-2.5 rounded-2xl border transition-all cursor-pointer backdrop-blur-md ${
               dueDate
                 ? 'bg-accent-soft border-accent text-accent'
-                : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
+                : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20 light:bg-slate-200/80 light:border-slate-300 light:text-slate-700 light:hover:bg-slate-300 light:hover:text-slate-900'
             }`}
             title="Set due date"
           >
@@ -101,13 +101,13 @@ export const TodoList: React.FC = () => {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="px-3 py-1.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white text-xs focus:outline-none light:bg-slate-100 light:text-slate-900 light:border-slate-300"
+              className="px-3 py-1.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white text-xs focus:outline-none light:bg-white light:text-slate-900 light:border-slate-300"
             />
             {dueDate && (
               <button
                 type="button"
                 onClick={() => setDueDate('')}
-                className="text-[10px] text-white/50 hover:text-white underline cursor-pointer"
+                className="text-[10px] text-white/50 hover:text-white light:text-slate-500 light:hover:text-slate-900 underline cursor-pointer"
               >
                 Clear date
               </button>

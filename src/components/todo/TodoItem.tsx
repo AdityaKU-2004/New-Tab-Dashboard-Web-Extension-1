@@ -64,7 +64,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
             onBlur={handleSaveEdit}
             onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
             autoFocus
-            className="flex-1 px-2 py-0.5 bg-slate-900/60 rounded text-xs text-white border border-indigo-500/50 focus:outline-none"
+            className="flex-1 px-2 py-0.5 bg-slate-900/60 light:bg-white light:text-slate-900 light:border-slate-300 rounded text-xs text-white border border-accent/50 focus:outline-none"
           />
         ) : (
           <div className="flex-1 min-w-0">
@@ -92,18 +92,18 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
           type="button"
           onClick={() => toggleStarTodo(todo.id)}
           className={cn(
-            'p-1 rounded text-white/50 hover:text-amber-400 transition-colors cursor-pointer',
-            todo.starred && 'text-amber-400'
+            'p-1 rounded text-white/50 hover:text-amber-400 light:text-slate-400 light:hover:text-amber-500 transition-colors cursor-pointer',
+            todo.starred && 'text-amber-400 light:text-amber-500'
           )}
           title="Star task"
         >
-          <Star className={cn('w-3.5 h-3.5', todo.starred && 'fill-amber-400')} />
+          <Star className={cn('w-3.5 h-3.5', todo.starred && 'fill-amber-400 light:fill-amber-500')} />
         </button>
 
         <button
           type="button"
           onClick={() => setIsEditing(!isEditing)}
-          className="p-1 rounded text-white/50 hover:text-white transition-colors cursor-pointer"
+          className="p-1 rounded text-white/50 hover:text-white light:text-slate-400 light:hover:text-slate-800 transition-colors cursor-pointer"
           title="Edit task"
         >
           <Edit2 className="w-3.5 h-3.5" />
@@ -112,7 +112,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
         <button
           type="button"
           onClick={() => deleteTodo(todo.id)}
-          className="p-1 rounded text-white/50 hover:text-rose-400 transition-colors cursor-pointer"
+          className="p-1 rounded text-white/50 hover:text-rose-400 light:text-slate-400 light:hover:text-rose-600 transition-colors cursor-pointer"
           title="Delete task"
         >
           <Trash2 className="w-3.5 h-3.5" />
