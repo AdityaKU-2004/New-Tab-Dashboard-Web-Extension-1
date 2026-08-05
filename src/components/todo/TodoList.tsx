@@ -3,22 +3,35 @@ import { DashboardCard } from '../ui/DashboardCard';
 import { TodoItem } from './TodoItem';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { TodoFilter } from '../../types';
-import { CheckSquare, Plus, Trash, ListFilter } from 'lucide-react';
+import { CheckSquare, Plus, Trash, ListFilter, Calendar } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
 export const TodoList: React.FC = () => {
   const [inputTask, setInputTask] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const todos = useDashboardStore((state) => state.todos);
   const filter = useDashboardStore((state) => state.todoFilter);
   const addTodo = useDashboardStore((state) => state.addTodo);
   const setFilter = useDashboardStore((state) => state.setTodoFilter);
   const clearCompleted = useDashboardStore((state) => state.clearCompletedTodos);
 
-  const handleAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputTask.trim()) return;
-    addTodo(inputTask.trim());
+  const handleAdd = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = inputTask.trim();
+    if (!trimmed) return;
+
+    addTodo(trimmed, dueDate || undefined);
+
+    // If viewing completed filter, automatically switch to 'all' so the newly created active task is visible
+    if (filter === 'completed') {
+      setFilter('all');
+    }
+
     setInputTask('');
+    setDueDate('');
+    setShowDatePicker(false);
   };
 
   const filteredTodos = todos.filter((todo) => {
@@ -50,21 +63,57 @@ export const TodoList: React.FC = () => {
       }
     >
       {/* Input Form */}
-      <form onSubmit={handleAdd} className="flex gap-2 mb-3">
-        <input
-          type="text"
-          value={inputTask}
-          onChange={(e) => setInputTask(e.target.value)}
-          placeholder="Add a new task..."
-          className="flex-1 px-3.5 py-2.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-white placeholder-white/40 text-xs focus:outline-none focus:ring-2 focus:ring-white/30 light:bg-slate-100 light:text-slate-900 light:placeholder-slate-400 light:border-slate-300 transition-all"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-lg backdrop-blur-md"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Add</span>
-        </button>
+      <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-3">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputTask}
+            onChange={(e) => setInputTask(e.target.value)}
+            placeholder="Add a new task..."
+            className="flex-1 px-3.5 py-2.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-white placeholder-white/40 text-xs focus:outline-none focus:ring-2 focus:ring-white/30 light:bg-slate-100 light:text-slate-900 light:placeholder-slate-400 light:border-slate-300 transition-all"
+          />
+          <button
+            type="button"
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className={`p-2.5 rounded-2xl border transition-all cursor-pointer backdrop-blur-md ${
+              dueDate
+                ? 'bg-indigo-500/30 border-indigo-400 text-indigo-200'
+                : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
+            }`}
+            title="Set due date"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="submit"
+            onClick={handleAdd}
+            className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-lg backdrop-blur-md"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
+
+        {/* Optional Due Date Picker input */}
+        {showDatePicker && (
+          <div className="flex items-center gap-2 px-1">
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="px-3 py-1.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white text-xs focus:outline-none light:bg-slate-100 light:text-slate-900 light:border-slate-300"
+            />
+            {dueDate && (
+              <button
+                type="button"
+                onClick={() => setDueDate('')}
+                className="text-[10px] text-white/50 hover:text-white underline cursor-pointer"
+              >
+                Clear date
+              </button>
+            )}
+          </div>
+        )}
       </form>
 
       {/* Progress Bar */}

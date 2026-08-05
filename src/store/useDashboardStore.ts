@@ -162,7 +162,7 @@ export const useDashboardStore = create<DashboardStore>()(
       addTodo: (text, dueDate) => {
         if (!text.trim()) return;
         const newTodo: Todo = {
-          id: 'todo_' + Date.now(),
+          id: 'todo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
           text: text.trim(),
           completed: false,
           starred: false,
