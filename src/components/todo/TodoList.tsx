@@ -77,7 +77,7 @@ export const TodoList: React.FC = () => {
             onClick={() => setShowDatePicker(!showDatePicker)}
             className={`p-2.5 rounded-2xl border transition-all cursor-pointer backdrop-blur-md ${
               dueDate
-                ? 'bg-indigo-500/30 border-indigo-400 text-indigo-200'
+                ? 'bg-accent-soft border-accent text-accent'
                 : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
             }`}
             title="Set due date"
@@ -87,7 +87,7 @@ export const TodoList: React.FC = () => {
           <button
             type="submit"
             onClick={handleAdd}
-            className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-lg backdrop-blur-md"
+            className="px-4 py-2.5 rounded-2xl bg-accent text-white text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-lg hover:opacity-90 backdrop-blur-md"
           >
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Add</span>
@@ -125,7 +125,7 @@ export const TodoList: React.FC = () => {
           </div>
           <div className="w-full h-1.5 rounded-full bg-white/10 light:bg-slate-200 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-300"
+              className="h-full bg-accent transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -141,7 +141,7 @@ export const TodoList: React.FC = () => {
             onClick={() => setFilter(f)}
             className={`flex-1 py-1 rounded-xl text-[11px] font-semibold capitalize transition-all cursor-pointer ${
               filter === f
-                ? 'bg-white/20 border border-white/20 text-white shadow-md backdrop-blur-md'
+                ? 'bg-accent text-white shadow-md'
                 : 'text-white/70 hover:text-white light:text-slate-600 light:hover:text-slate-900'
             }`}
           >

@@ -10,9 +10,9 @@ export const Header: React.FC = () => {
 
   return (
     <header className="flex items-center justify-between w-full py-4 px-2 select-none">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 border border-white/20">
-          <Sparkles className="w-4 h-4 animate-pulse" />
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-2xl bg-accent text-white flex items-center justify-center shadow-lg shadow-accent/20 border border-white/20">
+          <Sparkles className="w-4 h-4 animate-pulse text-white" />
         </div>
         <div>
           <h1 className="text-sm font-bold tracking-wider text-white light:text-slate-900 uppercase">

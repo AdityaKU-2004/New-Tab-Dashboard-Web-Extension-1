@@ -27,12 +27,12 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       whileHover={enableAnimations && hoverEffect ? { y: -2, transition: { duration: 0.2 } } : undefined}
       style={{
         backdropFilter: `blur(${backgroundBlur}px)`,
-        WebkitBackdropFilter: `blur(${backgroundBlur}px)`,
-        backgroundColor: `rgba(255, 255, 255, ${cardOpacity})`
+        WebkitBackdropFilter: `blur(${backgroundBlur}px)`
       }}
       className={cn(
-        'relative rounded-3xl border border-white/10 shadow-2xl text-slate-50 transition-all overflow-hidden backdrop-blur-xl',
-        'light:bg-white/75 light:text-slate-900 light:border-slate-200/80 light:shadow-slate-300/50',
+        'relative rounded-3xl border shadow-2xl transition-all overflow-hidden backdrop-blur-xl',
+        'dark:border-white/10 dark:text-slate-50 dark:bg-white/10',
+        'light:border-slate-300/80 light:bg-white/80 light:text-slate-900 light:shadow-slate-300/40',
         noPadding ? 'p-0' : 'p-5 sm:p-6',
         className
       )}

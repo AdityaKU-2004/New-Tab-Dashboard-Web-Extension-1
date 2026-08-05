@@ -64,7 +64,7 @@ export const WallpaperPicker: React.FC = () => {
               onClick={() => setActiveCategory(cat.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                 activeCategory === cat.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-accent text-white shadow-sm'
                   : 'bg-white/10 hover:bg-white/20 text-white/70 light:bg-slate-100 light:text-slate-700'
               }`}
             >
@@ -115,7 +115,7 @@ export const WallpaperPicker: React.FC = () => {
               max="20"
               value={backgroundBlur}
               onChange={(e) => updateSettings({ backgroundBlur: Number(e.target.value) })}
-              className="w-full accent-indigo-500 cursor-pointer"
+              className="w-full cursor-pointer accent-[var(--accent-color)]"
             />
           </div>
 
@@ -131,7 +131,7 @@ export const WallpaperPicker: React.FC = () => {
               step="0.05"
               value={darkOverlayOpacity}
               onChange={(e) => updateSettings({ darkOverlayOpacity: Number(e.target.value) })}
-              className="w-full accent-indigo-500 cursor-pointer"
+              className="w-full cursor-pointer accent-[var(--accent-color)]"
             />
           </div>
         </div>

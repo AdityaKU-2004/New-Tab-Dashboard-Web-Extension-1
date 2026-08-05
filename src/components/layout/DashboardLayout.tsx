@@ -20,7 +20,7 @@ export const DashboardLayout: React.FC = () => {
   const isGradient = selectedWallpaper.url.startsWith('gradient:');
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden font-sans text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+    <div className="relative min-h-screen w-full overflow-x-hidden font-sans dark:text-slate-100 light:text-slate-900 flex flex-col justify-between selection:bg-accent selection:text-white">
       {/* Wallpaper Background Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {isGradient ? (
@@ -37,13 +37,13 @@ export const DashboardLayout: React.FC = () => {
         )}
 
         {/* Frosted Glass Mesh Gradient Blur Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-600/25 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/25 blur-[120px] pointer-events-none" />
-        <div className="absolute top-[35%] right-[25%] w-[40%] h-[40%] rounded-full bg-rose-600/20 blur-[130px] pointer-events-none" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-600/20 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/20 blur-[120px] pointer-events-none" />
+        <div className="absolute top-[35%] right-[25%] w-[40%] h-[40%] rounded-full bg-rose-600/15 blur-[130px] pointer-events-none" />
 
         {/* Customizable Dark/Light Tint Overlay */}
         <div
-          className="absolute inset-0 bg-slate-950/80 transition-opacity duration-300 light:bg-slate-100/60"
+          className="absolute inset-0 dark:bg-slate-950 light:bg-slate-100 transition-colors duration-500"
           style={{ opacity: darkOverlayOpacity }}
         />
       </div>

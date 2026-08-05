@@ -23,7 +23,7 @@ export const WallpaperCard: React.FC<WallpaperCardProps> = ({ wallpaper }) => {
       onClick={() => setSelectedWallpaper(wallpaper)}
       className={`relative rounded-xl overflow-hidden aspect-video border-2 transition-all cursor-pointer group shadow-md ${
         isSelected
-          ? 'border-indigo-400 ring-4 ring-indigo-500/30 shadow-indigo-500/20'
+          ? 'border-accent ring-4 ring-accent/30 shadow-lg'
           : 'border-white/10 hover:border-white/30'
       }`}
     >
@@ -43,7 +43,7 @@ export const WallpaperCard: React.FC<WallpaperCardProps> = ({ wallpaper }) => {
 
       {/* Selected overlay badge */}
       {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md">
+        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center shadow-md">
           <Check className="w-3.5 h-3.5 stroke-[3]" />
         </div>
       )}

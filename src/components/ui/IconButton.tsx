@@ -30,7 +30,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
     glass: 'bg-white/10 hover:bg-white/20 text-white border border-white/10 light:bg-slate-200/60 light:hover:bg-slate-300 light:text-slate-800 light:border-slate-300',
     ghost: 'hover:bg-white/10 text-white/80 hover:text-white light:text-slate-600 light:hover:bg-slate-200/50 light:hover:text-slate-900',
     solid: 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 light:bg-slate-100 light:hover:bg-slate-200 light:text-slate-800',
-    accent: 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30'
+    accent: 'bg-accent hover:opacity-90 text-white shadow-md shadow-accent/30'
   };
 
   return (

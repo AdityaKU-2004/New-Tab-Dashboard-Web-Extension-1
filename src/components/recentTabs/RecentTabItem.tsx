@@ -37,7 +37,7 @@ export const RecentTabItem: React.FC<RecentTabItemProps> = ({ tab }) => {
       className={cn(
         'group flex items-center justify-between gap-3 p-3 rounded-2xl border transition-all backdrop-blur-md',
         tab.pinned
-          ? 'bg-white/15 border-white/20 text-white light:bg-indigo-50 light:border-indigo-200'
+          ? 'bg-accent-soft border-accent text-white light:bg-indigo-50 light:border-indigo-200'
           : 'bg-white/5 hover:bg-white/10 border-white/10 text-white light:bg-white light:border-slate-200 light:text-slate-800'
       )}
     >
@@ -56,12 +56,12 @@ export const RecentTabItem: React.FC<RecentTabItemProps> = ({ tab }) => {
               className="w-4 h-4 object-contain rounded-xs"
             />
           ) : (
-            <Globe className="w-4 h-4 text-indigo-300 light:text-indigo-600" />
+            <Globe className="w-4 h-4 text-accent" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <span className="block text-xs font-medium text-white/90 light:text-slate-800 truncate group-hover:text-indigo-300 light:group-hover:text-indigo-600 transition-colors">
+          <span className="block text-xs font-medium text-white/90 light:text-slate-800 truncate group-hover:text-accent transition-colors">
             {tab.title}
           </span>
           <div className="flex items-center gap-2 text-[10px] text-white/50 light:text-slate-500">
@@ -77,12 +77,12 @@ export const RecentTabItem: React.FC<RecentTabItemProps> = ({ tab }) => {
           type="button"
           onClick={() => togglePinRecentTab(tab.id)}
           className={cn(
-            'p-1 rounded text-white/50 hover:text-indigo-300 transition-colors cursor-pointer',
-            tab.pinned && 'text-indigo-400 opacity-100'
+            'p-1 rounded text-white/50 hover:text-accent transition-colors cursor-pointer',
+            tab.pinned && 'text-accent opacity-100'
           )}
           title={tab.pinned ? 'Unpin tab' : 'Pin tab'}
         >
-          <Pin className={cn('w-3.5 h-3.5', tab.pinned && 'fill-indigo-400')} />
+          <Pin className={cn('w-3.5 h-3.5', tab.pinned && 'fill-current text-accent')} />
         </button>
 
         <button

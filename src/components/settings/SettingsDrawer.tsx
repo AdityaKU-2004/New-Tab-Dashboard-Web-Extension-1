@@ -55,7 +55,7 @@ export const SettingsDrawer: React.FC = () => {
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-white/10 light:border-slate-200">
                 <div className="flex items-center gap-2">
-                  <Sliders className="w-5 h-5 text-indigo-400" />
+                  <Sliders className="w-5 h-5 text-accent" />
                   <h2 className="text-lg font-bold tracking-wide">Dashboard Settings</h2>
                 </div>
                 <IconButton
@@ -71,7 +71,7 @@ export const SettingsDrawer: React.FC = () => {
               <div className="space-y-6 my-6">
                 {/* 1. Theme & Appearance */}
                 <div>
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
                     <Palette className="w-4 h-4" /> Theme & Accent
                   </label>
 
@@ -84,12 +84,12 @@ export const SettingsDrawer: React.FC = () => {
                         onClick={() => updateSettings({ theme: mode })}
                         className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
                           settings.theme === mode
-                            ? 'bg-indigo-600 text-white border-indigo-500 shadow-md'
+                            ? 'bg-accent text-white border-accent-full shadow-md'
                             : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
                         }`}
                       >
                         {mode === 'light' && <Sun className="w-3.5 h-3.5 text-amber-400" />}
-                        {mode === 'dark' && <Moon className="w-3.5 h-3.5 text-indigo-400" />}
+                        {mode === 'dark' && <Moon className="w-3.5 h-3.5 text-accent" />}
                         {mode === 'system' && <Laptop className="w-3.5 h-3.5 text-slate-300" />}
                         <span>{mode}</span>
                       </button>
@@ -125,7 +125,7 @@ export const SettingsDrawer: React.FC = () => {
 
                 {/* 2. Clock & User Profile */}
                 <div className="pt-4 border-t border-white/10 light:border-slate-200">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
                     <Clock className="w-4 h-4" /> Clock & Greeting
                   </label>
 
@@ -136,7 +136,7 @@ export const SettingsDrawer: React.FC = () => {
                         type="checkbox"
                         checked={settings.clockFormat12}
                         onChange={(e) => updateSettings({ clockFormat12: e.target.checked })}
-                        className="w-4 h-4 accent-indigo-500 rounded cursor-pointer"
+                        className="w-4 h-4 rounded cursor-pointer accent-[var(--accent-color)]"
                       />
                     </div>
 
@@ -146,7 +146,7 @@ export const SettingsDrawer: React.FC = () => {
                         type="checkbox"
                         checked={settings.showSeconds}
                         onChange={(e) => updateSettings({ showSeconds: e.target.checked })}
-                        className="w-4 h-4 accent-indigo-500 rounded cursor-pointer"
+                        className="w-4 h-4 rounded cursor-pointer accent-[var(--accent-color)]"
                       />
                     </div>
 
@@ -156,7 +156,7 @@ export const SettingsDrawer: React.FC = () => {
                         type="checkbox"
                         checked={settings.showGreeting}
                         onChange={(e) => updateSettings({ showGreeting: e.target.checked })}
-                        className="w-4 h-4 accent-indigo-500 rounded cursor-pointer"
+                        className="w-4 h-4 rounded cursor-pointer accent-[var(--accent-color)]"
                       />
                     </div>
 
@@ -171,7 +171,7 @@ export const SettingsDrawer: React.FC = () => {
                           value={settings.userName}
                           onChange={(e) => updateSettings({ userName: e.target.value })}
                           placeholder="e.g. Alex"
-                          className="w-full pl-8 pr-3 py-1.5 bg-white/10 dark:bg-slate-900/50 rounded-xl border border-white/10 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 light:bg-slate-100 light:text-slate-900 light:border-slate-300"
+                          className="w-full pl-8 pr-3 py-1.5 bg-white/10 dark:bg-slate-900/50 rounded-xl border border-white/10 text-xs text-white focus:outline-none focus:ring-1 ring-accent light:bg-slate-100 light:text-slate-900 light:border-slate-300"
                         />
                       </div>
                     </div>
@@ -180,14 +180,14 @@ export const SettingsDrawer: React.FC = () => {
 
                 {/* 3. Search Engine */}
                 <div className="pt-4 border-t border-white/10 light:border-slate-200">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
                     <Search className="w-4 h-4" /> Default Search Engine
                   </label>
 
                   <select
                     value={settings.searchEngine}
                     onChange={(e) => updateSettings({ searchEngine: e.target.value as SearchEngineId })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-white/15 text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 light:bg-slate-100 light:text-slate-900 light:border-slate-300"
+                    className="w-full px-3 py-2 bg-slate-900 border border-white/15 text-white rounded-xl text-xs focus:outline-none focus:ring-2 ring-accent light:bg-slate-100 light:text-slate-900 light:border-slate-300"
                   >
                     {(Object.keys(SEARCH_ENGINES) as SearchEngineId[]).map((engineId) => (
                       <option key={engineId} value={engineId}>
@@ -199,7 +199,7 @@ export const SettingsDrawer: React.FC = () => {
 
                 {/* 4. Glassmorphism & Background Customization */}
                 <div className="pt-4 border-t border-white/10 light:border-slate-200">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
                     <Eye className="w-4 h-4" /> Glassmorphism & Effects
                   </label>
 
@@ -216,7 +216,7 @@ export const SettingsDrawer: React.FC = () => {
                         step="0.05"
                         value={settings.cardOpacity}
                         onChange={(e) => updateSettings({ cardOpacity: Number(e.target.value) })}
-                        className="w-full accent-indigo-500 cursor-pointer"
+                        className="w-full cursor-pointer accent-[var(--accent-color)]"
                       />
                     </div>
 
@@ -231,7 +231,7 @@ export const SettingsDrawer: React.FC = () => {
                         max="20"
                         value={settings.backgroundBlur}
                         onChange={(e) => updateSettings({ backgroundBlur: Number(e.target.value) })}
-                        className="w-full accent-indigo-500 cursor-pointer"
+                        className="w-full cursor-pointer accent-[var(--accent-color)]"
                       />
                     </div>
 
@@ -241,7 +241,7 @@ export const SettingsDrawer: React.FC = () => {
                         type="checkbox"
                         checked={settings.enableAnimations}
                         onChange={(e) => updateSettings({ enableAnimations: e.target.checked })}
-                        className="w-4 h-4 accent-indigo-500 rounded cursor-pointer"
+                        className="w-4 h-4 rounded cursor-pointer accent-[var(--accent-color)]"
                       />
                     </div>
                   </div>
@@ -249,7 +249,7 @@ export const SettingsDrawer: React.FC = () => {
 
                 {/* 5. Widget Visibility Toggles */}
                 <div className="pt-4 border-t border-white/10 light:border-slate-200">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3">
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent mb-3">
                     <LayoutGrid className="w-4 h-4" /> Visible Widgets
                   </label>
 
@@ -265,7 +265,7 @@ export const SettingsDrawer: React.FC = () => {
                         onClick={() => toggleWidgetVisibility(key)}
                         className={`flex items-center justify-between p-2 rounded-xl border text-left cursor-pointer transition-colors ${
                           settings.widgetVisibility[key]
-                            ? 'bg-indigo-900/30 border-indigo-500/40 text-white light:bg-indigo-50 light:border-indigo-200'
+                            ? 'bg-accent-soft border-accent text-white light:text-slate-900'
                             : 'bg-white/5 border-white/10 text-white/40 light:bg-slate-100 light:border-slate-200'
                         }`}
                       >
@@ -273,7 +273,7 @@ export const SettingsDrawer: React.FC = () => {
                         <div
                           className={`w-3.5 h-3.5 rounded-md flex items-center justify-center border ${
                             settings.widgetVisibility[key]
-                              ? 'bg-indigo-600 border-indigo-500 text-white'
+                              ? 'bg-accent border-accent text-white'
                               : 'border-white/30'
                           }`}
                         >

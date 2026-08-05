@@ -74,12 +74,12 @@ export const QuoteCard: React.FC = () => {
             </blockquote>
 
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/10 light:border-slate-200">
-              <span className="text-xs font-semibold text-indigo-300 light:text-indigo-600">
+              <span className="text-xs font-semibold text-accent">
                 — {currentQuote?.author}
               </span>
 
               {currentQuote?.category && (
-                <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 light:bg-indigo-100 light:text-indigo-700">
+                <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-accent-soft text-accent">
                   {currentQuote.category}
                 </span>
               )}

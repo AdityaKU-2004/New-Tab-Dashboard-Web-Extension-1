@@ -13,6 +13,7 @@ export const ACCENT_COLOR_CLASSES: Record<
     hoverBg: string;
     lightBg: string;
     hex: string;
+    rgb: string;
   }
 > = {
   indigo: {
@@ -23,7 +24,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-indigo-600 to-violet-600',
     hoverBg: 'hover:bg-indigo-500/20',
     lightBg: 'bg-indigo-500/10',
-    hex: '#6366f1'
+    hex: '#6366f1',
+    rgb: '99, 102, 241'
   },
   emerald: {
     bg: 'bg-emerald-600',
@@ -33,7 +35,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-emerald-600 to-teal-600',
     hoverBg: 'hover:bg-emerald-500/20',
     lightBg: 'bg-emerald-500/10',
-    hex: '#10b981'
+    hex: '#10b981',
+    rgb: '16, 185, 129'
   },
   violet: {
     bg: 'bg-violet-600',
@@ -43,7 +46,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-violet-600 to-fuchsia-600',
     hoverBg: 'hover:bg-violet-500/20',
     lightBg: 'bg-violet-500/10',
-    hex: '#8b5cf6'
+    hex: '#8b5cf6',
+    rgb: '139, 92, 246'
   },
   rose: {
     bg: 'bg-rose-600',
@@ -53,7 +57,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-rose-600 to-pink-600',
     hoverBg: 'hover:bg-rose-500/20',
     lightBg: 'bg-rose-500/10',
-    hex: '#f43f5e'
+    hex: '#f43f5e',
+    rgb: '244, 63, 94'
   },
   amber: {
     bg: 'bg-amber-600',
@@ -63,7 +68,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-amber-500 to-orange-600',
     hoverBg: 'hover:bg-amber-500/20',
     lightBg: 'bg-amber-500/10',
-    hex: '#f59e0b'
+    hex: '#f59e0b',
+    rgb: '245, 158, 11'
   },
   cyan: {
     bg: 'bg-cyan-600',
@@ -73,7 +79,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-cyan-500 to-blue-600',
     hoverBg: 'hover:bg-cyan-500/20',
     lightBg: 'bg-cyan-500/10',
-    hex: '#06b6d4'
+    hex: '#06b6d4',
+    rgb: '6, 182, 212'
   },
   slate: {
     bg: 'bg-slate-600',
@@ -83,7 +90,8 @@ export const ACCENT_COLOR_CLASSES: Record<
     gradient: 'from-slate-600 to-zinc-700',
     hoverBg: 'hover:bg-slate-500/20',
     lightBg: 'bg-slate-500/10',
-    hex: '#64748b'
+    hex: '#64748b',
+    rgb: '100, 116, 139'
   }
 };
 
@@ -117,6 +125,13 @@ export function useTheme() {
       return () => mediaQuery.removeEventListener('change', applyTheme);
     }
   }, [theme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const style = ACCENT_COLOR_CLASSES[accentColor] || ACCENT_COLOR_CLASSES.indigo;
+    root.style.setProperty('--accent-color', style.hex);
+    root.style.setProperty('--accent-rgb', style.rgb);
+  }, [accentColor]);
 
   const accentStyles = ACCENT_COLOR_CLASSES[accentColor] || ACCENT_COLOR_CLASSES.indigo;
 

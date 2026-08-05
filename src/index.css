@@ -1,7 +1,46 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
+:root {
+  --accent-color: #6366f1;
+  --accent-rgb: 99, 102, 241;
+}
+
+/* Custom Accent Helper Classes */
+.bg-accent {
+  background-color: var(--accent-color) !important;
+}
+
+.bg-accent-soft {
+  background-color: rgba(var(--accent-rgb), 0.18) !important;
+}
+
+.bg-accent-hover:hover {
+  background-color: rgba(var(--accent-rgb), 0.3) !important;
+}
+
+.text-accent {
+  color: var(--accent-color) !important;
+}
+
+.border-accent {
+  border-color: rgba(var(--accent-rgb), 0.4) !important;
+}
+
+.border-accent-full {
+  border-color: var(--accent-color) !important;
+}
+
+.ring-accent:focus,
+.ring-accent:focus-within {
+  --tw-ring-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+}
+
+/* Custom thin glass scrollbars */
 @layer utilities {
-  /* Custom thin glass scrollbars */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -27,3 +66,4 @@
     scrollbar-width: none;
   }
 }
+

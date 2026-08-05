@@ -26,7 +26,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <div className={cn('relative w-full group', className)}>
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 light:text-slate-400 group-focus-within:text-indigo-400 transition-colors">
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 light:text-slate-400 group-focus-within:text-accent transition-colors">
         <Search className="w-5 h-5" />
       </div>
 
@@ -39,7 +39,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         className={cn(
           'w-full pl-11 pr-20 py-3.5 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white placeholder-white/40 text-sm font-medium transition-all shadow-xl',
           'light:bg-white/80 light:text-slate-900 light:placeholder-slate-400 light:border-slate-300 light:shadow-slate-200/50',
-          'focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 focus:bg-white/15 light:focus:bg-white'
+          'focus:outline-none focus:ring-2 ring-accent focus:border-accent-full focus:bg-white/15 light:focus:bg-white'
         )}
         {...props}
       />

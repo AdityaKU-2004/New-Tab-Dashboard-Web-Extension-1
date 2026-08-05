@@ -48,7 +48,7 @@ export const ClockDisplay: React.FC = () => {
       {/* Day and Date */}
       <div className="flex items-center justify-center gap-3 mt-3 text-xs sm:text-sm font-medium text-white/80 light:text-slate-700">
         <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 dark:bg-slate-900/40 light:bg-slate-200/80 border border-white/10">
-          <CalendarIcon className="w-3.5 h-3.5 text-indigo-400 light:text-indigo-600" />
+          <CalendarIcon className="w-3.5 h-3.5 text-accent" />
           <span>{dayName}</span>
         </span>
         <span className="text-white/40 light:text-slate-400">•</span>

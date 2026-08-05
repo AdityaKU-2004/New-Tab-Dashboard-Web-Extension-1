@@ -47,8 +47,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
           className={cn(
             'flex items-center justify-center w-5 h-5 rounded-lg border transition-all cursor-pointer flex-shrink-0',
             todo.completed
-              ? 'bg-emerald-500 border-emerald-500 text-white'
-              : 'border-white/40 hover:border-indigo-400 light:border-slate-400 bg-transparent'
+              ? 'bg-accent border-accent text-white'
+              : 'border-white/40 hover:border-accent light:border-slate-400 bg-transparent'
           )}
           title={todo.completed ? 'Mark incomplete' : 'Mark completed'}
         >
