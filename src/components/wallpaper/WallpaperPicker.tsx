@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { WallpaperCard } from './WallpaperCard';
 import { INITIAL_WALLPAPERS } from '../../mock/wallpapers';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { WallpaperCategory, Wallpaper } from '../../types';
-import { Image, Sliders, Link, Sparkles } from 'lucide-react';
+import { Image as ImageIcon, Link, Upload, Check } from 'lucide-react';
 import { AnimatedButton } from '../ui/AnimatedButton';
 
 export const WallpaperPicker: React.FC = () => {
   const isOpen = useDashboardStore((state) => state.isWallpaperPickerOpen);
   const setOpen = useDashboardStore((state) => state.setWallpaperPickerOpen);
+  const selectedWallpaper = useDashboardStore((state) => state.selectedWallpaper);
   const setSelectedWallpaper = useDashboardStore((state) => state.setSelectedWallpaper);
   const customUrl = useDashboardStore((state) => state.customWallpaperUrl);
   const setCustomUrl = useDashboardStore((state) => state.setCustomWallpaperUrl);
@@ -19,6 +20,7 @@ export const WallpaperPicker: React.FC = () => {
 
   const [activeCategory, setActiveCategory] = useState<WallpaperCategory | 'all'>('all');
   const [customInput, setCustomInput] = useState(customUrl);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories: { id: WallpaperCategory | 'all'; label: string }[] = [
     { id: 'all', label: 'All' },
@@ -52,10 +54,79 @@ export const WallpaperPicker: React.FC = () => {
     setSelectedWallpaper(customWP);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        const uploadedWP: Wallpaper = {
+          id: 'uploaded_' + Date.now(),
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          url: dataUrl,
+          thumbnail: dataUrl,
+          category: 'minimal',
+          author: 'Uploaded File'
+        };
+        setCustomUrl(dataUrl);
+        setCustomInput(dataUrl);
+        setSelectedWallpaper(uploadedWP);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={() => setOpen(false)} title="Wallpaper & Appearance" maxWidth="xl">
+    <Modal isOpen={isOpen} onClose={() => setOpen(false)} title="Choose Wallpaper Background" maxWidth="xl">
       <div className="space-y-5">
-        {/* Category Tabs */}
+        {/* Custom Upload / URL Quick Action Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 light:bg-slate-100 light:border-slate-200">
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70 light:text-slate-600 mb-1.5">
+              Upload Local Image File
+            </label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-accent hover:opacity-90 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Choose Image from Device</span>
+            </button>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70 light:text-slate-600 mb-1.5">
+              Custom Image Web URL
+            </label>
+            <form onSubmit={handleApplyCustomUrl} className="flex gap-1.5">
+              <div className="relative flex-1">
+                <Link className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-white/40 light:text-slate-400" />
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={customInput}
+                  onChange={(e) => setCustomInput(e.target.value)}
+                  className="w-full pl-8 pr-2 py-1.5 bg-white/10 dark:bg-slate-900/50 rounded-xl border border-white/15 text-xs text-white placeholder-white/40 focus:outline-none focus:ring-1 ring-accent light:bg-white light:text-slate-900 light:border-slate-300"
+                />
+              </div>
+              <AnimatedButton type="submit" variant="secondary" size="sm">
+                Apply
+              </AnimatedButton>
+            </form>
+          </div>
+        </div>
+
+        {/* Category Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar border-b border-white/10 light:border-slate-200">
           {categories.map((cat) => (
             <button
@@ -79,28 +150,6 @@ export const WallpaperPicker: React.FC = () => {
             <WallpaperCard key={wallpaper.id} wallpaper={wallpaper} />
           ))}
         </div>
-
-        {/* Custom Image URL */}
-        <form onSubmit={handleApplyCustomUrl} className="pt-3 border-t border-white/10 light:border-slate-200">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-white/70 light:text-slate-600 mb-1.5">
-            Use Custom Image URL
-          </label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Link className="absolute left-3 top-2.5 w-4 h-4 text-white/40 light:text-slate-400" />
-              <input
-                type="url"
-                placeholder="https://images.unsplash.com/your-image.jpg"
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-white/10 dark:bg-slate-900/50 rounded-xl border border-white/15 text-xs text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 light:bg-slate-100 light:text-slate-900 light:border-slate-300"
-              />
-            </div>
-            <AnimatedButton type="submit" variant="secondary" size="sm">
-              Apply
-            </AnimatedButton>
-          </div>
-        </form>
 
         {/* Background Overlay Effects Sliders */}
         <div className="space-y-3 pt-3 border-t border-white/10 light:border-slate-200">
@@ -139,3 +188,4 @@ export const WallpaperPicker: React.FC = () => {
     </Modal>
   );
 };
+
