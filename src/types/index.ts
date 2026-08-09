@@ -38,7 +38,7 @@ export interface Quote {
   category?: string;
 }
 
-export type WallpaperCategory = 'nature' | 'abstract' | 'space' | 'mountains' | 'minimal' | 'gradient';
+export type WallpaperCategory = 'nature' | 'abstract' | 'space' | 'mountains' | 'minimal' | 'gradient' | 'live';
 
 export interface Wallpaper {
   id: string;
@@ -47,6 +47,9 @@ export interface Wallpaper {
   thumbnail: string;
   category: WallpaperCategory;
   author?: string;
+  isLive?: boolean;
+  liveType?: 'video' | 'canvas-matrix' | 'canvas-[#id]' | 'canvas-particles' | 'canvas-cybergrid' | 'canvas-starfield' | 'canvas-rain';
+  videoUrl?: string;
 }
 
 export interface RecentTab {

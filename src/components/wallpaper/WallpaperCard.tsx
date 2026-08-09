@@ -1,7 +1,7 @@
 import React from 'react';
 import { Wallpaper } from '../../types';
 import { motion } from 'motion/react';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Video, PlayCircle } from 'lucide-react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 
 interface WallpaperCardProps {
@@ -15,6 +15,7 @@ export const WallpaperCard: React.FC<WallpaperCardProps> = ({ wallpaper }) => {
 
   const isSelected = selectedWallpaper.id === wallpaper.id;
   const isGradient = wallpaper.url.startsWith('gradient:');
+  const isLive = wallpaper.isLive || wallpaper.category === 'live' || wallpaper.url.startsWith('live:');
 
   return (
     <motion.div
@@ -39,6 +40,14 @@ export const WallpaperCard: React.FC<WallpaperCardProps> = ({ wallpaper }) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
+      )}
+
+      {/* Live Badge */}
+      {isLive && (
+        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-accent/90 text-white flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase shadow-md backdrop-blur-sm">
+          <PlayCircle className="w-3 h-3 animate-pulse" />
+          <span>LIVE</span>
+        </div>
       )}
 
       {/* Selected overlay badge */}

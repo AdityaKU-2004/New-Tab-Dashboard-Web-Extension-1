@@ -10,7 +10,83 @@ export const CYBERPUNK_WALLPAPER: Wallpaper = {
   author: 'Cyberpunk HUD'
 };
 
+export const LIVE_WALLPAPERS: Wallpaper[] = [
+  {
+    id: 'live-matrix-1',
+    name: 'Cyber Matrix Code Rain',
+    category: 'live',
+    url: 'live:canvas-matrix',
+    thumbnail: 'gradient:linear-gradient(135deg, #050a14 0%, #00f3ff 100%)',
+    author: 'Live Matrix Engine',
+    isLive: true,
+    liveType: 'canvas-matrix'
+  },
+  {
+    id: 'live-cybergrid-1',
+    name: 'Neon Horizon Synth Grid',
+    category: 'live',
+    url: 'live:canvas-cybergrid',
+    thumbnail: 'gradient:linear-gradient(135deg, #0a0a16 0%, #ff007f 100%)',
+    author: 'Live Synthwave Engine',
+    isLive: true,
+    liveType: 'canvas-cybergrid'
+  },
+  {
+    id: 'live-tokyo-video',
+    name: 'Cyberpunk Tokyo Night',
+    category: 'live',
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-tokyo-street-at-night-42296-large.mp4',
+    thumbnail: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=400&q=60',
+    author: 'Mixkit Video Loop',
+    isLive: true,
+    liveType: 'video',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-tokyo-street-at-night-42296-large.mp4'
+  },
+  {
+    id: 'live-particles-1',
+    name: 'Quantum Particle Flow',
+    category: 'live',
+    url: 'live:canvas-particles',
+    thumbnail: 'gradient:linear-gradient(135deg, #080d1a 0%, #6366f1 100%)',
+    author: 'Live Particle Canvas',
+    isLive: true,
+    liveType: 'canvas-particles'
+  },
+  {
+    id: 'live-starfield-1',
+    name: '3D Warp Velocity Starfield',
+    category: 'live',
+    url: 'live:canvas-starfield',
+    thumbnail: 'gradient:linear-gradient(135deg, #030712 0%, #38bdf8 100%)',
+    author: 'Live Starfield Engine',
+    isLive: true,
+    liveType: 'canvas-starfield'
+  },
+  {
+    id: 'live-rain-1',
+    name: 'Atmospheric Neon Rain',
+    category: 'live',
+    url: 'live:canvas-rain',
+    thumbnail: 'gradient:linear-gradient(135deg, #0a0f1e 0%, #00f3ff 100%)',
+    author: 'Live Rain Engine',
+    isLive: true,
+    liveType: 'canvas-rain'
+  },
+  {
+    id: 'live-tunnel-video',
+    name: 'Futuristic Light Tunnel',
+    category: 'live',
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-tunnel-of-futuristic-lights-22238-large.mp4',
+    thumbnail: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=400&q=60',
+    author: 'Mixkit Video Loop',
+    isLive: true,
+    liveType: 'video',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-tunnel-of-futuristic-lights-22238-large.mp4'
+  }
+];
+
 export const INITIAL_WALLPAPERS: Wallpaper[] = [
+  ...LIVE_WALLPAPERS,
   CYBERPUNK_WALLPAPER,
   {
     id: 'frosted-glass-1',

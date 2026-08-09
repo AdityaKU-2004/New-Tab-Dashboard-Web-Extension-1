@@ -24,6 +24,7 @@ export const WallpaperPicker: React.FC = () => {
 
   const categories: { id: WallpaperCategory | 'all'; label: string }[] = [
     { id: 'all', label: 'All' },
+    { id: 'live', label: 'Live Wallpapers 🎥' },
     { id: 'nature', label: 'Nature' },
     { id: 'mountains', label: 'Mountains' },
     { id: 'space', label: 'Space' },
@@ -39,18 +40,24 @@ export const WallpaperPicker: React.FC = () => {
 
   const handleApplyCustomUrl = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customInput.trim()) return;
+    const url = customInput.trim();
+    if (!url) return;
+
+    const isVideo = url.endsWith('.mp4') || url.endsWith('.webm') || url.includes('video');
 
     const customWP: Wallpaper = {
       id: 'custom_' + Date.now(),
-      name: 'Custom Wallpaper',
-      url: customInput.trim(),
-      thumbnail: customInput.trim(),
-      category: 'minimal',
-      author: 'Custom URL'
+      name: isVideo ? 'Live Video Wallpaper' : 'Custom Wallpaper',
+      url: url,
+      thumbnail: isVideo ? 'gradient:linear-gradient(135deg, #090d16 0%, #00f3ff 100%)' : url,
+      category: isVideo ? 'live' : 'minimal',
+      author: 'Custom URL',
+      isLive: isVideo,
+      liveType: isVideo ? 'video' : undefined,
+      videoUrl: isVideo ? url : undefined
     };
 
-    setCustomUrl(customInput.trim());
+    setCustomUrl(url);
     setSelectedWallpaper(customWP);
   };
 
@@ -91,21 +98,30 @@ export const WallpaperPicker: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const isVideo = file.type.startsWith('video/');
+
     const reader = new FileReader();
     reader.onload = async (event) => {
       const rawDataUrl = event.target?.result as string;
       if (rawDataUrl) {
-        const compressedUrl = await compressImageDataUrl(rawDataUrl);
+        let finalUrl = rawDataUrl;
+        if (!isVideo) {
+          finalUrl = await compressImageDataUrl(rawDataUrl);
+        }
+
         const uploadedWP: Wallpaper = {
           id: 'uploaded_' + Date.now(),
           name: file.name.replace(/\.[^/.]+$/, ''),
-          url: compressedUrl,
-          thumbnail: compressedUrl,
-          category: 'minimal',
-          author: 'Uploaded File'
+          url: finalUrl,
+          thumbnail: isVideo ? 'gradient:linear-gradient(135deg, #0f172a 0%, #00f3ff 100%)' : finalUrl,
+          category: isVideo ? 'live' : 'minimal',
+          author: 'Uploaded File',
+          isLive: isVideo,
+          liveType: isVideo ? 'video' : undefined,
+          videoUrl: isVideo ? finalUrl : undefined
         };
-        setCustomUrl(compressedUrl);
-        setCustomInput(compressedUrl);
+        setCustomUrl(finalUrl);
+        setCustomInput(finalUrl);
         setSelectedWallpaper(uploadedWP);
       }
     };
@@ -119,12 +135,12 @@ export const WallpaperPicker: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 light:bg-slate-100 light:border-slate-200">
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-white/70 light:text-slate-600 mb-1.5">
-              Upload Local Image File
+              Upload Image or Video File
             </label>
             <input
               type="file"
               ref={fileInputRef}
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={handleFileUpload}
               className="hidden"
             />
@@ -134,7 +150,7 @@ export const WallpaperPicker: React.FC = () => {
               className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-accent hover:opacity-90 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Choose Image from Device</span>
+              <span>Choose Image/Video from Device</span>
             </button>
           </div>
 

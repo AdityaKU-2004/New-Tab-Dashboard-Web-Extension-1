@@ -11,6 +11,7 @@ import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
 import { CyberHudStats } from '../cyberpunk/CyberHudStats';
+import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
 import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
@@ -19,6 +20,10 @@ export const DashboardLayout: React.FC = () => {
   useTheme(); // Initializes light/dark theme class and accent variables
 
   const isGradient = selectedWallpaper.url.startsWith('gradient:');
+  const isLiveCanvas = selectedWallpaper.url.startsWith('live:canvas-') || (selectedWallpaper.liveType && selectedWallpaper.liveType.startsWith('canvas-'));
+  const isLiveVideo = selectedWallpaper.liveType === 'video' || selectedWallpaper.url.endsWith('.mp4') || selectedWallpaper.url.endsWith('.webm') || selectedWallpaper.url.startsWith('data:video/');
+  const canvasType = selectedWallpaper.liveType || selectedWallpaper.url.replace('live:', '');
+
   const isCyberpunk = theme === 'cyberpunk';
 
   return (
@@ -28,7 +33,18 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Wallpaper Background Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        {isGradient ? (
+        {isLiveCanvas ? (
+          <LiveCanvasWallpaper type={canvasType} />
+        ) : isLiveVideo ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover transition-all duration-700 scale-105"
+            src={selectedWallpaper.videoUrl || selectedWallpaper.url}
+          />
+        ) : isGradient ? (
           <div
             className="w-full h-full transition-all duration-700"
             style={{ background: selectedWallpaper.url.replace('gradient:', '') }}
