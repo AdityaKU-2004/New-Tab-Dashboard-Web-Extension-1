@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Laptop, Zap } from 'lucide-react';
+import { Sun, Moon, Laptop, Zap, Code2 } from 'lucide-react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { IconButton } from './IconButton';
 import { ThemeMode } from '../../types';
@@ -11,7 +11,7 @@ export const ThemeToggle: React.FC = () => {
   const setSelectedWallpaper = useDashboardStore((state) => state.setSelectedWallpaper);
 
   const cycleTheme = () => {
-    const modes: ThemeMode[] = ['dark', 'light', 'cyberpunk', 'system'];
+    const modes: ThemeMode[] = ['dark', 'light', 'cyberpunk', 'developer', 'system'];
     const nextIndex = (modes.indexOf(theme) + 1) % modes.length;
     const nextTheme = modes[nextIndex];
     
@@ -29,6 +29,8 @@ export const ThemeToggle: React.FC = () => {
         return <Moon className="w-4 h-4 text-indigo-400" />;
       case 'cyberpunk':
         return <Zap className="w-4 h-4 text-[#00f3ff] drop-shadow-[0_0_8px_#00f3ff]" />;
+      case 'developer':
+        return <Code2 className="w-4 h-4 text-[#58a6ff]" />;
       default:
         return <Laptop className="w-4 h-4 text-slate-300" />;
     }

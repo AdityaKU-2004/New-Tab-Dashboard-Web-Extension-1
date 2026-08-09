@@ -12,12 +12,17 @@ import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
 import { CyberHudStats } from '../cyberpunk/CyberHudStats';
 import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
+import { DeveloperLayout } from '../developer/DeveloperLayout';
 import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
   const selectedWallpaper = useDashboardStore((state) => state.selectedWallpaper);
   const { widgetVisibility, darkOverlayOpacity, theme } = useDashboardStore((state) => state.settings);
   useTheme(); // Initializes light/dark theme class and accent variables
+
+  if (theme === 'developer') {
+    return <DeveloperLayout />;
+  }
 
   const isGradient = selectedWallpaper.url.startsWith('gradient:');
   const isLiveCanvas = selectedWallpaper.url.startsWith('live:canvas-') || (selectedWallpaper.liveType && selectedWallpaper.liveType.startsWith('canvas-'));

@@ -104,22 +104,31 @@ export function useTheme() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const applyTheme = () => {
-      let isDark = theme === 'dark' || theme === 'cyberpunk';
+      let isDark = theme === 'dark' || theme === 'cyberpunk' || theme === 'developer';
       if (theme === 'system') {
         isDark = mediaQuery.matches;
       }
 
-      if (theme === 'cyberpunk') {
+      if (theme === 'developer') {
+        root.classList.add('dark', 'developer');
+        root.classList.remove('light', 'cyberpunk');
+        root.setAttribute('data-theme', 'developer');
+        root.style.setProperty('--accent-color', '#58a6ff');
+        root.style.setProperty('--accent-rgb', '88, 166, 255');
+      } else if (theme === 'cyberpunk') {
         root.classList.add('dark', 'cyberpunk');
-        root.classList.remove('light');
+        root.classList.remove('light', 'developer');
+        root.removeAttribute('data-theme');
         root.style.setProperty('--accent-color', '#00f3ff');
         root.style.setProperty('--accent-rgb', '0, 243, 255');
       } else if (isDark) {
         root.classList.add('dark');
-        root.classList.remove('light', 'cyberpunk');
+        root.classList.remove('light', 'cyberpunk', 'developer');
+        root.removeAttribute('data-theme');
       } else {
-        root.classList.remove('dark', 'cyberpunk');
+        root.classList.remove('dark', 'cyberpunk', 'developer');
         root.classList.add('light');
+        root.removeAttribute('data-theme');
       }
     };
 

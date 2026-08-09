@@ -11,6 +11,7 @@ import {
   Moon,
   Laptop,
   Zap,
+  Code2,
   Clock,
   Search,
   Sliders,
@@ -79,8 +80,8 @@ export const SettingsDrawer: React.FC = () => {
                   </label>
 
                   {/* Theme Mode Buttons */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                    {(['dark', 'light', 'cyberpunk', 'system'] as ThemeMode[]).map((mode) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+                    {(['dark', 'light', 'cyberpunk', 'developer', 'system'] as ThemeMode[]).map((mode) => (
                       <button
                         key={mode}
                         type="button"
@@ -90,7 +91,7 @@ export const SettingsDrawer: React.FC = () => {
                           }
                           updateSettings({ theme: mode });
                         }}
-                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                        className={`flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
                           settings.theme === mode
                             ? 'bg-accent text-white border-accent-full shadow-md'
                             : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
@@ -99,6 +100,7 @@ export const SettingsDrawer: React.FC = () => {
                         {mode === 'light' && <Sun className="w-3.5 h-3.5 text-amber-400" />}
                         {mode === 'dark' && <Moon className="w-3.5 h-3.5 text-accent" />}
                         {mode === 'cyberpunk' && <Zap className="w-3.5 h-3.5 text-[#00f3ff]" />}
+                        {mode === 'developer' && <Code2 className="w-3.5 h-3.5 text-[#58a6ff]" />}
                         {mode === 'system' && <Laptop className="w-3.5 h-3.5 text-slate-300" />}
                         <span>{mode}</span>
                       </button>

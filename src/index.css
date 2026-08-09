@@ -3,6 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant light (&:where(.light, .light *));
 @custom-variant cyberpunk (&:where(.cyberpunk, .cyberpunk *));
+@custom-variant developer (&:where(.developer, .developer *, [data-theme="developer"], [data-theme="developer"] *));
 
 :root {
   --accent-color: #6366f1;
@@ -12,6 +13,23 @@
 .cyberpunk {
   --accent-color: #00f3ff;
   --accent-rgb: 0, 243, 255;
+  color-scheme: dark;
+}
+
+.developer, [data-theme="developer"] {
+  --bg-developer: #0D1117;
+  --sidebar-developer: #11161D;
+  --card-developer: #161B22;
+  --border-developer: #30363D;
+  --text-primary-developer: #E6EDF3;
+  --text-secondary-developer: #8B949E;
+  --accent-developer: #58A6FF;
+  --success-developer: #3FB950;
+  --warning-developer: #D29922;
+  --danger-developer: #F85149;
+
+  --accent-color: #58A6FF;
+  --accent-rgb: 88, 166, 255;
   color-scheme: dark;
 }
 

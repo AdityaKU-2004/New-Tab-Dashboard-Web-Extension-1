@@ -1,4 +1,4 @@
-export type ThemeMode = 'dark' | 'light' | 'system' | 'cyberpunk';
+export type ThemeMode = 'dark' | 'light' | 'system' | 'cyberpunk' | 'developer';
 
 export type AccentColor = 'indigo' | 'emerald' | 'violet' | 'rose' | 'amber' | 'cyan' | 'slate';
 
