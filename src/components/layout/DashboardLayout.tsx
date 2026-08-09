@@ -10,17 +10,22 @@ import { QuoteCard } from '../quote/QuoteCard';
 import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
+import { CyberHudStats } from '../cyberpunk/CyberHudStats';
 import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
   const selectedWallpaper = useDashboardStore((state) => state.selectedWallpaper);
-  const { widgetVisibility, darkOverlayOpacity } = useDashboardStore((state) => state.settings);
+  const { widgetVisibility, darkOverlayOpacity, theme } = useDashboardStore((state) => state.settings);
   useTheme(); // Initializes light/dark theme class and accent variables
 
   const isGradient = selectedWallpaper.url.startsWith('gradient:');
+  const isCyberpunk = theme === 'cyberpunk';
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden font-sans dark:text-slate-100 light:text-slate-900 flex flex-col justify-between selection:bg-accent selection:text-white">
+    <div className={`relative min-h-screen w-full overflow-x-hidden font-sans dark:text-slate-100 light:text-slate-900 flex flex-col justify-between selection:bg-accent selection:text-white ${isCyberpunk ? 'cyberpunk cyber-scanlines' : ''}`}>
+      {/* Outer Rainmeter Cyberpunk Screen HUD Frame */}
+      {isCyberpunk && <div className="cyberpunk-screen-frame pointer-events-none" />}
+
       {/* Wallpaper Background Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {isGradient ? (

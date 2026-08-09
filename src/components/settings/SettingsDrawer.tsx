@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useDashboardStore, SEARCH_ENGINES } from '../../store/useDashboardStore';
 import { AccentColor, SearchEngineId, ThemeMode } from '../../types';
 import { ACCENT_COLOR_CLASSES } from '../../hooks/useTheme';
+import { CYBERPUNK_WALLPAPER } from '../../mock/wallpapers';
 import {
   X,
   RotateCcw,
   Sun,
   Moon,
   Laptop,
+  Zap,
   Clock,
   Search,
   Sliders,
@@ -76,13 +78,18 @@ export const SettingsDrawer: React.FC = () => {
                   </label>
 
                   {/* Theme Mode Buttons */}
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    {(['dark', 'light', 'system'] as ThemeMode[]).map((mode) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    {(['dark', 'light', 'cyberpunk', 'system'] as ThemeMode[]).map((mode) => (
                       <button
                         key={mode}
                         type="button"
-                        onClick={() => updateSettings({ theme: mode })}
-                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                        onClick={() => {
+                          if (mode === 'cyberpunk') {
+                            useDashboardStore.getState().setSelectedWallpaper(CYBERPUNK_WALLPAPER);
+                          }
+                          updateSettings({ theme: mode });
+                        }}
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer ${
                           settings.theme === mode
                             ? 'bg-accent text-white border-accent-full shadow-md'
                             : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
@@ -90,6 +97,7 @@ export const SettingsDrawer: React.FC = () => {
                       >
                         {mode === 'light' && <Sun className="w-3.5 h-3.5 text-amber-400" />}
                         {mode === 'dark' && <Moon className="w-3.5 h-3.5 text-accent" />}
+                        {mode === 'cyberpunk' && <Zap className="w-3.5 h-3.5 text-[#00f3ff]" />}
                         {mode === 'system' && <Laptop className="w-3.5 h-3.5 text-slate-300" />}
                         <span>{mode}</span>
                       </button>

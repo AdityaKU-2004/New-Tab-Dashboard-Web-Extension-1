@@ -1,6 +1,17 @@
 import { Wallpaper } from '../types';
+import cyberpunkSamuraiImg from '../assets/images/cyberpunk_samurai_1786112527505.jpg';
+
+export const CYBERPUNK_WALLPAPER: Wallpaper = {
+  id: 'cyberpunk-samurai-1',
+  name: 'Cyberpunk Samurai HUD',
+  category: 'abstract',
+  url: cyberpunkSamuraiImg,
+  thumbnail: cyberpunkSamuraiImg,
+  author: 'Cyberpunk HUD'
+};
 
 export const INITIAL_WALLPAPERS: Wallpaper[] = [
+  CYBERPUNK_WALLPAPER,
   {
     id: 'frosted-glass-1',
     name: 'Frosted Twilight Mesh',

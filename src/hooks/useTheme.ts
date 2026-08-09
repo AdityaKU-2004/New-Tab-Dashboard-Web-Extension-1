@@ -104,16 +104,21 @@ export function useTheme() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const applyTheme = () => {
-      let isDark = theme === 'dark';
+      let isDark = theme === 'dark' || theme === 'cyberpunk';
       if (theme === 'system') {
         isDark = mediaQuery.matches;
       }
 
-      if (isDark) {
-        root.classList.add('dark');
+      if (theme === 'cyberpunk') {
+        root.classList.add('dark', 'cyberpunk');
         root.classList.remove('light');
+        root.style.setProperty('--accent-color', '#00f3ff');
+        root.style.setProperty('--accent-rgb', '0, 243, 255');
+      } else if (isDark) {
+        root.classList.add('dark');
+        root.classList.remove('light', 'cyberpunk');
       } else {
-        root.classList.remove('dark');
+        root.classList.remove('dark', 'cyberpunk');
         root.classList.add('light');
       }
     };
