@@ -31,6 +31,7 @@ export const SEARCH_ENGINES: Record<SearchEngineId, { name: string; url: string;
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   accentColor: 'indigo',
+  clockStyle: 'digital',
   clockFormat12: true,
   showSeconds: true,
   showGreeting: true,

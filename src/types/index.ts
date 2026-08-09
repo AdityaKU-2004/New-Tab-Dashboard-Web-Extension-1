@@ -75,6 +75,7 @@ export interface WidgetVisibility {
 export interface AppSettings {
   theme: ThemeMode;
   accentColor: AccentColor;
+  clockStyle?: 'digital' | 'speedometer';
   clockFormat12: boolean;
   showSeconds: boolean;
   showGreeting: boolean;

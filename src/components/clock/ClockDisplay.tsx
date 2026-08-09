@@ -3,16 +3,50 @@ import { motion } from 'motion/react';
 import { useClock } from '../../hooks/useClock';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { GlassCard } from '../ui/GlassCard';
-import { Clock, Calendar as CalendarIcon, User } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, Gauge, Sparkles } from 'lucide-react';
+import { SpeedometerClock } from './SpeedometerClock';
 
 export const ClockDisplay: React.FC = () => {
-  const { clockFormat12, showSeconds, showGreeting, userName, enableAnimations } = useDashboardStore(
+  const { clockFormat12, showSeconds, showGreeting, userName, enableAnimations, clockStyle = 'digital' } = useDashboardStore(
     (state) => state.settings
   );
+  const updateSettings = useDashboardStore((state) => state.updateSettings);
   const { hours, minutes, seconds, ampm, dayName, formattedDate, greeting } = useClock(clockFormat12);
 
+  const toggleClockStyle = () => {
+    updateSettings({ clockStyle: clockStyle === 'speedometer' ? 'digital' : 'speedometer' });
+  };
+
+  if (clockStyle === 'speedometer') {
+    return (
+      <GlassCard className="relative flex flex-col items-center justify-center py-4 px-6 text-center select-none group">
+        {/* Quick Style Switcher Floating Badge */}
+        <button
+          onClick={toggleClockStyle}
+          className="absolute top-3 right-3 px-2 py-1 rounded-full bg-slate-950/80 border border-[#00f3ff]/40 text-[#00f3ff] hover:bg-[#00f3ff]/20 text-[10px] font-mono font-bold flex items-center gap-1 transition-all cursor-pointer opacity-70 group-hover:opacity-100 shadow-md z-30"
+          title="Switch to Digital Clock"
+        >
+          <Clock className="w-3 h-3" />
+          <span>DIGITAL</span>
+        </button>
+
+        <SpeedometerClock />
+      </GlassCard>
+    );
+  }
+
   return (
-    <GlassCard className="flex flex-col items-center justify-center py-6 px-8 text-center select-none">
+    <GlassCard className="relative flex flex-col items-center justify-center py-6 px-8 text-center select-none group">
+      {/* Quick Style Switcher Floating Badge */}
+      <button
+        onClick={toggleClockStyle}
+        className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/10 dark:bg-slate-900/60 border border-white/10 hover:border-accent hover:text-accent text-white/70 light:text-slate-600 text-[10px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer opacity-70 group-hover:opacity-100 shadow-md"
+        title="Switch to Sports Car Speedometer Clock"
+      >
+        <Gauge className="w-3.5 h-3.5 text-accent" />
+        <span>SPEEDOMETER</span>
+      </button>
+
       {showGreeting && (
         <motion.div
           initial={enableAnimations ? { opacity: 0, y: -6 } : false}
@@ -57,3 +91,4 @@ export const ClockDisplay: React.FC = () => {
     </GlassCard>
   );
 };
+
