@@ -11,6 +11,7 @@ import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
 import { CyberHudStats } from '../cyberpunk/CyberHudStats';
+import { CyberpunkSportsSpeedometer } from '../cyberpunk/CyberpunkSportsSpeedometer';
 import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
 import { DeveloperLayout } from '../developer/DeveloperLayout';
 import { GitHubDailyTasks } from '../developer/github/GitHubDailyTasks';
@@ -81,6 +82,9 @@ export const DashboardLayout: React.FC = () => {
         <Header />
 
         <main className="flex-1 my-4 space-y-6">
+          {/* Cyberpunk Theme Sports Car Speedometer HUD */}
+          {isCyberpunk && <CyberpunkSportsSpeedometer />}
+
           {/* Row 1: Clock & Search Bar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
             {widgetVisibility.clock && (

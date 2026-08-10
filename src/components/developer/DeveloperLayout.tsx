@@ -13,9 +13,11 @@ import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { GitHubDashboard, GitHubSubTab } from './github/GitHubDashboard';
 import { GitHubDailyTasks } from './github/GitHubDailyTasks';
 import { UnreadGmailWidget } from '../gmail/UnreadGmailWidget';
+import { CyberpunkSportsSpeedometer } from '../cyberpunk/CyberpunkSportsSpeedometer';
 import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
 export const DeveloperLayout: React.FC = () => {
+  const theme = useDashboardStore((state) => state.settings.theme);
   const [activeTab, setActiveTab] = useState<DeveloperTab>('home');
   const [gitSubTab, setGitSubTab] = useState<GitHubSubTab>('repos');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -69,6 +71,8 @@ export const DeveloperLayout: React.FC = () => {
 
         {/* Workspace Body */}
         <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 overflow-y-auto custom-scrollbar">
+          {theme === 'cyberpunk' && <CyberpunkSportsSpeedometer />}
+
           {activeTab === 'home' && (
             <>
               {/* Daily Brief - Primary Dashboard Section */}
