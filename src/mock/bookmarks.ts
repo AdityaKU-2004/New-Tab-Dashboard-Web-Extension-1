@@ -1,10 +1,10 @@
 import { Bookmark, BookmarkFolder } from '../types';
 
 export const INITIAL_FOLDERS: BookmarkFolder[] = [
-  { id: 'f_dev', name: 'Development' },
-  { id: 'f_work', name: 'Work' },
-  { id: 'f_social', name: 'Social' },
-  { id: 'f_personal', name: 'Personal' }
+  { id: 'f_dev', name: 'Developer', createdAt: Date.now() - 1000000 },
+  { id: 'f_ai', name: 'AI & Tools', createdAt: Date.now() - 900000 },
+  { id: 'f_prod', name: 'Productivity', createdAt: Date.now() - 800000 },
+  { id: 'f_media', name: 'Media & Design', createdAt: Date.now() - 700000 }
 ];
 
 export const INITIAL_BOOKMARKS: Bookmark[] = [
@@ -13,127 +13,63 @@ export const INITIAL_BOOKMARKS: Bookmark[] = [
     title: 'GitHub',
     url: 'https://github.com',
     icon: 'https://github.githubassets.com/favicons/favicon.png',
-    category: 'Development',
-    folderId: 'f_dev',
-    description: 'Code hosting platform & repositories',
-    tags: ['development', 'coding', 'projects'],
-    favorite: true,
-    isQuickLink: true,
-    createdAt: Date.now() - 1000000,
-    lastUsedAt: Date.now() - 120000,
-    visitCount: 142,
-    sortOrder: 1
+    category: 'Developer',
+    createdAt: Date.now() - 1000000
   },
   {
     id: 'b2',
-    title: 'Stack Overflow',
-    url: 'https://stackoverflow.com',
-    icon: 'https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico',
-    category: 'Development',
-    folderId: 'f_dev',
-    description: 'Q&A community for software developers',
-    tags: ['development', 'coding', 'research'],
-    favorite: true,
-    isQuickLink: true,
-    createdAt: Date.now() - 950000,
-    lastUsedAt: Date.now() - 900000,
-    visitCount: 88,
-    sortOrder: 2
-  },
-  {
-    id: 'b3',
-    title: 'MDN Web Docs',
-    url: 'https://developer.mozilla.org',
-    icon: 'https://developer.mozilla.org/favicon-48x48.png',
-    category: 'Development',
-    folderId: 'f_dev',
-    description: 'Resources for developers by developers',
-    tags: ['development', 'web', 'docs'],
-    favorite: false,
-    isQuickLink: true,
-    createdAt: Date.now() - 900000,
-    lastUsedAt: Date.now() - 3600000,
-    visitCount: 64,
-    sortOrder: 3
-  },
-  {
-    id: 'b4',
-    title: 'Gmail',
-    url: 'https://mail.google.com',
-    icon: 'https://ssl.gstatic.com/ui/v1/icons/mail/images/cleardot.gif',
-    category: 'Work',
-    folderId: 'f_work',
-    description: 'Work and personal email inbox',
-    tags: ['work', 'email', 'communication'],
-    favorite: true,
-    isQuickLink: true,
-    createdAt: Date.now() - 850000,
-    lastUsedAt: Date.now() - 1800000,
-    visitCount: 110,
-    sortOrder: 4
-  },
-  {
-    id: 'b5',
-    title: 'Google Drive',
-    url: 'https://drive.google.com',
-    icon: 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png',
-    category: 'Work',
-    folderId: 'f_work',
-    description: 'Cloud storage and document workspace',
-    tags: ['work', 'storage', 'docs'],
-    favorite: false,
-    isQuickLink: false,
-    createdAt: Date.now() - 800000,
-    lastUsedAt: Date.now() - 7200000,
-    visitCount: 45,
-    sortOrder: 5
-  },
-  {
-    id: 'b6',
     title: 'YouTube',
     url: 'https://youtube.com',
     icon: 'https://www.youtube.com/s/desktop/f5af03f8/img/favicon.ico',
-    category: 'Social',
-    folderId: 'f_social',
-    description: 'Video streaming and tutorials',
-    tags: ['social', 'media', 'learning'],
-    favorite: true,
-    isQuickLink: true,
-    createdAt: Date.now() - 750000,
-    lastUsedAt: Date.now() - 60000,
-    visitCount: 95,
-    sortOrder: 6
+    category: 'Media',
+    createdAt: Date.now() - 900000
   },
   {
-    id: 'b7',
-    title: 'Reddit',
-    url: 'https://reddit.com',
-    icon: 'https://www.redditstatic.com/shreddit/assets/favicon/192x192.png',
-    category: 'Social',
-    folderId: 'f_social',
-    description: 'Community discussions and news',
-    tags: ['social', 'community', 'news'],
-    favorite: false,
-    isQuickLink: false,
-    createdAt: Date.now() - 700000,
-    lastUsedAt: Date.now() - 14400000,
-    visitCount: 52,
-    sortOrder: 7
-  },
-  {
-    id: 'b8',
+    id: 'b3',
     title: 'ChatGPT',
     url: 'https://chatgpt.com',
     icon: 'https://chatgpt.com/favicon.ico',
-    category: 'Development',
-    folderId: 'f_dev',
-    description: 'AI conversational assistant and code helper',
-    tags: ['ai', 'coding', 'productivity'],
-    favorite: true,
-    isQuickLink: true,
-    createdAt: Date.now() - 650000,
-    lastUsedAt: Date.now() - 300000,
-    visitCount: 130,
-    sortOrder: 8
+    category: 'AI',
+    createdAt: Date.now() - 800000
+  },
+  {
+    id: 'b4',
+    title: 'Notion',
+    url: 'https://notion.so',
+    icon: 'https://www.notion.so/images/favicon.ico',
+    category: 'Productivity',
+    createdAt: Date.now() - 700000
+  },
+  {
+    id: 'b5',
+    title: 'Figma',
+    url: 'https://figma.com',
+    icon: 'https://static.figma.com/app/icon/1/favicon.ico',
+    category: 'Design',
+    createdAt: Date.now() - 600000
+  },
+  {
+    id: 'b6',
+    title: 'Twitter / X',
+    url: 'https://x.com',
+    icon: 'https://abs.twimg.com/favicons/twitter.3.ico',
+    category: 'Social',
+    createdAt: Date.now() - 500000
+  },
+  {
+    id: 'b7',
+    title: 'Vercel',
+    url: 'https://vercel.com',
+    icon: 'https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png',
+    category: 'Developer',
+    createdAt: Date.now() - 400000
+  },
+  {
+    id: 'b8',
+    title: 'Reddit',
+    url: 'https://reddit.com',
+    icon: 'https://www.redditstatic.com/shreddit/assets/favicon/192x192.png',
+    category: 'Community',
+    createdAt: Date.now() - 300000
   }
 ];

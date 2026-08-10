@@ -37,7 +37,8 @@ export const SmartLinkCard: React.FC<SmartLinkCardProps> = ({
   const toggleFavoriteBookmark = useDashboardStore((state) => state.toggleFavoriteBookmark);
   const toggleQuickLinkBookmark = useDashboardStore((state) => state.toggleQuickLinkBookmark);
 
-  const folder = folders.find((f) => f.id === bookmark.folderId || f.name === bookmark.category);
+  const safeFolders = Array.isArray(folders) ? folders : [];
+  const folder = safeFolders.find((f) => f.id === bookmark.folderId || f.name === bookmark.category);
 
   const getDomain = (url: string) => {
     try {

@@ -21,8 +21,10 @@ import {
 } from 'lucide-react';
 
 export const SmartLinkManager: React.FC = () => {
-  const bookmarks = useDashboardStore((state) => state.bookmarks);
-  const folders = useDashboardStore((state) => state.folders);
+  const rawBookmarks = useDashboardStore((state) => state.bookmarks);
+  const rawFolders = useDashboardStore((state) => state.folders);
+  const bookmarks = Array.isArray(rawBookmarks) ? rawBookmarks : [];
+  const folders = Array.isArray(rawFolders) ? rawFolders : [];
   const addFolder = useDashboardStore((state) => state.addFolder);
   const deleteFolder = useDashboardStore((state) => state.deleteFolder);
   const renameFolder = useDashboardStore((state) => state.renameFolder);

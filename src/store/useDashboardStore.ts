@@ -74,7 +74,15 @@ interface DashboardStore {
   renameFolder: (id: string, name: string) => void;
 
   bookmarks: Bookmark[];
-  addBookmark: (title: string, url: string, category?: string, description?: string, tags?: string[], folderId?: string, isQuickLink?: boolean) => void;
+  addBookmark: (
+    title: string,
+    url: string,
+    category?: string,
+    description?: string,
+    tags?: string[],
+    folderId?: string,
+    isQuickLink?: boolean
+  ) => void;
   updateBookmark: (id: string, updates: Partial<Bookmark>) => void;
   deleteBookmark: (id: string) => void;
   recordBookmarkClick: (id: string) => void;
@@ -182,27 +190,31 @@ export const useDashboardStore = create<DashboardStore>()(
       customWallpaperUrl: '',
       setCustomWallpaperUrl: (url) => set({ customWallpaperUrl: url }),
 
-      // Folders State
+      // Folders & Bookmarks State
       folders: INITIAL_FOLDERS,
       addFolder: (name) => {
         if (!name.trim()) return;
         const newFolder: BookmarkFolder = {
           id: 'f_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-          name: name.trim()
+          name: name.trim(),
+          createdAt: Date.now()
         };
-        set((state) => ({ folders: [...state.folders, newFolder] }));
+        set((state) => ({ folders: [...(state.folders || []), newFolder] }));
       },
       deleteFolder: (id) =>
         set((state) => ({
-          folders: state.folders.filter((f) => f.id !== id),
-          bookmarks: state.bookmarks.map((b) => (b.folderId === id ? { ...b, folderId: undefined } : b))
+          folders: (state.folders || []).filter((f) => f.id !== id),
+          bookmarks: (state.bookmarks || []).map((b) =>
+            b.folderId === id ? { ...b, folderId: undefined } : b
+          )
         })),
       renameFolder: (id, name) =>
         set((state) => ({
-          folders: state.folders.map((f) => (f.id === id ? { ...f, name: name.trim() } : f))
+          folders: (state.folders || []).map((f) =>
+            f.id === id ? { ...f, name: name.trim() } : f
+          )
         })),
 
-      // Bookmarks State
       bookmarks: INITIAL_BOOKMARKS,
       addBookmark: (title, url, category, description, tags, folderId, isQuickLink) => {
         const formattedUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
@@ -218,46 +230,51 @@ export const useDashboardStore = create<DashboardStore>()(
           url: formattedUrl,
           icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
           category: category || 'General',
-          folderId,
           description,
-          tags: tags || [],
-          favorite: false,
-          isQuickLink: isQuickLink ?? false,
+          tags,
+          folderId,
+          isQuickLink,
           createdAt: Date.now(),
-          visitCount: 0,
-          sortOrder: Date.now()
+          visitCount: 0
         };
-        set((state) => ({ bookmarks: [newBm, ...state.bookmarks] }));
+        set((state) => ({ bookmarks: [newBm, ...(state.bookmarks || [])] }));
       },
       updateBookmark: (id, updates) =>
         set((state) => ({
-          bookmarks: state.bookmarks.map((b) => (b.id === id ? { ...b, ...updates, updatedAt: Date.now() } : b))
+          bookmarks: (state.bookmarks || []).map((b) =>
+            b.id === id ? { ...b, ...updates } : b
+          )
         })),
       deleteBookmark: (id) =>
         set((state) => ({
-          bookmarks: state.bookmarks.filter((b) => b.id !== id)
+          bookmarks: (state.bookmarks || []).filter((b) => b.id !== id)
         })),
       recordBookmarkClick: (id) =>
         set((state) => ({
-          bookmarks: state.bookmarks.map((b) =>
+          bookmarks: (state.bookmarks || []).map((b) =>
             b.id === id
               ? {
                   ...b,
-                  lastUsedAt: Date.now(),
-                  visitCount: (b.visitCount || 0) + 1
+                  visitCount: (b.visitCount || 0) + 1,
+                  lastUsedAt: Date.now()
                 }
               : b
           )
         })),
       toggleFavoriteBookmark: (id) =>
         set((state) => ({
-          bookmarks: state.bookmarks.map((b) => (b.id === id ? { ...b, favorite: !b.favorite } : b))
+          bookmarks: (state.bookmarks || []).map((b) =>
+            b.id === id ? { ...b, favorite: !b.favorite } : b
+          )
         })),
       toggleQuickLinkBookmark: (id) =>
         set((state) => ({
-          bookmarks: state.bookmarks.map((b) => (b.id === id ? { ...b, isQuickLink: !b.isQuickLink } : b))
+          bookmarks: (state.bookmarks || []).map((b) =>
+            b.id === id ? { ...b, isQuickLink: !b.isQuickLink } : b
+          )
         })),
-      reorderBookmarks: (newBookmarks) => set({ bookmarks: newBookmarks }),
+      reorderBookmarks: (newBookmarks) =>
+        set({ bookmarks: newBookmarks }),
 
       // Todos State
       todos: INITIAL_TODOS,
@@ -355,12 +372,22 @@ export const useDashboardStore = create<DashboardStore>()(
           settings: state.settings,
           selectedWallpaper: cleanSelectedWallpaper,
           customWallpaperUrl: cleanCustomWallpaperUrl,
-          folders: state.folders,
-          bookmarks: state.bookmarks,
-          todos: state.todos,
-          favoriteQuoteIds: state.favoriteQuoteIds,
-          recentTabs: state.recentTabs
+          folders: state.folders || INITIAL_FOLDERS,
+          bookmarks: state.bookmarks || INITIAL_BOOKMARKS,
+          todos: state.todos || INITIAL_TODOS,
+          favoriteQuoteIds: state.favoriteQuoteIds || [],
+          recentTabs: state.recentTabs || INITIAL_RECENT_TABS
         };
+      },
+      merge: (persistedState: any, currentState) => {
+        const merged = { ...currentState, ...(persistedState as object) };
+        if (!merged.folders || !Array.isArray(merged.folders)) {
+          merged.folders = INITIAL_FOLDERS;
+        }
+        if (!merged.bookmarks || !Array.isArray(merged.bookmarks)) {
+          merged.bookmarks = INITIAL_BOOKMARKS;
+        }
+        return merged;
       }
     }
   )

@@ -14,7 +14,8 @@ export const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({
   onClose,
   bookmarkToEdit
 }) => {
-  const folders = useDashboardStore((state) => state.folders);
+  const rawFolders = useDashboardStore((state) => state.folders);
+  const folders = Array.isArray(rawFolders) ? rawFolders : [];
   const addBookmark = useDashboardStore((state) => state.addBookmark);
   const updateBookmark = useDashboardStore((state) => state.updateBookmark);
 
