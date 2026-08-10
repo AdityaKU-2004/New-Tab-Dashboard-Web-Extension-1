@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDashboardStore, SEARCH_ENGINES } from '../../store/useDashboardStore';
-import { AccentColor, SearchEngineId, ThemeMode } from '../../types';
+import { AccentColor, SearchEngineId, ThemeMode, WidgetVisibility } from '../../types';
 import { ACCENT_COLOR_CLASSES } from '../../hooks/useTheme';
 import { CYBERPUNK_WALLPAPER } from '../../mock/wallpapers';
 import { GitHubSettingsSection } from '../developer/github/GitHubSettingsSection';
@@ -23,7 +23,8 @@ import {
   Palette,
   LayoutGrid,
   Gauge,
-  Layers
+  Layers,
+  EyeOff
 } from 'lucide-react';
 import { AnimatedButton } from '../ui/AnimatedButton';
 import { IconButton } from '../ui/IconButton';
@@ -294,33 +295,46 @@ export const SettingsDrawer: React.FC = () => {
 
                     <div className="pt-2 border-t border-white/10 light:border-slate-200/60 space-y-1.5">
                       <span className="block text-xs font-semibold text-white/80 light:text-slate-700">
-                        Speedometer HUD Placement
+                        Speedometer HUD Display Mode
                       </span>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-1.5">
                         <button
                           type="button"
                           onClick={() => updateSettings({ speedometerPlacement: 'background' })}
-                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                          className={`flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
                             (settings.speedometerPlacement || 'background') === 'background'
                               ? 'bg-accent text-white border-accent-full shadow-md'
                               : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
                           }`}
                         >
                           <Layers className="w-3.5 h-3.5" />
-                          <span>Background Layer</span>
+                          <span>Background</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => updateSettings({ speedometerPlacement: 'header' })}
-                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                          className={`flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
                             settings.speedometerPlacement === 'header'
                               ? 'bg-accent text-white border-accent-full shadow-md'
                               : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
                           }`}
                         >
                           <Gauge className="w-3.5 h-3.5" />
-                          <span>Header Block</span>
+                          <span>Header</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => updateSettings({ speedometerPlacement: 'hidden' })}
+                          className={`flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
+                            settings.speedometerPlacement === 'hidden'
+                              ? 'bg-accent text-white border-accent-full shadow-md'
+                              : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
+                          }`}
+                        >
+                          <EyeOff className="w-3.5 h-3.5" />
+                          <span>Hidden</span>
                         </button>
                       </div>
                     </div>
@@ -334,33 +348,49 @@ export const SettingsDrawer: React.FC = () => {
                   </label>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    {(
-                      Object.keys(
-                        settings.widgetVisibility
-                      ) as (keyof typeof settings.widgetVisibility)[]
-                    ).map((key) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => toggleWidgetVisibility(key)}
-                        className={`flex items-center justify-between p-2 rounded-xl border text-left cursor-pointer transition-colors ${
-                          settings.widgetVisibility[key]
-                            ? 'bg-accent-soft border-accent text-white light:text-slate-900'
-                            : 'bg-white/5 border-white/10 text-white/40 light:bg-slate-100 light:border-slate-200'
-                        }`}
-                      >
-                        <span className="capitalize font-medium">{key}</span>
-                        <div
-                          className={`w-3.5 h-3.5 rounded-md flex items-center justify-center border ${
-                            settings.widgetVisibility[key]
-                              ? 'bg-accent border-accent text-white'
-                              : 'border-white/30'
-                          }`}
-                        >
-                          {settings.widgetVisibility[key] && <Check className="w-2.5 h-2.5" />}
-                        </div>
-                      </button>
-                    ))}
+                    {(() => {
+                      const WIDGET_LIST: { key: keyof WidgetVisibility; label: string }[] = [
+                        { key: 'clock', label: 'Clock' },
+                        { key: 'search', label: 'Search Bar' },
+                        { key: 'bookmarks', label: 'Bookmarks' },
+                        { key: 'todo', label: 'To-Do List' },
+                        { key: 'dailyTasks', label: 'Daily Tasks' },
+                        { key: 'calendar', label: 'Calendar' },
+                        { key: 'quote', label: 'Daily Quote' },
+                        { key: 'recentTabs', label: 'Recent Tabs' },
+                        { key: 'wallpaperPicker', label: 'Wallpaper Picker' },
+                        { key: 'gmail', label: 'Unread Gmail' },
+                        { key: 'cyberSystemMonitor', label: 'CPU/RAM/Disk Stats' },
+                        { key: 'cyberAudioPlayer', label: 'Cyber Audio Player' }
+                      ];
+
+                      return WIDGET_LIST.map(({ key, label }) => {
+                        const isVisible = settings.widgetVisibility?.[key] !== false;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => toggleWidgetVisibility(key)}
+                            className={`flex items-center justify-between p-2 rounded-xl border text-left cursor-pointer transition-colors ${
+                              isVisible
+                                ? 'bg-accent-soft border-accent text-white light:text-slate-900'
+                                : 'bg-white/5 border-white/10 text-white/40 light:bg-slate-100 light:border-slate-200'
+                            }`}
+                          >
+                            <span className="font-medium truncate">{label}</span>
+                            <div
+                              className={`w-3.5 h-3.5 rounded-md flex items-center justify-center border shrink-0 ${
+                                isVisible
+                                  ? 'bg-accent border-accent text-white'
+                                  : 'border-white/30'
+                              }`}
+                            >
+                              {isVisible && <Check className="w-2.5 h-2.5" />}
+                            </div>
+                          </button>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
 

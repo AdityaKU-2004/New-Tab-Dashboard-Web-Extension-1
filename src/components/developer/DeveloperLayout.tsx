@@ -52,7 +52,7 @@ export const DeveloperLayout: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-[#0D1117] text-[#E6EDF3] font-mono flex flex-col lg:flex-row selection:bg-[#58A6FF] selection:text-[#0D1117] relative">
       {/* Cyberpunk Fullscreen Background Speedometer HUD Wallpaper */}
-      {theme === 'cyberpunk' && settings.speedometerPlacement !== 'header' && (
+      {theme === 'cyberpunk' && settings.speedometerPlacement === 'background' && (
         <CyberpunkSportsSpeedometer isBackgroundMode={true} />
       )}
 
@@ -89,14 +89,20 @@ export const DeveloperLayout: React.FC = () => {
               <DailyBrief onNavigate={handleNavigate} />
 
               {/* Unread Gmail & Daily Tasks Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                <div className="lg:col-span-7">
-                  <GitHubDailyTasks />
+              {(settings.widgetVisibility.dailyTasks !== false || settings.widgetVisibility.gmail !== false) && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                  {settings.widgetVisibility.dailyTasks !== false && (
+                    <div className={settings.widgetVisibility.gmail !== false ? 'lg:col-span-7' : 'lg:col-span-12'}>
+                      <GitHubDailyTasks />
+                    </div>
+                  )}
+                  {settings.widgetVisibility.gmail !== false && (
+                    <div className={settings.widgetVisibility.dailyTasks !== false ? 'lg:col-span-5' : 'lg:col-span-12'}>
+                      <UnreadGmailWidget />
+                    </div>
+                  )}
                 </div>
-                <div className="lg:col-span-5">
-                  <UnreadGmailWidget />
-                </div>
-              </div>
+              )}
 
               {/* Secondary Productivity Modules (Notes & Focus Timer) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

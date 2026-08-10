@@ -80,11 +80,14 @@ export interface WidgetVisibility {
   search: boolean;
   bookmarks: boolean;
   todo: boolean;
+  dailyTasks?: boolean;
   calendar: boolean;
   quote: boolean;
   recentTabs: boolean;
   wallpaperPicker: boolean;
   gmail?: boolean;
+  cyberSystemMonitor?: boolean;
+  cyberAudioPlayer?: boolean;
 }
 
 export interface AppSettings {
@@ -99,7 +102,7 @@ export interface AppSettings {
   backgroundBlur: number; // 0 to 20 px
   cardOpacity: number; // 0.2 to 1.0
   darkOverlayOpacity: number; // 0.0 to 0.8
-  speedometerPlacement?: 'background' | 'header';
+  speedometerPlacement?: 'background' | 'header' | 'hidden';
   enableAnimations: boolean;
   widgetVisibility: WidgetVisibility;
 }

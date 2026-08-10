@@ -48,11 +48,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
     search: true,
     bookmarks: true,
     todo: true,
+    dailyTasks: true,
     calendar: true,
     quote: true,
     recentTabs: true,
     wallpaperPicker: true,
-    gmail: true
+    gmail: true,
+    cyberSystemMonitor: true,
+    cyberAudioPlayer: true
   }
 };
 
@@ -176,15 +179,20 @@ export const useDashboardStore = create<DashboardStore>()(
         })),
       resetSettings: () => set({ settings: DEFAULT_SETTINGS }),
       toggleWidgetVisibility: (widgetKey) =>
-        set((state) => ({
-          settings: {
-            ...state.settings,
-            widgetVisibility: {
-              ...state.settings.widgetVisibility,
-              [widgetKey]: !state.settings.widgetVisibility[widgetKey]
+        set((state) => {
+          const currentValue = state.settings.widgetVisibility?.[widgetKey];
+          const newValue = currentValue === false ? true : false;
+          return {
+            settings: {
+              ...state.settings,
+              widgetVisibility: {
+                ...DEFAULT_SETTINGS.widgetVisibility,
+                ...state.settings.widgetVisibility,
+                [widgetKey]: newValue
+              }
             }
-          }
-        })),
+          };
+        }),
 
       // Wallpaper State
       selectedWallpaper: INITIAL_WALLPAPERS[0],
@@ -399,7 +407,21 @@ export const useDashboardStore = create<DashboardStore>()(
         };
       },
       merge: (persistedState: any, currentState) => {
-        const merged = { ...currentState, ...(persistedState as object) };
+        const persisted = (persistedState as any) || {};
+        const mergedSettings: AppSettings = {
+          ...DEFAULT_SETTINGS,
+          ...(persisted.settings || {}),
+          widgetVisibility: {
+            ...DEFAULT_SETTINGS.widgetVisibility,
+            ...(persisted.settings?.widgetVisibility || {})
+          }
+        };
+
+        const merged = {
+          ...currentState,
+          ...persisted,
+          settings: mergedSettings
+        };
         if (!merged.folders || !Array.isArray(merged.folders)) {
           merged.folders = INITIAL_FOLDERS;
         }

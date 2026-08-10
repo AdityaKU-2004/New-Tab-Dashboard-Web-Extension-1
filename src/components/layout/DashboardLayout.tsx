@@ -78,7 +78,7 @@ export const DashboardLayout: React.FC = () => {
       </div>
 
       {/* Cyberpunk Theme Fullscreen Background Speedometer HUD Wallpaper */}
-      {isCyberpunk && speedometerPlacement !== 'header' && (
+      {isCyberpunk && speedometerPlacement === 'background' && (
         <CyberpunkSportsSpeedometer isBackgroundMode={true} />
       )}
 
@@ -109,16 +109,20 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           {/* Daily Tasks & Gmail Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            <div className={widgetVisibility.gmail !== false ? 'lg:col-span-7' : 'lg:col-span-12'}>
-              <GitHubDailyTasks />
+          {(widgetVisibility.dailyTasks !== false || widgetVisibility.gmail !== false) && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {widgetVisibility.dailyTasks !== false && (
+                <div className={widgetVisibility.gmail !== false ? 'lg:col-span-7' : 'lg:col-span-12'}>
+                  <GitHubDailyTasks />
+                </div>
+              )}
+              {widgetVisibility.gmail !== false && (
+                <div className={widgetVisibility.dailyTasks !== false ? 'lg:col-span-5' : 'lg:col-span-12'}>
+                  <UnreadGmailWidget />
+                </div>
+              )}
             </div>
-            {widgetVisibility.gmail !== false && (
-              <div className="lg:col-span-5">
-                <UnreadGmailWidget />
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Row 2: Calendar, Todo, Quote */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
