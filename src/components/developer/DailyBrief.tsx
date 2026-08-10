@@ -4,10 +4,10 @@ import { useClock } from '../../hooks/useClock';
 import { DeveloperTab } from './DeveloperSidebar';
 import { GitHubCompactCard } from './github/GitHubCompactCard';
 import { GitHubDailyTasks } from './github/GitHubDailyTasks';
+import { UpcomingEventsSection } from './UpcomingEventsSection';
 import {
   CheckSquare,
   Timer,
-  Calendar as CalendarIcon,
   Quote as QuoteIcon,
   RefreshCw,
   Star,
@@ -56,13 +56,6 @@ export const DailyBrief: React.FC<DailyBriefProps> = ({ onNavigate }) => {
   // Quote data
   const currentQuote = quotes[currentQuoteIndex] || quotes[0];
   const isQuoteFavorite = currentQuote ? favoriteQuoteIds.includes(currentQuote.id) : false;
-
-  // Mock sample upcoming items for today
-  const upcomingEvents = [
-    { id: 'ev1', time: '10:30', title: 'Team Standup & Sprint Sync', type: 'meeting' },
-    { id: 'ev2', time: '14:00', title: 'Code Review & PR Triage', type: 'work' },
-    { id: 'ev3', time: '18:00', title: 'System Architecture Study', type: 'learning' }
-  ];
 
   return (
     <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-5 sm:p-6 font-mono select-none space-y-6">
@@ -211,33 +204,7 @@ export const DailyBrief: React.FC<DailyBriefProps> = ({ onNavigate }) => {
       </div>
 
       {/* 3. UPCOMING REMINDERS & EVENTS */}
-      <div className="bg-[#0D1117] border border-[#30363D] rounded-lg p-4 space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-[#30363D]">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-[#58A6FF]" />
-            <h2 className="text-xs font-bold text-[#E6EDF3]">Upcoming Today</h2>
-          </div>
-          <span className="text-[10px] text-[#8B949E]">{upcomingEvents.length} events scheduled</span>
-        </div>
-
-        {upcomingEvents.length === 0 ? (
-          <div className="text-xs text-[#8B949E] py-2">No upcoming events</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {upcomingEvents.map((ev) => (
-              <div
-                key={ev.id}
-                className="flex items-center gap-3 p-2.5 rounded bg-[#161B22] border border-[#30363D] text-xs"
-              >
-                <span className="px-2 py-1 rounded bg-[#1C212B] text-[#58A6FF] font-mono font-bold text-[11px] shrink-0 border border-[#30363D]">
-                  {ev.time}
-                </span>
-                <span className="truncate text-[#E6EDF3] font-medium">{ev.title}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <UpcomingEventsSection />
 
       {/* 4. DAILY QUOTE */}
       {currentQuote && (
