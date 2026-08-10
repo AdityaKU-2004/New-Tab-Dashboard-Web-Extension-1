@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useGitHubStore } from '../../../store/useGitHubStore';
 import { useDashboardStore } from '../../../store/useDashboardStore';
+import { GitHubCommitHeatmap } from './GitHubCommitHeatmap';
+import { GitHubRepoCommitGraph } from './GitHubRepoCommitGraph';
 import {
   Github,
   GitBranch,
@@ -19,10 +21,12 @@ import {
   AlertCircle,
   Clock,
   User,
-  Tag
+  Tag,
+  Flame,
+  TrendingUp
 } from 'lucide-react';
 
-export type GitHubSubTab = 'repos' | 'prs' | 'issues' | 'commits' | 'notifications';
+export type GitHubSubTab = 'heatmap' | 'graphs' | 'repos' | 'prs' | 'issues' | 'commits' | 'notifications';
 
 interface GitHubDashboardProps {
   initialSubTab?: GitHubSubTab;
@@ -217,6 +221,32 @@ export const GitHubDashboard: React.FC<GitHubDashboardProps> = ({ initialSubTab 
             <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
               <button
                 type="button"
+                onClick={() => setActiveSubTab('heatmap')}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer shrink-0 ${
+                  activeSubTab === 'heatmap'
+                    ? 'bg-[#1C212B] text-[#39D353] border border-[#39D353]/40'
+                    : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#0D1117]'
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5 text-[#39D353]" />
+                <span>Commit Heatmap</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('graphs')}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer shrink-0 ${
+                  activeSubTab === 'graphs'
+                    ? 'bg-[#1C212B] text-[#3FB950] border border-[#3FB950]/40'
+                    : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#0D1117]'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-[#3FB950]" />
+                <span>Repo Graphs</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setActiveSubTab('repos')}
                 className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer shrink-0 ${
                   activeSubTab === 'repos'
@@ -311,7 +341,22 @@ export const GitHubDashboard: React.FC<GitHubDashboardProps> = ({ initialSubTab 
 
           {/* SUBTAB CONTENT */}
 
-          {/* 1. REPOSITORIES */}
+          {/* 1. COMMIT HEATMAP */}
+          {activeSubTab === 'heatmap' && (
+            <div className="space-y-5">
+              <GitHubCommitHeatmap />
+              <GitHubRepoCommitGraph />
+            </div>
+          )}
+
+          {/* 2. REPO COMMIT GRAPHS */}
+          {activeSubTab === 'graphs' && (
+            <div className="space-y-5">
+              <GitHubRepoCommitGraph />
+            </div>
+          )}
+
+          {/* 3. REPOSITORIES */}
           {activeSubTab === 'repos' && (
             <div className="space-y-3">
               {filteredRepos.length === 0 ? (

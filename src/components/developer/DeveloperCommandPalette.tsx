@@ -14,7 +14,9 @@ import {
   Timer,
   ExternalLink,
   Search,
-  X
+  X,
+  Flame,
+  TrendingUp
 } from 'lucide-react';
 import { DeveloperTab } from './DeveloperSidebar';
 import { GitHubSubTab } from './github/GitHubDashboard';
@@ -36,6 +38,13 @@ export const DeveloperCommandPalette: React.FC<DeveloperCommandPaletteProps> = (
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+      setSelectedIndex(0);
+    }
+  }, [isOpen]);
+
   if (!isOpen || settings.theme !== 'developer') return null;
 
   const commands = [
@@ -45,6 +54,24 @@ export const DeveloperCommandPalette: React.FC<DeveloperCommandPaletteProps> = (
       icon: <Github className="w-4 h-4 text-[#58A6FF]" />,
       action: () => {
         window.open('https://github.com', '_blank');
+        onClose();
+      }
+    },
+    {
+      id: 'view-heatmap',
+      label: 'View GitHub Commit Heatmap',
+      icon: <Flame className="w-4 h-4 text-[#39D353]" />,
+      action: () => {
+        onNavigate('git', 'heatmap');
+        onClose();
+      }
+    },
+    {
+      id: 'view-repo-graphs',
+      label: 'View Repository Commit Graphs',
+      icon: <TrendingUp className="w-4 h-4 text-[#3FB950]" />,
+      action: () => {
+        onNavigate('git', 'graphs');
         onClose();
       }
     },
@@ -143,13 +170,6 @@ export const DeveloperCommandPalette: React.FC<DeveloperCommandPaletteProps> = (
   const filteredCommands = commands.filter((cmd) =>
     cmd.label.toLowerCase().includes(query.toLowerCase())
   );
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-      setSelectedIndex(0);
-    }
-  }, [isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {

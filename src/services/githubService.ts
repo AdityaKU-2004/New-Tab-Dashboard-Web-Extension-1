@@ -149,6 +149,29 @@ async function fetchWithAuth<T>(endpoint: string, token: string): Promise<T> {
   }
 }
 
+export interface GitHubRepoCommitActivity {
+  total: number;
+  week: number; // Unix timestamp in seconds
+  days: number[]; // 7 elements [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+}
+
+export interface GitHubRepoCommitDetail {
+  sha: string;
+  commit: {
+    author: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    message: string;
+  };
+  html_url: string;
+  author: {
+    login: string;
+    avatar_url: string;
+  } | null;
+}
+
 export const githubService = {
   // Token management
   getToken: async (): Promise<string | null> => {
@@ -170,6 +193,26 @@ export const githubService = {
 
   async getUserRepos(token: string): Promise<GitHubRepo[]> {
     return fetchWithAuth<GitHubRepo[]>('/user/repos?sort=updated&per_page=50&type=all', token);
+  },
+
+  async getRepoCommitActivity(token: string, owner: string, repo: string): Promise<GitHubRepoCommitActivity[]> {
+    try {
+      const res = await fetchWithAuth<GitHubRepoCommitActivity[] | {}>(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/stats/commit_activity`, token);
+      if (Array.isArray(res)) {
+        return res;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async getRepoCommits(token: string, owner: string, repo: string): Promise<GitHubRepoCommitDetail[]> {
+    try {
+      return await fetchWithAuth<GitHubRepoCommitDetail[]>(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?per_page=30`, token);
+    } catch {
+      return [];
+    }
   },
 
   async getOpenPullRequests(token: string, username: string): Promise<GitHubPullRequest[]> {

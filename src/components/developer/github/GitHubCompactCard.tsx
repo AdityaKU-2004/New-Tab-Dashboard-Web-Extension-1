@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useGitHubStore } from '../../../store/useGitHubStore';
 import { useDashboardStore } from '../../../store/useDashboardStore';
 import { DeveloperTab } from '../DeveloperSidebar';
-import { Github, ExternalLink, GitPullRequest, CircleDot, GitBranch, ArrowRight, Key, RefreshCw, AlertCircle } from 'lucide-react';
+import { GitHubSubTab } from './GitHubDashboard';
+import { Github, ExternalLink, GitPullRequest, CircleDot, GitBranch, ArrowRight, Key, RefreshCw, AlertCircle, Flame, TrendingUp } from 'lucide-react';
 
 interface GitHubCompactCardProps {
-  onNavigate?: (tab: DeveloperTab) => void;
+  onNavigate?: (tab: DeveloperTab, subTab?: GitHubSubTab) => void;
 }
 
 export const GitHubCompactCard: React.FC<GitHubCompactCardProps> = ({ onNavigate }) => {
@@ -217,6 +218,26 @@ export const GitHubCompactCard: React.FC<GitHubCompactCardProps> = ({ onNavigate
                   ))
                 )}
               </div>
+            </div>
+            {/* Analytics & Heatmap Quick Actions */}
+            <div className="pt-2 border-t border-[#30363D]/60 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onNavigate?.('git', 'heatmap')}
+                className="flex-1 py-1 px-2 bg-[#161B22] hover:bg-[#1C212B] border border-[#30363D] hover:border-[#39D353]/50 rounded text-[10px] font-bold text-[#39D353] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <Flame className="w-3 h-3 text-[#39D353]" />
+                <span>Heatmap</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate?.('git', 'graphs')}
+                className="flex-1 py-1 px-2 bg-[#161B22] hover:bg-[#1C212B] border border-[#30363D] hover:border-[#3FB950]/50 rounded text-[10px] font-bold text-[#3FB950] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <TrendingUp className="w-3 h-3 text-[#3FB950]" />
+                <span>Commit Graphs</span>
+              </button>
             </div>
           </div>
         )}
