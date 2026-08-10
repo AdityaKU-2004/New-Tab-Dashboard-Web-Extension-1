@@ -4,20 +4,16 @@ import {
   Gauge,
   Zap,
   Flame,
-  Compass,
-  Activity,
-  ShieldAlert,
-  Cpu,
-  Sparkles,
-  Droplets,
   Thermometer,
+  Fuel,
+  Activity,
   Battery,
-  Navigation,
-  Fan,
-  Snowflake,
+  ShieldCheck,
   AlertTriangle,
-  Wrench,
-  Radio
+  ChevronLeft,
+  ChevronRight,
+  Disc,
+  RotateCw
 } from 'lucide-react';
 
 interface CyberpunkSportsSpeedometerProps {
@@ -29,78 +25,78 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
   const isBg = isBackgroundMode ?? (speedometerPlacement === 'background');
 
   // Dynamic Telemetry States
-  const [rpm, setRpm] = useState(2400);
-  const [speed, setSpeed] = useState(88);
-  const [gear, setGear] = useState('4');
+  const [rpm, setRpm] = useState(6800);
+  const [speed, setSpeed] = useState(259.4);
+  const [gear, setGear] = useState('6');
   const [prnd, setPrnd] = useState<'P' | 'R' | 'N' | 'D'>('D');
-  const [turboPsi, setTurboPsi] = useState(14.5);
-  const [nitro, setNitro] = useState(85);
-  const [fuelPercent, setFuelPercent] = useState(76);
+  const [turboPsi, setTurboPsi] = useState(22.4);
+  const [nitro, setNitro] = useState(88);
+  const [fuelPercent, setFuelPercent] = useState(82);
   const [coolantTemp, setCoolantTemp] = useState(90); // Celsius
   const [batteryPercent, setBatteryPercent] = useState(98);
-  const [cabinTemp, setCabinTemp] = useState(23);
   const [unit, setUnit] = useState<'MPH' | 'KMH'>('MPH');
   const [driveMode, setDriveMode] = useState<'ECO' | 'NORMAL' | 'BOOST' | 'SPORT'>('SPORT');
   const [isRevving, setIsRevving] = useState(false);
   const [isNitroActive, setIsNitroActive] = useState(false);
-  const [gForce, setGForce] = useState({ x: 0.2, y: 0.4 });
+  const [turnSignal, setTurnSignal] = useState<'left' | 'right' | 'hazard' | 'off'>('off');
 
-  // Toggles
-  const [torqueVectoring, setTorqueVectoring] = useState(true);
-  const [tractionControl, setTractionControl] = useState(true);
-
-  // Driving Simulation Loop
+  // Simulation Loop
   useEffect(() => {
     let phase = 0;
-
     const interval = setInterval(() => {
       if (isRevving) return;
 
       phase = (phase + 1) % 100;
-
-      let targetRpm = 2400;
-      let targetSpeed = 88;
-      let targetPsi = 12;
+      let targetRpm = 6800;
+      let targetSpeed = 259.4;
+      let targetPsi = 22.0;
 
       if (phase < 25) {
-        targetRpm = 4500 + Math.sin(phase * 0.3) * 3200;
-        targetSpeed = 95 + phase * 2.8;
-        targetPsi = 18 + Math.random() * 8;
-        setGear(phase < 10 ? '3' : phase < 20 ? '4' : '5');
+        targetRpm = 5200 + Math.sin(phase * 0.3) * 2400;
+        targetSpeed = 210 + phase * 2.2;
+        targetPsi = 18 + Math.random() * 5;
+        setGear('5');
       } else if (phase < 50) {
-        targetRpm = 6800 + Math.sin(phase * 0.2) * 1200;
-        targetSpeed = 165 + Math.sin(phase * 0.1) * 20;
-        targetPsi = 24 + Math.random() * 4;
+        targetRpm = 7600 + Math.sin(phase * 0.2) * 1100;
+        targetSpeed = 265 + Math.sin(phase * 0.1) * 15;
+        targetPsi = 26 + Math.random() * 3;
         setGear('6');
       } else if (phase < 75) {
-        targetRpm = 3200 + Math.cos(phase * 0.2) * 1500;
-        targetSpeed = 110 - (phase - 50) * 1.8;
-        targetPsi = 8 + Math.random() * 3;
+        targetRpm = 4100 + Math.cos(phase * 0.2) * 1800;
+        targetSpeed = 180 - (phase - 50) * 2.5;
+        targetPsi = 12 + Math.random() * 4;
         setGear('4');
       } else {
-        targetRpm = 2200 + Math.sin(phase * 0.4) * 1800;
-        targetSpeed = 75 + (phase - 75) * 0.8;
-        targetPsi = 12 + Math.random() * 5;
-        setGear('3');
+        targetRpm = 6200 + Math.sin(phase * 0.4) * 1500;
+        targetSpeed = 240 + (phase - 75) * 1.2;
+        targetPsi = 20 + Math.random() * 6;
+        setGear('5');
       }
 
-      setRpm((prev) => Math.round(prev + (targetRpm - prev) * 0.25));
-      setSpeed((prev) => Math.round(prev + (targetSpeed - prev) * 0.2));
-      setTurboPsi((prev) => +(prev + (targetPsi - prev) * 0.3).toFixed(1));
-      setGForce({
-        x: +((Math.sin(phase * 0.1) * 0.8).toFixed(2)),
-        y: +((Math.cos(phase * 0.15) * 0.9).toFixed(2)),
-      });
+      setRpm((prev) => Math.round(prev + (targetRpm - prev) * 0.2));
+      setSpeed((prev) => +(prev + (targetSpeed - prev) * 0.15).toFixed(1));
+      setTurboPsi((prev) => +(prev + (targetPsi - prev) * 0.25).toFixed(1));
 
-      // Slow fuel/temp fluctuations
-      if (phase % 10 === 0) {
-        setFuelPercent((prev) => Math.max(15, +(prev - 0.05).toFixed(1)));
+      if (phase % 15 === 0) {
+        setFuelPercent((prev) => Math.max(12, +(prev - 0.1).toFixed(1)));
         setCoolantTemp((prev) => Math.min(115, Math.max(82, prev + (Math.random() - 0.5) * 2)));
       }
     }, 180);
 
     return () => clearInterval(interval);
   }, [isRevving]);
+
+  // Turn signal flashing effect
+  useEffect(() => {
+    const blinkerInterval = setInterval(() => {
+      setTurnSignal((prev) => {
+        if (prev === 'hazard') return 'off';
+        if (prev === 'off') return Math.random() > 0.8 ? 'hazard' : 'off';
+        return prev;
+      });
+    }, 2500);
+    return () => clearInterval(blinkerInterval);
+  }, []);
 
   // Handle Interactive Engine Rev
   const handleRevEngine = () => {
@@ -109,13 +105,13 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
     const revInterval = setInterval(() => {
       revStep++;
       if (revStep < 8) {
-        setRpm((prev) => Math.min(8800, prev + 900));
-        setSpeed((prev) => Math.min(220, prev + 12));
-        setTurboPsi((prev) => Math.min(28.5, prev + 3.2));
+        setRpm((prev) => Math.min(8800, prev + 850));
+        setSpeed((prev) => +(prev + 8.5).toFixed(1));
+        setTurboPsi((prev) => Math.min(29.5, +(prev + 2.5).toFixed(1)));
       } else if (revStep < 16) {
-        setRpm((prev) => Math.max(2200, prev - 800));
-        setSpeed((prev) => Math.max(80, prev - 8));
-        setTurboPsi((prev) => Math.max(10, prev - 2.5));
+        setRpm((prev) => Math.max(2200, prev - 750));
+        setSpeed((prev) => +(prev - 5.5).toFixed(1));
+        setTurboPsi((prev) => Math.max(10, +(prev - 2).toFixed(1)));
       } else {
         clearInterval(revInterval);
         setIsRevving(false);
@@ -127,51 +123,51 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
   const handleNitroBoost = () => {
     if (nitro < 20 || isNitroActive) return;
     setIsNitroActive(true);
-    setNitro((prev) => Math.max(0, prev - 35));
-    setRpm(8400);
-    setSpeed((prev) => prev + 45);
+    setNitro((prev) => Math.max(0, prev - 30));
+    setRpm(8500);
+    setSpeed((prev) => +(prev + 35).toFixed(1));
     setTurboPsi(30.0);
 
     setTimeout(() => {
       setIsNitroActive(false);
-    }, 2000);
+    }, 2200);
   };
 
-  // Geometry calculations for Dial (260 deg sweep)
-  const START_ANGLE = 140;
-  const SWEEP_ANGLE = 260;
+  // Geometry calculations
+  const displaySpeed = unit === 'KMH' ? +(speed * 1.60934).toFixed(1) : speed;
 
-  const getCoordinates = (angleDeg: number, radius: number, cx = 130, cy = 130) => {
+  // Dial angles: 0% = 135 deg, 100% = 405 deg (270 deg sweep)
+  const getAngle = (ratio: number) => 135 + Math.min(1, Math.max(0, ratio)) * 270;
+
+  const polarToCartesian = (cx: number, cy: number, radius: number, angleDeg: number) => {
     const rad = (angleDeg * Math.PI) / 180;
     return {
       x: cx + radius * Math.cos(rad),
-      y: cy + radius * Math.sin(rad),
+      y: cy + radius * Math.sin(rad)
     };
   };
 
-  // RPM Needle Angle (0 to 9000 RPM)
-  const rpmRatio = Math.min(1, Math.max(0, rpm / 9000));
-  const rpmAngle = START_ANGLE + rpmRatio * SWEEP_ANGLE;
-  const rpmTip = getCoordinates(rpmAngle, 96);
+  // Left Dial (RPM: 0 to 9 x1000)
+  const rpmRatio = Math.min(1, rpm / 9000);
+  const rpmAngle = getAngle(rpmRatio);
+  const rpmNeedleEnd = polarToCartesian(110, 110, 82, rpmAngle);
 
-  // Speed Display
-  const displaySpeed = unit === 'KMH' ? Math.round(speed * 1.609) : speed;
+  // Right Dial (Speed: 0 to 280)
+  const speedRatio = Math.min(1, displaySpeed / 280);
+  const speedAngle = getAngle(speedRatio);
+  const speedNeedleEnd = polarToCartesian(110, 110, 82, speedAngle);
 
-  // Ticks for RPM gauge
-  const rpmTicks = Array.from({ length: 10 }, (_, i) => {
-    const angle = START_ANGLE + (i / 9) * SWEEP_ANGLE;
-    const isRedline = i >= 7;
-    const p1 = getCoordinates(angle, 98);
-    const p2 = getCoordinates(angle, 112);
-    const textPos = getCoordinates(angle, 82);
-    return { val: i, angle, isRedline, p1, p2, textPos };
-  });
+  // Turbo Sub-Dial (0 to 30 PSI)
+  const turboRatio = Math.min(1, turboPsi / 30);
+  const turboAngle = 135 + turboRatio * 270;
+  const turboNeedleEnd = polarToCartesian(50, 50, 36, turboAngle);
 
-  // Shift light logic (5 LEDs)
-  const shiftLightCount = Math.min(5, Math.floor((rpm / 9000) * 6));
-  const isRedlineFlash = rpm > 7400;
+  // Nitrous Sub-Dial (0 to 100%)
+  const nitroRatio = Math.min(1, nitro / 100);
+  const nitroAngle = 135 + nitroRatio * 270;
+  const nitroNeedleEnd = polarToCartesian(50, 50, 36, nitroAngle);
 
-  // Glass & Background styles
+  // Background styling
   const bgAlpha = isBg
     ? Math.min(0.2, Math.max(0.02, cardOpacity * 0.3))
     : Math.max(0.15, cardOpacity * 0.8);
@@ -180,12 +176,12 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
     ? {
         backdropFilter: `blur(${Math.min(backgroundBlur, 8)}px)`,
         WebkitBackdropFilter: `blur(${Math.min(backgroundBlur, 8)}px)`,
-        backgroundColor: `rgba(4, 8, 18, ${bgAlpha})`,
+        backgroundColor: `rgba(2, 6, 12, ${bgAlpha})`,
       }
     : {
         backdropFilter: `blur(${backgroundBlur}px)`,
         WebkitBackdropFilter: `blur(${backgroundBlur}px)`,
-        backgroundColor: `rgba(8, 13, 26, ${bgAlpha})`,
+        backgroundColor: `rgba(4, 9, 18, ${bgAlpha})`,
       };
 
   return (
@@ -193,63 +189,51 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
       style={containerStyle}
       className={
         isBg
-          ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-4 sm:p-8 font-mono text-[#00f3ff] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
-          : 'relative w-full rounded-3xl border border-[#00f3ff]/40 shadow-[0_0_30px_rgba(0,243,255,0.2)] p-4 sm:p-6 font-mono text-[#00f3ff] overflow-hidden transition-all duration-300 select-none group'
+          ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-4 sm:p-6 font-mono text-[#00ffd5] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
+          : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-4 sm:p-6 font-mono text-[#00ffd5] overflow-hidden transition-all duration-300 select-none'
       }
     >
-      {/* Carbon fiber & glowing grid mesh overlay */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00f3ff_1.2px,transparent_1.2px)] [background-size:24px_24px]" />
+      {/* Cyan wireframe grid overlay */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:20px_20px]" />
 
-      {/* TOP BAR / GPS NETWORK & PRND CLUSTER */}
-      <div className="relative z-10 flex items-center justify-between gap-4 pb-2 border-b border-[#00f3ff]/30">
-        {/* Left: Branding / Telemetry Status */}
+      {/* TOP COMPACT CONTROL STRIP */}
+      <div className="relative z-10 flex items-center justify-between gap-4 pb-3 border-b border-[#00ffd5]/30">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#00f3ff]/15 border border-[#00f3ff]/50 shadow-[0_0_12px_rgba(0,243,255,0.3)] text-[#00f3ff]">
-            <Gauge className="w-5 h-5 animate-pulse" />
+          <div className="p-1.5 rounded-lg bg-[#00ffd5]/15 border border-[#00ffd5]/50 shadow-[0_0_12px_rgba(0,255,213,0.3)]">
+            <Disc className="w-4 h-4 animate-spin text-[#00ffd5]" style={{ animationDuration: '6s' }} />
           </div>
           <div>
             <h3 className="text-xs sm:text-sm font-black tracking-widest text-white flex items-center gap-2">
-              <span>CYBER SPORTS HUD</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#ff0055]/20 border border-[#ff0055]/50 text-[#ff0055] font-bold animate-pulse">
-                {isNitroActive ? '🔥 NITRO BURST' : 'SYSTEM READY'}
+              <span>FUTURISTIC HUD CLUSTER</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00ffd5]/20 border border-[#00ffd5]/60 text-[#00ffd5] font-bold">
+                {isNitroActive ? '🔥 NITRO BOOST' : 'ONLINE'}
               </span>
             </h3>
-            <p className="text-[10px] text-[#00f3ff]/70 hidden sm:block">
-              GPS NETWORK: ONLINE | TELEMETRY SYNCED
-            </p>
           </div>
         </div>
 
-        {/* Top Center: GPS Navigation Trajectory Vector */}
-        <div className="hidden md:flex flex-col items-center justify-center space-y-0.5">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-[#00f3ff]/80 tracking-widest">
-            <span className="text-emerald-400">◄</span>
-            <Navigation className="w-3.5 h-3.5 text-[#00f3ff] animate-pulse" />
-            <span>GPS NETWORK : READY</span>
-            <span className="text-emerald-400">►</span>
-          </div>
-          <div className="w-24 h-5 relative flex items-center justify-center">
-            {/* Curved road vector simulation */}
-            <svg viewBox="0 0 100 20" className="w-full h-full">
-              <path
-                d="M10 18 Q 50 2, 90 18"
-                fill="none"
-                stroke="rgba(0,243,255,0.4)"
-                strokeWidth="2"
-              />
-              <path
-                d="M45 10 L50 2 L55 10 Z"
-                fill="#00f3ff"
-                className="animate-bounce"
-              />
-            </svg>
-          </div>
+        {/* Top Center: Drive Mode Selector */}
+        <div className="hidden md:flex items-center gap-1.5 pointer-events-auto">
+          {(['ECO', 'NORMAL', 'BOOST', 'SPORT'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setDriveMode(m)}
+              className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer ${
+                driveMode === m
+                  ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5] shadow-[0_0_12px_#00ffd5] font-black'
+                  : 'bg-black/60 text-[#00ffd5]/60 border-[#00ffd5]/30 hover:text-[#00ffd5]'
+              }`}
+            >
+              {m}
+            </button>
+          ))}
         </div>
 
-        {/* Top Right: PRND Gear Selector & Interactive Buttons */}
-        <div className="flex items-center gap-3 pointer-events-auto">
-          {/* PRND Gear Indicators */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/80 border border-[#00f3ff]/40 shadow-inner">
+        {/* Top Right: PRND Gear Selector & Interactive Actions */}
+        <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+          {/* PRND */}
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-black/80 border border-[#00ffd5]/40 shadow-inner">
             {(['P', 'R', 'N', 'D'] as const).map((gearLetter) => {
               const isActive = prnd === gearLetter;
               return (
@@ -257,10 +241,10 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
                   key={gearLetter}
                   type="button"
                   onClick={() => setPrnd(gearLetter)}
-                  className={`text-xs sm:text-sm font-black px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                  className={`text-xs font-black px-1.5 py-0.5 rounded transition-all cursor-pointer ${
                     isActive
-                      ? 'text-emerald-400 bg-emerald-400/20 border border-emerald-400/60 shadow-[0_0_10px_#34d399]'
-                      : 'text-white/30 hover:text-white/70'
+                      ? 'text-slate-950 bg-[#00ffd5] shadow-[0_0_10px_#00ffd5]'
+                      : 'text-white/40 hover:text-white'
                   }`}
                 >
                   {gearLetter}
@@ -269,362 +253,399 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
             })}
           </div>
 
-          {/* Unit Toggle */}
           <button
             type="button"
             onClick={() => setUnit(unit === 'MPH' ? 'KMH' : 'MPH')}
-            className="px-2.5 py-1 rounded-lg bg-[#00f3ff]/20 hover:bg-[#00f3ff]/35 border border-[#00f3ff]/50 text-xs font-bold transition-colors cursor-pointer shadow-md text-white"
+            className="px-2 py-1 rounded-lg bg-[#00ffd5]/20 hover:bg-[#00ffd5]/35 border border-[#00ffd5]/50 text-xs font-bold transition-colors cursor-pointer text-white"
           >
             {unit}
           </button>
 
-          {/* Rev Engine */}
           <button
             type="button"
             onClick={handleRevEngine}
             disabled={isRevving}
-            className="px-3 py-1 rounded-lg bg-gradient-to-r from-[#ff0055] to-[#ff5500] hover:from-[#ff2a75] hover:to-[#ff7722] text-white font-extrabold text-xs shadow-[0_0_12px_rgba(255,0,85,0.6)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className="px-2.5 py-1 rounded-lg bg-[#00ffd5]/20 hover:bg-[#00ffd5]/40 border border-[#00ffd5] text-[#00ffd5] font-extrabold text-xs shadow-[0_0_12px_rgba(0,255,213,0.4)] transition-all cursor-pointer flex items-center gap-1 active:scale-95 disabled:opacity-50"
           >
-            <Flame className="w-3.5 h-3.5 animate-bounce" />
+            <Flame className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">REV</span>
           </button>
 
-          {/* Nitro */}
           <button
             type="button"
             onClick={handleNitroBoost}
             disabled={nitro < 20 || isNitroActive}
-            className="px-3 py-1 rounded-lg bg-[#00f3ff] hover:bg-[#55f7ff] text-slate-950 font-black text-xs shadow-[0_0_15px_rgba(0,243,255,0.7)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-40"
+            className="px-2.5 py-1 rounded-lg bg-[#00ffd5] hover:bg-white text-slate-950 font-black text-xs shadow-[0_0_15px_#00ffd5] transition-all cursor-pointer flex items-center gap-1 active:scale-95 disabled:opacity-40"
           >
-            <Zap className="w-3.5 h-3.5" />
+            <Zap className="w-3.5 h-3.5 fill-current" />
             <span className="hidden sm:inline">NITRO</span>
           </button>
         </div>
       </div>
 
-      {/* MAIN DASHBOARD HUD CLUSTER PODS (3-Pod Cockpit Layout) */}
-      <div className={`relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center my-auto ${isBg ? 'py-4' : 'py-2'}`}>
+      {/* MAIN FUTURISTIC DUAL-DIAL & CENTER HUD CLUSTER */}
+      <div className="relative z-10 my-auto py-2 flex flex-col items-center justify-center">
         
-        {/* LEFT WING POD: CLIMATE, DRIVE MODES & TOGGLES */}
-        <div className={`lg:col-span-3 flex flex-col justify-between p-4 rounded-2xl border relative transition-all space-y-4 ${
-          isBg
-            ? 'bg-slate-950/25 border-[#00f3ff]/30 backdrop-blur-xs shadow-[0_0_20px_rgba(0,243,255,0.12)]'
-            : 'bg-slate-950/50 border-[#00f3ff]/30'
-        }`}>
-          {/* Top: Navigation / System ON */}
-          <div className="flex items-center justify-between text-[11px] font-bold border-b border-[#00f3ff]/20 pb-2">
-            <span className="text-[#00f3ff]/70 tracking-widest">NAVIGATION SYSTEM</span>
-            <span className="text-emerald-400 font-extrabold flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              ON
-            </span>
-          </div>
+        {/* UPPER MAIN INSTRUMENTATION ROW (Left Dial, Center HUD, Right Dial) */}
+        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-4 items-center justify-items-center">
+          
+          {/* LEFT MAIN DIAL: TACHOMETER (RPM x1000) */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center relative">
+            <div className="relative w-[210px] h-[210px] sm:w-[240px] sm:h-[240px]">
+              <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
+                <defs>
+                  <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00ffd5" floodOpacity="0.9" />
+                  </filter>
+                </defs>
 
-          {/* Drive Mode Selector Pills */}
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-extrabold text-[#00f3ff]/60 tracking-widest uppercase">
-              DRIVE MODE PROFILE
-            </span>
-            <div className="grid grid-cols-4 gap-1 pointer-events-auto">
-              {(['ECO', 'NORMAL', 'BOOST', 'SPORT'] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setDriveMode(m)}
-                  className={`py-1 text-[9px] font-extrabold rounded-lg border transition-all cursor-pointer text-center ${
-                    driveMode === m
-                      ? 'bg-[#00f3ff] text-slate-950 border-[#00f3ff] shadow-[0_0_10px_rgba(0,243,255,0.7)] font-black'
-                      : 'bg-black/60 text-[#00f3ff]/60 border-[#00f3ff]/20 hover:text-[#00f3ff]'
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
+                {/* Outer Segmented Outer Ring */}
+                <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="4 4" />
+                <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(0,255,213,0.6)" strokeWidth="2" />
+
+                {/* Outer Notch Grips at 3, 9 o clock */}
+                <path d="M 8 110 L 16 102 L 16 118 Z" fill="#00ffd5" opacity="0.8" />
+                <path d="M 212 110 L 204 102 L 204 118 Z" fill="#00ffd5" opacity="0.8" />
+
+                {/* Arc tick scale for RPM (135 deg to 405 deg) */}
+                {Array.from({ length: 9 }).map((_, i) => {
+                  const deg = 135 + (i / 8) * 270;
+                  const p1 = polarToCartesian(110, 110, 96, deg);
+                  const p2 = polarToCartesian(110, 110, 86, deg);
+                  const pText = polarToCartesian(110, 110, 72, deg);
+                  return (
+                    <g key={i}>
+                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#00ffd5" strokeWidth="2.5" />
+                      <text x={pText.x} y={pText.y + 3} textAnchor="middle" fill="#00ffd5" fontSize="12" fontWeight="bold">
+                        {i}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Sub-ticks between RPM numbers */}
+                {Array.from({ length: 32 }).map((_, i) => {
+                  const deg = 135 + (i / 32) * 270;
+                  const p1 = polarToCartesian(110, 110, 96, deg);
+                  const p2 = polarToCartesian(110, 110, 90, deg);
+                  return <line key={i} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="rgba(0,255,213,0.5)" strokeWidth="1" />;
+                })}
+
+                {/* Inner Notched Cogged Mechanical Ring */}
+                <circle cx="110" cy="110" r="54" fill="none" stroke="rgba(0,255,213,0.8)" strokeWidth="2" />
+                {Array.from({ length: 16 }).map((_, i) => {
+                  const angle = (i * 360) / 16;
+                  return (
+                    <rect
+                      key={i}
+                      x={107}
+                      y={52}
+                      width="6"
+                      height="8"
+                      rx="1"
+                      fill="none"
+                      stroke="#00ffd5"
+                      strokeWidth="1.5"
+                      transform={`rotate(${angle} 110 110)`}
+                      opacity="0.85"
+                    />
+                  );
+                })}
+
+                {/* Inner RPM x1000 Label */}
+                <text x="110" y="148" textAnchor="middle" fill="rgba(0,255,213,0.7)" fontSize="8" fontWeight="bold" letterSpacing="1">
+                  1/min x 1000
+                </text>
+
+                {/* RPM Needle */}
+                <line
+                  x1="110"
+                  y1="110"
+                  x2={rpmNeedleEnd.x}
+                  y2={rpmNeedleEnd.y}
+                  stroke="#00ffd5"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  filter="url(#glowCyan)"
+                  className="transition-all duration-150"
+                />
+
+                {/* Center Hub Pivot */}
+                <circle cx="110" cy="110" r="14" fill="#02060c" stroke="#00ffd5" strokeWidth="2" />
+                <circle cx="110" cy="110" r="6" fill="#00ffd5" filter="url(#glowCyan)" />
+              </svg>
             </div>
           </div>
 
-          {/* Torque Vectoring & Traction Toggles */}
-          <div className="space-y-2 pointer-events-auto text-[11px] font-bold">
-            <div className="flex items-center justify-between p-2 rounded-xl bg-black/60 border border-[#00f3ff]/20">
-              <span className="text-white/80">TORQUE VECTORING</span>
-              <button
-                type="button"
-                onClick={() => setTorqueVectoring(!torqueVectoring)}
-                className={`px-2 py-0.5 rounded text-[10px] font-black cursor-pointer ${
-                  torqueVectoring ? 'text-emerald-400 bg-emerald-400/20' : 'text-slate-500 bg-slate-800'
-                }`}
-              >
-                {torqueVectoring ? 'ON' : 'OFF'}
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-2 rounded-xl bg-black/60 border border-[#00f3ff]/20">
-              <span className="text-white/80">TRACTION CONTROL</span>
-              <button
-                type="button"
-                onClick={() => setTractionControl(!tractionControl)}
-                className={`px-2 py-0.5 rounded text-[10px] font-black cursor-pointer ${
-                  tractionControl ? 'text-emerald-400 bg-emerald-400/20' : 'text-slate-500 bg-slate-800'
-                }`}
-              >
-                {tractionControl ? 'ON' : 'OFF'}
-              </button>
-            </div>
-          </div>
-
-          {/* Climate & Cabin Gear Display */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#00f3ff]/20">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-[#00f3ff]/10 border border-[#00f3ff]/30 text-[#00f3ff]">
-                <Fan className="w-4 h-4 animate-spin [animation-duration:3s]" />
+          {/* CENTER HUD DATA MODULE */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center p-3 rounded-2xl bg-black/60 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] min-w-[240px] text-center my-2 md:my-0">
+            
+            {/* Top Indicator Blinkers & Hazard */}
+            <div className="flex items-center justify-center gap-6 mb-2">
+              <ChevronLeft className={`w-5 h-5 ${turnSignal === 'left' || turnSignal === 'hazard' ? 'text-[#00ffd5] animate-ping' : 'text-[#00ffd5]/30'}`} />
+              <div className="p-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/40">
+                <AlertTriangle className={`w-4 h-4 ${turnSignal === 'hazard' ? 'text-[#00ffd5] animate-pulse' : 'text-[#00ffd5]/70'}`} />
               </div>
-              <div>
-                <div className="text-base font-black text-white">{cabinTemp}°C</div>
-                <div className="text-[9px] text-[#00f3ff]/60 font-bold">CABIN TEMP</div>
-              </div>
+              <ChevronRight className={`w-5 h-5 ${turnSignal === 'right' || turnSignal === 'hazard' ? 'text-[#00ffd5] animate-ping' : 'text-[#00ffd5]/30'}`} />
             </div>
 
-            <div className="text-right">
-              <div className="text-[9px] text-[#00f3ff]/60 font-bold uppercase">DIGITAL GEAR</div>
-              <div className="text-2xl font-black text-[#ff0055] font-mono drop-shadow-[0_0_8px_#ff0055]">
-                {gear}
+            {/* SPEED Title */}
+            <div className="text-[11px] font-black text-[#00ffd5]/80 tracking-[0.3em] uppercase mb-1">
+              SPEED
+            </div>
+
+            {/* Large Futuristic Glow Digital Readout */}
+            <div className="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_0_20px_#00ffd5] font-mono">
+              {displaySpeed.toFixed(1)}
+              <span className="text-xs sm:text-sm text-[#00ffd5] font-bold ml-1.5 tracking-widest">{unit}</span>
+            </div>
+
+            {/* Center Status Indicators */}
+            <div className="mt-3 pt-2.5 border-t border-[#00ffd5]/30 w-full flex flex-col gap-1.5 text-[10px] font-bold">
+              {/* Battery Level Bar */}
+              <div className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/30">
+                <div className="flex items-center gap-1.5 text-[#00ffd5]">
+                  <Battery className="w-3.5 h-3.5" />
+                  <span>BATTERY LEVEL: {batteryPercent}%</span>
+                </div>
+                <div className="w-12 h-2 rounded bg-black border border-[#00ffd5]/50 overflow-hidden">
+                  <div className="h-full bg-[#00ffd5]" style={{ width: `${batteryPercent}%` }} />
+                </div>
+              </div>
+
+              {/* Seatbelt status badge */}
+              <div className="flex items-center justify-center gap-1.5 px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/30 text-[#00ffd5]">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>SEATBELT LOCKED</span>
               </div>
             </div>
           </div>
+
+          {/* RIGHT MAIN DIAL: SPEEDOMETER (0-280 MPH with inner KM/H scale) */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center relative">
+            <div className="relative w-[210px] h-[210px] sm:w-[240px] sm:h-[240px]">
+              <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
+                {/* Outer Segmented Outer Ring */}
+                <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="4 4" />
+                <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(0,255,213,0.6)" strokeWidth="2" />
+
+                {/* Outer Notch Grips */}
+                <path d="M 8 110 L 16 102 L 16 118 Z" fill="#00ffd5" opacity="0.8" />
+                <path d="M 212 110 L 204 102 L 204 118 Z" fill="#00ffd5" opacity="0.8" />
+
+                {/* Outer Scale: 0 to 280 (step 20) */}
+                {Array.from({ length: 15 }).map((_, i) => {
+                  const val = i * 20;
+                  const deg = 135 + (i / 14) * 270;
+                  const p1 = polarToCartesian(110, 110, 96, deg);
+                  const p2 = polarToCartesian(110, 110, 86, deg);
+                  const pText = polarToCartesian(110, 110, 72, deg);
+                  return (
+                    <g key={i}>
+                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#00ffd5" strokeWidth="2" />
+                      <text x={pText.x} y={pText.y + 3} textAnchor="middle" fill="#00ffd5" fontSize="9" fontWeight="bold">
+                        {val}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Inner Scale: KM/H */}
+                {Array.from({ length: 11 }).map((_, i) => {
+                  const val = i * 40;
+                  const deg = 135 + (i / 10) * 270;
+                  const pText = polarToCartesian(110, 110, 58, deg);
+                  return (
+                    <text key={i} x={pText.x} y={pText.y + 2} textAnchor="middle" fill="rgba(0,255,213,0.6)" fontSize="7" fontWeight="bold">
+                      {val}
+                    </text>
+                  );
+                })}
+
+                {/* Inner Notched Cogged Ring */}
+                <circle cx="110" cy="110" r="48" fill="none" stroke="rgba(0,255,213,0.8)" strokeWidth="2" />
+                <text x="110" y="146" textAnchor="middle" fill="rgba(0,255,213,0.7)" fontSize="8" fontWeight="bold" letterSpacing="1">
+                  MPH / KMH
+                </text>
+
+                {/* Speed Needle */}
+                <line
+                  x1="110"
+                  y1="110"
+                  x2={speedNeedleEnd.x}
+                  y2={speedNeedleEnd.y}
+                  stroke="#00ffd5"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  filter="url(#glowCyan)"
+                  className="transition-all duration-150"
+                />
+
+                {/* Center Hub Pivot */}
+                <circle cx="110" cy="110" r="14" fill="#02060c" stroke="#00ffd5" strokeWidth="2" />
+                <circle cx="110" cy="110" r="6" fill="#00ffd5" filter="url(#glowCyan)" />
+              </svg>
+            </div>
+          </div>
+
         </div>
 
-        {/* CENTER POD: HUGE TACHOMETER / SPEEDOMETER DIAL */}
-        <div className={`lg:col-span-6 flex flex-col items-center justify-center p-4 rounded-3xl border relative space-y-3 transition-all ${
-          isBg
-            ? 'bg-slate-950/35 border-[#00f3ff]/40 backdrop-blur-xs shadow-[0_0_30px_rgba(0,243,255,0.2)]'
-            : 'bg-slate-950/70 border-[#00f3ff]/50 shadow-[0_0_25px_rgba(0,243,255,0.2)]'
-        }`}>
-          {/* Shift Light LED Array */}
-          <div className="w-full max-w-xs flex items-center justify-center gap-1.5 py-1 px-3 rounded-lg bg-black/80 border border-white/10">
-            <span className="text-[9px] font-bold text-white/50 mr-1">SHIFT</span>
-            {[1, 2, 3, 4, 5].map((led) => {
-              const isActive = led <= shiftLightCount;
-              const ledColor =
-                led <= 2
-                  ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
-                  : led <= 4
-                  ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'
-                  : 'bg-[#ff0055] shadow-[0_0_12px_#ff0055] animate-pulse';
-
-              return (
-                <div
-                  key={led}
-                  className={`h-2.5 flex-1 rounded-sm transition-all ${
-                    isActive ? ledColor : 'bg-slate-800'
-                  }`}
+        {/* LOWER SUB-GAUGES AND SWEEPING OUTER ARCS ROW */}
+        <div className="w-full max-w-4xl flex flex-wrap items-center justify-between gap-4 mt-3 px-4">
+          
+          {/* BOTTOM LEFT SWEEPING TEMPERATURE ARC (H / C) */}
+          <div className="flex items-center gap-2">
+            <div className="relative w-28 h-20">
+              <svg viewBox="0 0 120 80" className="w-full h-full overflow-visible">
+                {/* Arc path H (top left) to C (bottom left) */}
+                <path d="M 30 10 A 55 55 0 0 0 10 70" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="6" strokeLinecap="round" />
+                {/* Filled arc proportion */}
+                <path
+                  d="M 30 10 A 55 55 0 0 0 10 70"
+                  fill="none"
+                  stroke="#00ffd5"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray="100"
+                  strokeDashoffset={100 - Math.min(100, Math.max(10, ((coolantTemp - 50) / 70) * 100))}
+                  filter="url(#glowCyan)"
                 />
-              );
-            })}
+                <text x="42" y="15" fill="#00ffd5" fontSize="10" fontWeight="extrabold">H</text>
+                <text x="22" y="75" fill="#00ffd5" fontSize="10" fontWeight="extrabold">C</text>
+              </svg>
+            </div>
+            <div className="flex flex-col text-left">
+              <div className="flex items-center gap-1 text-[11px] font-black text-[#00ffd5]">
+                <Thermometer className="w-3.5 h-3.5" />
+                <span>TEMP</span>
+              </div>
+              <div className="text-xs font-bold text-white">{coolantTemp}°C</div>
+            </div>
           </div>
 
-          {/* Dial SVG Instrumentation */}
-          <div className="relative w-[240px] h-[240px] sm:w-[280px] sm:h-[280px]">
-            <svg viewBox="0 0 260 260" className="w-full h-full overflow-visible">
-              <defs>
-                <filter id="glowFiltMain" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#00f3ff" floodOpacity="0.8" />
-                </filter>
-                <filter id="redlineFiltMain" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ff0055" floodOpacity="0.9" />
-                </filter>
-              </defs>
+          {/* TWO BOTTOM CENTER MINI SUB-DIALS (TURBO BOOST & NITROUS) */}
+          <div className="flex items-center justify-center gap-6 sm:gap-10 my-1">
+            
+            {/* SUB-DIAL 1: TURBO BOOST */}
+            <div className="flex flex-col items-center">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28">
+                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" />
+                  <circle cx="50" cy="50" r="41" fill="none" stroke="#00ffd5" strokeWidth="1" strokeDasharray="2 2" />
+                  
+                  {/* Ticks 0, 10, 20, 30 PSI */}
+                  {Array.from({ length: 7 }).map((_, i) => {
+                    const deg = 135 + (i / 6) * 270;
+                    const p1 = polarToCartesian(50, 50, 41, deg);
+                    const p2 = polarToCartesian(50, 50, 35, deg);
+                    return <line key={i} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#00ffd5" strokeWidth="1.5" />;
+                  })}
 
-              {/* Gauge Outer Glowing Ring */}
-              <circle
-                cx="130"
-                cy="130"
-                r="105"
-                fill="none"
-                stroke="rgba(0, 243, 255, 0.2)"
-                strokeWidth="12"
-              />
-
-              {/* Redline Zone Arc */}
-              <circle
-                cx="130"
-                cy="130"
-                r="105"
-                fill="none"
-                stroke="rgba(255, 0, 85, 0.45)"
-                strokeWidth="12"
-                strokeDasharray="500"
-                strokeDashoffset="370"
-                transform="rotate(140 130 130)"
-              />
-
-              {/* RPM Ticks and Labels */}
-              {rpmTicks.map((t) => (
-                <g key={t.val}>
-                  <line
-                    x1={t.p1.x}
-                    y1={t.p1.y}
-                    x2={t.p2.x}
-                    y2={t.p2.y}
-                    stroke={t.isRedline ? '#ff0055' : '#00f3ff'}
-                    strokeWidth={t.isRedline ? 2.5 : 1.5}
-                    opacity={t.isRedline ? 1 : 0.75}
-                  />
-                  <text
-                    x={t.textPos.x}
-                    y={t.textPos.y + 3}
-                    textAnchor="middle"
-                    fill={t.isRedline ? '#ff0055' : '#ffffff'}
-                    fontSize="11"
-                    fontWeight="extrabold"
-                  >
-                    {t.val}
+                  {/* Inner ring & Label */}
+                  <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(0,255,213,0.6)" strokeWidth="1" />
+                  <text x="50" y="68" textAnchor="middle" fill="#00ffd5" fontSize="6" fontWeight="bold">
+                    PSI
                   </text>
-                </g>
-              ))}
 
-              {/* RPM Needle */}
-              <line
-                x1="130"
-                y1="130"
-                x2={rpmTip.x}
-                y2={rpmTip.y}
-                stroke={isRedlineFlash ? '#ff0055' : '#00f3ff'}
-                strokeWidth="4"
-                strokeLinecap="round"
-                filter={isRedlineFlash ? 'url(#redlineFiltMain)' : 'url(#glowFiltMain)'}
-                className="transition-all duration-150"
-              />
-
-              {/* Center Cap */}
-              <circle cx="130" cy="130" r="16" fill="#050811" stroke="#00f3ff" strokeWidth="2" />
-              <circle cx="130" cy="130" r="7" fill={isRedlineFlash ? '#ff0055' : '#00f3ff'} />
-            </svg>
-
-            {/* Huge Center Digital Speedometer Readout */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
-              <div className="text-[10px] font-black text-[#00f3ff] tracking-widest uppercase">
-                SPEED
+                  {/* Needle */}
+                  <line
+                    x1="50"
+                    y1="50"
+                    x2={turboNeedleEnd.x}
+                    y2={turboNeedleEnd.y}
+                    stroke="#00ffd5"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    filter="url(#glowCyan)"
+                  />
+                  <circle cx="50" cy="50" r="6" fill="#02060c" stroke="#00ffd5" strokeWidth="1.5" />
+                </svg>
               </div>
-              <div className="text-4xl sm:text-5xl font-black text-white tracking-tighter drop-shadow-[0_0_20px_rgba(0,243,255,0.9)]">
-                {displaySpeed.toString().padStart(3, '0')}
+              <div className="text-[10px] font-black text-[#00ffd5] uppercase tracking-wider mt-1">
+                TURBO BOOST
               </div>
-              <div className="text-xs font-black text-[#00f3ff] tracking-widest uppercase">
-                {unit}
-              </div>
+              <div className="text-xs font-bold text-white">{turboPsi} PSI</div>
             </div>
+
+            {/* SUB-DIAL 2: NITROUS */}
+            <div className="flex flex-col items-center">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28">
+                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" />
+                  <circle cx="50" cy="50" r="41" fill="none" stroke="#00ffd5" strokeWidth="1" strokeDasharray="3 3" />
+
+                  {/* Sector Arc Ticks */}
+                  {Array.from({ length: 6 }).map((_, i) => {
+                    const deg = 135 + (i / 5) * 270;
+                    const p1 = polarToCartesian(50, 50, 41, deg);
+                    const p2 = polarToCartesian(50, 50, 33, deg);
+                    return <line key={i} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#00ffd5" strokeWidth="2" />;
+                  })}
+
+                  <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(0,255,213,0.6)" strokeWidth="1" />
+                  <text x="50" y="68" textAnchor="middle" fill="#00ffd5" fontSize="6" fontWeight="bold">
+                    FD x 100
+                  </text>
+
+                  {/* Needle */}
+                  <line
+                    x1="50"
+                    y1="50"
+                    x2={nitroNeedleEnd.x}
+                    y2={nitroNeedleEnd.y}
+                    stroke="#00ffd5"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    filter="url(#glowCyan)"
+                  />
+                  <circle cx="50" cy="50" r="6" fill="#02060c" stroke="#00ffd5" strokeWidth="1.5" />
+                </svg>
+              </div>
+              <div className="text-[10px] font-black text-[#00ffd5] uppercase tracking-wider mt-1">
+                NITROUS
+              </div>
+              <div className="text-xs font-bold text-white">{nitro}%</div>
+            </div>
+
           </div>
 
-          {/* Turbo & G-Force Footer Bar */}
-          <div className="w-full flex items-center justify-between text-[10px] font-extrabold px-3 py-1.5 rounded-xl bg-black/80 border border-[#00f3ff]/30">
-            <span className="text-amber-400">TURBO: {turboPsi} PSI</span>
-            <span className="text-white">G-FORCE: X:{gForce.x}G | Y:{gForce.y}G</span>
-            <span className="text-[#00f3ff]">RPM: {rpm}</span>
-          </div>
-        </div>
-
-        {/* RIGHT WING POD: STYLISH GAUGES (FUEL, COOLANT, BATTERY) & WARNING ICON GRID */}
-        <div className={`lg:col-span-3 flex flex-col justify-between p-4 rounded-2xl border relative transition-all space-y-4 ${
-          isBg
-            ? 'bg-slate-950/25 border-[#00f3ff]/30 backdrop-blur-xs shadow-[0_0_20px_rgba(0,243,255,0.12)]'
-            : 'bg-slate-950/50 border-[#00f3ff]/30'
-        }`}>
-          {/* STYLISH GAUGES SECTION */}
-          <div className="space-y-3">
-            <div className="text-[11px] font-black text-white tracking-widest border-b border-[#00f3ff]/20 pb-1 flex items-center justify-between">
-              <span>VEHICLE FLUIDS & POWER</span>
-              <span className="text-xs text-emerald-400 font-extrabold">100% OK</span>
+          {/* BOTTOM RIGHT SWEEPING FUEL ARC (F / E) */}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col text-right">
+              <div className="flex items-center justify-end gap-1 text-[11px] font-black text-[#00ffd5]">
+                <Fuel className="w-3.5 h-3.5" />
+                <span>FUEL</span>
+              </div>
+              <div className="text-xs font-bold text-white">{fuelPercent}%</div>
             </div>
-
-            {/* 1. STYLISH FUEL GAUGE BAR */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-bold">
-                <span className="flex items-center gap-1.5 text-white">
-                  <Droplets className="w-3.5 h-3.5 text-[#00f3ff]" />
-                  <span>FUEL LEVEL</span>
-                </span>
-                <span className="text-[#00f3ff] font-extrabold">{fuelPercent}%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-extrabold text-[#ff0055]">E</span>
-                <div className="flex-1 h-2.5 rounded-full bg-slate-900 border border-[#00f3ff]/40 overflow-hidden p-0.5 relative">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#ff0055] via-amber-400 to-[#00f3ff] transition-all duration-500 shadow-[0_0_10px_rgba(0,243,255,0.5)]"
-                    style={{ width: `${fuelPercent}%` }}
-                  />
-                </div>
-                <span className="text-[9px] font-extrabold text-[#00f3ff]">F</span>
-              </div>
-            </div>
-
-            {/* 2. COOLANT TEMPERATURE GAUGE */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-bold">
-                <span className="flex items-center gap-1.5 text-white">
-                  <Thermometer className="w-3.5 h-3.5 text-amber-400" />
-                  <span>COOLANT TEMP</span>
-                </span>
-                <span className="text-amber-400 font-extrabold">{coolantTemp}°C</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-extrabold text-[#00f3ff]">C</span>
-                <div className="flex-1 h-2.5 rounded-full bg-slate-900 border border-[#00f3ff]/40 overflow-hidden p-0.5 relative">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#00f3ff] via-emerald-400 to-[#ff0055] transition-all duration-500 shadow-[0_0_10px_rgba(255,170,0,0.5)]"
-                    style={{ width: `${Math.min(100, Math.max(10, ((coolantTemp - 50) / 70) * 100))}%` }}
-                  />
-                </div>
-                <span className="text-[9px] font-extrabold text-[#ff0055]">H</span>
-              </div>
-            </div>
-
-            {/* 3. BATTERY CHARGE GAUGE */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-bold">
-                <span className="flex items-center gap-1.5 text-white">
-                  <Battery className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>BATTERY HEALTH</span>
-                </span>
-                <span className="text-emerald-400 font-extrabold">{batteryPercent}%</span>
-              </div>
-              <div className="h-2.5 rounded-full bg-slate-900 border border-[#00f3ff]/40 overflow-hidden p-0.5 relative">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-500 shadow-[0_0_10px_#34d399]"
-                  style={{ width: `${batteryPercent}%` }}
+            <div className="relative w-28 h-20">
+              <svg viewBox="0 0 120 80" className="w-full h-full overflow-visible">
+                {/* Arc path F (top right) to E (bottom right) */}
+                <path d="M 90 10 A 55 55 0 0 1 110 70" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="6" strokeLinecap="round" />
+                <path
+                  d="M 90 10 A 55 55 0 0 1 110 70"
+                  fill="none"
+                  stroke="#00ffd5"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray="100"
+                  strokeDashoffset={100 - fuelPercent}
+                  filter="url(#glowCyan)"
                 />
-              </div>
+                <text x="75" y="15" fill="#00ffd5" fontSize="10" fontWeight="extrabold">F</text>
+                <text x="95" y="75" fill="#00ffd5" fontSize="10" fontWeight="extrabold">E</text>
+              </svg>
             </div>
           </div>
 
-          {/* HEXAGONAL WARNING & DIAGNOSTIC SYSTEM LIGHTS CLUSTER */}
-          <div className="pt-2 border-t border-[#00f3ff]/20 space-y-2">
-            <span className="text-[9px] font-extrabold text-[#00f3ff]/60 tracking-widest uppercase block">
-              DIAGNOSTIC STATUS LIGHTS
-            </span>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { label: 'ABS', icon: ShieldAlert, active: true, color: 'text-emerald-400 border-emerald-400/40 bg-emerald-400/10' },
-                { label: 'ENG', icon: Cpu, active: true, color: 'text-[#00f3ff] border-[#00f3ff]/40 bg-[#00f3ff]/10' },
-                { label: 'OIL', icon: Droplets, active: false, color: 'text-slate-600 border-slate-800' },
-                { label: 'CHK', icon: Wrench, active: true, color: 'text-amber-400 border-amber-400/40 bg-amber-400/10' },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`p-2 rounded-xl border flex flex-col items-center justify-center transition-all ${item.color}`}
-                >
-                  <item.icon className="w-3.5 h-3.5 mb-0.5" />
-                  <span className="text-[8px] font-black">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
       </div>
 
-      {/* BOTTOM FOOTER STATUS TELEMETRY STRIP */}
-      <div className="relative z-10 flex items-center justify-between text-[10px] font-extrabold border-t border-[#00f3ff]/20 pt-2 text-[#00f3ff]/70">
-        <div>SYS TEMP: 32°C | HIGH PERFORMANCE MODE ACTIVE</div>
-        <div className="hidden sm:block">CYBER-DRIVE TELEMETRY V4.8</div>
+      {/* BOTTOM FOOTER TELEMETRY STRIP */}
+      <div className="relative z-10 flex items-center justify-between text-[10px] font-extrabold border-t border-[#00ffd5]/20 pt-2 text-[#00ffd5]/70">
+        <div>SYS TEMP: 32°C | FUTURISTIC WIREFRAME HUD ACTIVE</div>
+        <div className="hidden sm:block">CYBER-DRIVE TELEMETRY V5.0</div>
         <div className="text-white">LAT: 37.7749° N | LON: 122.4194° W</div>
       </div>
     </div>
