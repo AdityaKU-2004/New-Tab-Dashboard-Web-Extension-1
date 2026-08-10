@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Todo } from '../../types';
 import { motion } from 'motion/react';
-import { Check, Trash2, Star, Edit2, CheckSquare, Calendar } from 'lucide-react';
+import { Check, Trash2, Star, Edit2, CheckSquare, Calendar, ExternalLink } from 'lucide-react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { cn } from '../../utils/cn';
 
@@ -68,20 +68,47 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
           />
         ) : (
           <div className="flex-1 min-w-0">
-            <span
-              onClick={() => toggleTodo(todo.id)}
-              className={cn(
-                'block text-xs font-medium cursor-pointer truncate transition-all',
-                todo.completed && 'line-through opacity-60'
-              )}
-            >
-              {todo.text}
-            </span>
-            {todo.dueDate && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-white/50 light:text-slate-500 mt-0.5">
-                <Calendar className="w-2.5 h-2.5" /> {todo.dueDate}
-              </span>
-            )}
+            {(() => {
+              const urlRegex = /(https?:\/\/[^\s]+)/g;
+              const matches = todo.text.match(urlRegex);
+              const hasUrl = matches && matches.length > 0;
+              const detectedUrl = hasUrl ? matches[0] : null;
+
+              return (
+                <div className="space-y-0.5">
+                  <span
+                    onClick={() => toggleTodo(todo.id)}
+                    className={cn(
+                      'block text-xs font-medium cursor-pointer truncate transition-all',
+                      todo.completed && 'line-through opacity-60'
+                    )}
+                  >
+                    {todo.text}
+                  </span>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {todo.dueDate && (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-white/50 light:text-slate-500">
+                        <Calendar className="w-2.5 h-2.5" /> {todo.dueDate}
+                      </span>
+                    )}
+
+                    {detectedUrl && (
+                      <a
+                        href={detectedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] text-accent hover:underline font-mono truncate max-w-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                        <span className="truncate">{detectedUrl}</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>

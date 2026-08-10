@@ -11,6 +11,7 @@ import { DailyBrief } from './DailyBrief';
 import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { GitHubDashboard, GitHubSubTab } from './github/GitHubDashboard';
+import { GitHubDailyTasks } from './github/GitHubDailyTasks';
 import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
 export const DeveloperLayout: React.FC = () => {
@@ -84,8 +85,11 @@ export const DeveloperLayout: React.FC = () => {
           {activeTab === 'git' && <GitHubDashboard initialSubTab={gitSubTab} />}
 
           {activeTab === 'tasks' && (
-            <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-5">
-              <TodoList />
+            <div className="space-y-6">
+              <GitHubDailyTasks />
+              <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-5">
+                <TodoList />
+              </div>
             </div>
           )}
 
