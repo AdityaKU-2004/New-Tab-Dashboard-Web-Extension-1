@@ -50,7 +50,12 @@ export const DeveloperLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0D1117] text-[#E6EDF3] font-mono flex flex-col lg:flex-row selection:bg-[#58A6FF] selection:text-[#0D1117]">
+    <div className="min-h-screen w-full bg-[#0D1117] text-[#E6EDF3] font-mono flex flex-col lg:flex-row selection:bg-[#58A6FF] selection:text-[#0D1117] relative">
+      {/* Cyberpunk Fullscreen Background Speedometer HUD Wallpaper */}
+      {theme === 'cyberpunk' && settings.speedometerPlacement !== 'header' && (
+        <CyberpunkSportsSpeedometer isBackgroundMode={true} />
+      )}
+
       {/* Persistent Left Sidebar */}
       <DeveloperSidebar
         activeTab={activeTab}
@@ -71,10 +76,10 @@ export const DeveloperLayout: React.FC = () => {
         />
 
         {/* Workspace Body */}
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 overflow-y-auto custom-scrollbar">
-          {theme === 'cyberpunk' && (
-            <div className={settings.speedometerPlacement === 'header' ? 'relative z-10' : 'relative z-0'}>
-              <CyberpunkSportsSpeedometer isBackgroundMode={settings.speedometerPlacement !== 'header'} />
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 overflow-y-auto custom-scrollbar relative z-10">
+          {theme === 'cyberpunk' && settings.speedometerPlacement === 'header' && (
+            <div className="relative z-10">
+              <CyberpunkSportsSpeedometer isBackgroundMode={false} />
             </div>
           )}
 

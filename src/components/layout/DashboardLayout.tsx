@@ -77,15 +77,20 @@ export const DashboardLayout: React.FC = () => {
         />
       </div>
 
+      {/* Cyberpunk Theme Fullscreen Background Speedometer HUD Wallpaper */}
+      {isCyberpunk && speedometerPlacement !== 'header' && (
+        <CyberpunkSportsSpeedometer isBackgroundMode={true} />
+      )}
+
       {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col min-h-screen justify-between">
         <Header />
 
         <main className="flex-1 my-4 space-y-6">
-          {/* Cyberpunk Theme Sports Car Speedometer HUD */}
-          {isCyberpunk && (
-            <div className={speedometerPlacement === 'header' ? 'relative z-10' : 'relative z-0'}>
-              <CyberpunkSportsSpeedometer isBackgroundMode={speedometerPlacement !== 'header'} />
+          {/* Cyberpunk Theme Sports Car Speedometer HUD (Header Block Mode) */}
+          {isCyberpunk && speedometerPlacement === 'header' && (
+            <div className="relative z-10">
+              <CyberpunkSportsSpeedometer isBackgroundMode={false} />
             </div>
           )}
 

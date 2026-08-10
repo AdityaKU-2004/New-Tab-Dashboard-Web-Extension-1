@@ -161,25 +161,29 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
 
   // Glassmorphic inline styles driven by user settings
   const bgAlpha = isBg
-    ? Math.max(0.02, cardOpacity * 0.45)
+    ? Math.min(0.25, Math.max(0.01, cardOpacity * 0.35))
     : Math.max(0.15, cardOpacity * 0.8);
 
   const glassStyle: React.CSSProperties = {
-    backdropFilter: `blur(${backgroundBlur}px)`,
-    WebkitBackdropFilter: `blur(${backgroundBlur}px)`,
+    backdropFilter: `blur(${isBg ? Math.min(backgroundBlur, 6) : backgroundBlur}px)`,
+    WebkitBackdropFilter: `blur(${isBg ? Math.min(backgroundBlur, 6) : backgroundBlur}px)`,
     backgroundColor: `rgba(8, 13, 26, ${bgAlpha})`,
   };
+
+  const containerClasses = isBg
+    ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-4 sm:p-8 font-mono text-[#00f3ff] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
+    : 'relative w-full rounded-2xl border border-[#00f3ff]/40 shadow-[0_0_25px_rgba(0,243,255,0.2)] p-4 sm:p-6 font-mono text-[#00f3ff] overflow-hidden transition-all duration-300 select-none group';
 
   return (
     <div
       style={glassStyle}
-      className="relative w-full rounded-2xl border border-[#00f3ff]/40 shadow-[0_0_25px_rgba(0,243,255,0.2)] p-4 sm:p-6 font-mono text-[#00f3ff] overflow-hidden transition-all duration-300 select-none group"
+      className={containerClasses}
     >
       {/* Carbon fiber grid effect overlay */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#00f3ff_1px,transparent_1px)] [background-size:16px_16px]" />
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#00f3ff_1px,transparent_1px)] [background-size:20px_20px]" />
 
       {/* Top Telemetry Header Bar */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-[#00f3ff]/30">
+      <div className={`relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 ${isBg ? 'mb-2 border-b border-[#00f3ff]/20' : 'mb-4 border-b border-[#00f3ff]/30'}`}>
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-lg bg-[#00f3ff]/15 border border-[#00f3ff]/50 shadow-[0_0_10px_rgba(0,243,255,0.3)] text-[#00f3ff]">
             <Gauge className="w-5 h-5 animate-pulse" />
@@ -197,10 +201,10 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
           </div>
         </div>
 
-        {/* Top Controls: Drive Mode, Unit Toggle, Interactive Rev */}
-        <div className="flex items-center gap-2">
+        {/* Top Controls: Drive Mode, Unit Toggle, Interactive Rev (pointer-events-auto for background mode) */}
+        <div className="flex items-center gap-2 pointer-events-auto">
           {/* Drive Mode Selector */}
-          <div className="flex items-center bg-[#050811] p-0.5 rounded-lg border border-[#00f3ff]/30">
+          <div className="flex items-center bg-[#050811]/90 p-0.5 rounded-lg border border-[#00f3ff]/30 shadow-md">
             {(['CYBER', 'SPORT+', 'DRIFT'] as const).map((mode) => (
               <button
                 key={mode}
@@ -221,7 +225,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
           <button
             type="button"
             onClick={() => setUnit(unit === 'MPH' ? 'KMH' : 'MPH')}
-            className="px-2.5 py-1 rounded-lg bg-[#00f3ff]/10 hover:bg-[#00f3ff]/25 border border-[#00f3ff]/40 text-xs font-bold transition-colors cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-[#00f3ff]/20 hover:bg-[#00f3ff]/35 border border-[#00f3ff]/50 text-xs font-bold transition-colors cursor-pointer shadow-md text-white"
           >
             {unit}
           </button>
@@ -231,7 +235,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
             type="button"
             onClick={handleRevEngine}
             disabled={isRevving}
-            className="px-3 py-1 rounded-lg bg-gradient-to-r from-[#ff0055] to-[#ff5500] hover:from-[#ff2a75] hover:to-[#ff7722] text-white font-extrabold text-xs shadow-[0_0_12px_rgba(255,0,85,0.5)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className="px-3 py-1 rounded-lg bg-gradient-to-r from-[#ff0055] to-[#ff5500] hover:from-[#ff2a75] hover:to-[#ff7722] text-white font-extrabold text-xs shadow-[0_0_12px_rgba(255,0,85,0.6)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
           >
             <Flame className="w-3.5 h-3.5 animate-bounce" />
             <span>REV ENGINE</span>
@@ -242,7 +246,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
             type="button"
             onClick={handleNitroBoost}
             disabled={nitro < 20 || isNitroActive}
-            className="px-3 py-1 rounded-lg bg-[#00f3ff] hover:bg-[#55f7ff] text-slate-950 font-black text-xs shadow-[0_0_15px_rgba(0,243,255,0.6)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-40"
+            className="px-3 py-1 rounded-lg bg-[#00f3ff] hover:bg-[#55f7ff] text-slate-950 font-black text-xs shadow-[0_0_15px_rgba(0,243,255,0.7)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-40"
           >
             <Zap className="w-3.5 h-3.5" />
             <span>NITRO ({nitro}%)</span>
@@ -251,9 +255,13 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
       </div>
 
       {/* Main Speedometer & Tachometer Instrumentation Grid */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <div className={`relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center ${isBg ? 'flex-1 my-auto' : ''}`}>
         {/* LEFT GAUGE: TACHOMETER (RPM 0 - 9000) */}
-        <div className="lg:col-span-4 flex flex-col items-center justify-center p-3 rounded-xl bg-slate-950/40 border border-[#00f3ff]/20 relative">
+        <div className={`lg:col-span-4 flex flex-col items-center justify-center p-3 rounded-xl border relative transition-all ${
+          isBg
+            ? 'bg-slate-950/20 border-[#00f3ff]/25 backdrop-blur-xs shadow-[0_0_15px_rgba(0,243,255,0.1)]'
+            : 'bg-slate-950/40 border-[#00f3ff]/20'
+        }`}>
           <div className="text-[10px] font-bold text-[#00f3ff]/80 tracking-widest uppercase mb-1 flex items-center gap-1">
             <Activity className="w-3 h-3 text-[#ff0055]" />
             <span>RPM TACHOMETER</span>
@@ -356,7 +364,11 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
         </div>
 
         {/* CENTER CLUSTER: DIGITAL SPEEDOMETER & SHIFT LIGHT COCKPIT */}
-        <div className="lg:col-span-4 flex flex-col items-center justify-center p-4 rounded-xl bg-slate-950/60 border border-[#00f3ff]/40 shadow-[0_0_20px_rgba(0,243,255,0.15)] relative space-y-3">
+        <div className={`lg:col-span-4 flex flex-col items-center justify-center p-4 rounded-xl border relative space-y-3 transition-all ${
+          isBg
+            ? 'bg-slate-950/30 border-[#00f3ff]/35 backdrop-blur-xs shadow-[0_0_20px_rgba(0,243,255,0.2)]'
+            : 'bg-slate-950/60 border-[#00f3ff]/40 shadow-[0_0_20px_rgba(0,243,255,0.15)]'
+        }`}>
           {/* Shift Light LED Array */}
           <div className="w-full flex items-center justify-center gap-1.5 py-1 px-3 rounded-lg bg-black/80 border border-white/10">
             <span className="text-[9px] font-bold text-white/50 mr-1">SHIFT</span>
@@ -397,13 +409,13 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
           {/* Gear Box & Drive Telemetry Badges */}
           <div className="flex items-center gap-3 pt-1">
             {/* Gear Box */}
-            <div className="px-3 py-1 rounded-lg bg-black border border-[#00f3ff]/60 flex items-center gap-2">
+            <div className="px-3 py-1 rounded-lg bg-black/90 border border-[#00f3ff]/60 flex items-center gap-2">
               <span className="text-[10px] text-[#00f3ff]/60 font-bold">GEAR</span>
               <span className="text-xl font-black text-[#ff0055]">{gear}</span>
             </div>
 
             {/* Turbo Pressure */}
-            <div className="px-3 py-1 rounded-lg bg-black border border-[#00f3ff]/40 flex items-center gap-2">
+            <div className="px-3 py-1 rounded-lg bg-black/90 border border-[#00f3ff]/40 flex items-center gap-2">
               <span className="text-[10px] text-[#00f3ff]/60 font-bold">TURBO</span>
               <span className="text-xs font-extrabold text-amber-400">{turboPsi} PSI</span>
             </div>
@@ -419,7 +431,11 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
         </div>
 
         {/* RIGHT GAUGE: ANALOG SPEEDOMETER DIAL (0 - 240 MPH) */}
-        <div className="lg:col-span-4 flex flex-col items-center justify-center p-3 rounded-xl bg-slate-950/40 border border-[#00f3ff]/20 relative">
+        <div className={`lg:col-span-4 flex flex-col items-center justify-center p-3 rounded-xl border relative transition-all ${
+          isBg
+            ? 'bg-slate-950/20 border-[#00f3ff]/25 backdrop-blur-xs shadow-[0_0_15px_rgba(0,243,255,0.1)]'
+            : 'bg-slate-950/40 border-[#00f3ff]/20'
+        }`}>
           <div className="text-[10px] font-bold text-[#00f3ff]/80 tracking-widest uppercase mb-1 flex items-center gap-1">
             <Compass className="w-3 h-3 text-[#00f3ff]" />
             <span>SPEED GAUGE ({unit})</span>
