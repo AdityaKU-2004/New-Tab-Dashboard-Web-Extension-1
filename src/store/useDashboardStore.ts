@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   AppSettings,
   Bookmark,
+  BookmarkFolder,
   Quote,
   RecentTab,
   Todo,
@@ -14,7 +15,7 @@ import {
 } from '../types';
 import { INITIAL_QUOTES } from '../mock/quotes';
 import { INITIAL_WALLPAPERS } from '../mock/wallpapers';
-import { INITIAL_BOOKMARKS } from '../mock/bookmarks';
+import { INITIAL_BOOKMARKS, INITIAL_FOLDERS } from '../mock/bookmarks';
 import { INITIAL_TODOS, INITIAL_RECENT_TABS } from '../mock/todos';
 
 export const SEARCH_ENGINES: Record<SearchEngineId, { name: string; url: string; icon: string }> = {
@@ -66,10 +67,20 @@ interface DashboardStore {
   customWallpaperUrl: string;
   setCustomWallpaperUrl: (url: string) => void;
 
-  // Bookmarks
+  // Bookmarks & Folders
+  folders: BookmarkFolder[];
+  addFolder: (name: string) => void;
+  deleteFolder: (id: string) => void;
+  renameFolder: (id: string, name: string) => void;
+
   bookmarks: Bookmark[];
-  addBookmark: (title: string, url: string, category?: string) => void;
+  addBookmark: (title: string, url: string, category?: string, description?: string, tags?: string[], folderId?: string, isQuickLink?: boolean) => void;
+  updateBookmark: (id: string, updates: Partial<Bookmark>) => void;
   deleteBookmark: (id: string) => void;
+  recordBookmarkClick: (id: string) => void;
+  toggleFavoriteBookmark: (id: string) => void;
+  toggleQuickLinkBookmark: (id: string) => void;
+  reorderBookmarks: (newBookmarks: Bookmark[]) => void;
 
   // Todos
   todos: Todo[];
@@ -171,9 +182,29 @@ export const useDashboardStore = create<DashboardStore>()(
       customWallpaperUrl: '',
       setCustomWallpaperUrl: (url) => set({ customWallpaperUrl: url }),
 
+      // Folders State
+      folders: INITIAL_FOLDERS,
+      addFolder: (name) => {
+        if (!name.trim()) return;
+        const newFolder: BookmarkFolder = {
+          id: 'f_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          name: name.trim()
+        };
+        set((state) => ({ folders: [...state.folders, newFolder] }));
+      },
+      deleteFolder: (id) =>
+        set((state) => ({
+          folders: state.folders.filter((f) => f.id !== id),
+          bookmarks: state.bookmarks.map((b) => (b.folderId === id ? { ...b, folderId: undefined } : b))
+        })),
+      renameFolder: (id, name) =>
+        set((state) => ({
+          folders: state.folders.map((f) => (f.id === id ? { ...f, name: name.trim() } : f))
+        })),
+
       // Bookmarks State
       bookmarks: INITIAL_BOOKMARKS,
-      addBookmark: (title, url, category) => {
+      addBookmark: (title, url, category, description, tags, folderId, isQuickLink) => {
         const formattedUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
         let domain = 'google.com';
         try {
@@ -187,14 +218,46 @@ export const useDashboardStore = create<DashboardStore>()(
           url: formattedUrl,
           icon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
           category: category || 'General',
-          createdAt: Date.now()
+          folderId,
+          description,
+          tags: tags || [],
+          favorite: false,
+          isQuickLink: isQuickLink ?? false,
+          createdAt: Date.now(),
+          visitCount: 0,
+          sortOrder: Date.now()
         };
         set((state) => ({ bookmarks: [newBm, ...state.bookmarks] }));
       },
+      updateBookmark: (id, updates) =>
+        set((state) => ({
+          bookmarks: state.bookmarks.map((b) => (b.id === id ? { ...b, ...updates, updatedAt: Date.now() } : b))
+        })),
       deleteBookmark: (id) =>
         set((state) => ({
           bookmarks: state.bookmarks.filter((b) => b.id !== id)
         })),
+      recordBookmarkClick: (id) =>
+        set((state) => ({
+          bookmarks: state.bookmarks.map((b) =>
+            b.id === id
+              ? {
+                  ...b,
+                  lastUsedAt: Date.now(),
+                  visitCount: (b.visitCount || 0) + 1
+                }
+              : b
+          )
+        })),
+      toggleFavoriteBookmark: (id) =>
+        set((state) => ({
+          bookmarks: state.bookmarks.map((b) => (b.id === id ? { ...b, favorite: !b.favorite } : b))
+        })),
+      toggleQuickLinkBookmark: (id) =>
+        set((state) => ({
+          bookmarks: state.bookmarks.map((b) => (b.id === id ? { ...b, isQuickLink: !b.isQuickLink } : b))
+        })),
+      reorderBookmarks: (newBookmarks) => set({ bookmarks: newBookmarks }),
 
       // Todos State
       todos: INITIAL_TODOS,
@@ -292,6 +355,7 @@ export const useDashboardStore = create<DashboardStore>()(
           settings: state.settings,
           selectedWallpaper: cleanSelectedWallpaper,
           customWallpaperUrl: cleanCustomWallpaperUrl,
+          folders: state.folders,
           bookmarks: state.bookmarks,
           todos: state.todos,
           favoriteQuoteIds: state.favoriteQuoteIds,

@@ -11,13 +11,30 @@ export interface SearchEngine {
   icon: string;
 }
 
+export interface BookmarkFolder {
+  id: string;
+  name: string;
+  color?: string;
+  parentId?: string;
+}
+
 export interface Bookmark {
   id: string;
   title: string;
   url: string;
   icon?: string;
+  favicon?: string;
   category?: string;
+  folderId?: string;
+  description?: string;
+  tags?: string[];
+  favorite?: boolean;
+  isQuickLink?: boolean;
   createdAt: number;
+  updatedAt?: number;
+  lastUsedAt?: number;
+  visitCount?: number;
+  sortOrder?: number;
 }
 
 export interface Todo {
