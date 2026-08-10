@@ -4,6 +4,7 @@ import { useDashboardStore, SEARCH_ENGINES } from '../../store/useDashboardStore
 import { AccentColor, SearchEngineId, ThemeMode } from '../../types';
 import { ACCENT_COLOR_CLASSES } from '../../hooks/useTheme';
 import { CYBERPUNK_WALLPAPER } from '../../mock/wallpapers';
+import { GitHubSettingsSection } from '../developer/github/GitHubSettingsSection';
 import {
   X,
   RotateCcw,
@@ -328,6 +329,9 @@ export const SettingsDrawer: React.FC = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* 6. GitHub Settings (Developer Theme Only) */}
+                <GitHubSettingsSection />
               </div>
             </div>
 

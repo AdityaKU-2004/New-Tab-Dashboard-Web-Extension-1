@@ -39,6 +39,7 @@ export const SmartLinkCard: React.FC<SmartLinkCardProps> = ({
 
   const safeFolders = Array.isArray(folders) ? folders : [];
   const folder = safeFolders.find((f) => f.id === bookmark.folderId || f.name === bookmark.category);
+  const parentFolder = folder?.parentId ? safeFolders.find((f) => f.id === folder.parentId) : null;
 
   const getDomain = (url: string) => {
     try {
@@ -143,7 +144,7 @@ export const SmartLinkCard: React.FC<SmartLinkCardProps> = ({
         {folder && (
           <span className="text-[10px] bg-[#1C212B] text-[#58A6FF] border border-[#30363D] px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
             <FolderIcon className="w-2.5 h-2.5" />
-            {folder.name}
+            {parentFolder ? `${parentFolder.name} / ${folder.name}` : folder.name}
           </span>
         )}
 

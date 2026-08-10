@@ -2,6 +2,7 @@ import React from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { useClock } from '../../hooks/useClock';
 import { DeveloperTab } from './DeveloperSidebar';
+import { GitHubCompactCard } from './github/GitHubCompactCard';
 import {
   CheckSquare,
   Timer,
@@ -85,8 +86,8 @@ export const DailyBrief: React.FC<DailyBriefProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* 2-COLUMN GRID: TODAY'S GOALS & FOCUS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* 3-COLUMN GRID: TODAY'S GOALS, FOCUS & GITHUB */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* TODAY'S GOALS */}
         <div className="bg-[#0D1117] border border-[#30363D] rounded-lg p-4 flex flex-col justify-between gap-4">
           <div>
@@ -200,6 +201,9 @@ export const DailyBrief: React.FC<DailyBriefProps> = ({ onNavigate }) => {
             </button>
           </div>
         </div>
+
+        {/* GITHUB COMPACT CARD */}
+        <GitHubCompactCard onNavigate={onNavigate} />
       </div>
 
       {/* 3. UPCOMING REMINDERS & EVENTS */}

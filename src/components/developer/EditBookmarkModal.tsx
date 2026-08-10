@@ -150,11 +150,21 @@ export const EditBookmarkModal: React.FC<EditBookmarkModalProps> = ({
                 className="w-full pl-9 pr-3 py-2 bg-[#0D1117] border border-[#30363D] rounded text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF] cursor-pointer"
               >
                 <option value="">No Folder (General)</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
+                {folders
+                  .filter((f) => !f.parentId)
+                  .flatMap((parent) => {
+                    const children = folders.filter((child) => child.parentId === parent.id);
+                    return [
+                      <option key={parent.id} value={parent.id}>
+                        {parent.name}
+                      </option>,
+                      ...children.map((child) => (
+                        <option key={child.id} value={child.id}>
+                          └ {parent.name} / {child.name}
+                        </option>
+                      ))
+                    ];
+                  })}
               </select>
             </div>
           </div>

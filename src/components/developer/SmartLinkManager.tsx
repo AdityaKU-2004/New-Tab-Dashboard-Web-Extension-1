@@ -17,7 +17,8 @@ import {
   Check,
   Edit2,
   Trash2,
-  X
+  X,
+  CornerDownRight
 } from 'lucide-react';
 
 export const SmartLinkManager: React.FC = () => {
@@ -41,13 +42,46 @@ export const SmartLinkManager: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
 
-  // New Folder creation inline input
+  // Root folder creation inline input
   const [isAddingFolder, setIsAddingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+
+  // Subfolder creation inline input
+  const [addingSubfolderParentId, setAddingSubfolderParentId] = useState<string | null>(null);
+  const [subfolderName, setSubfolderName] = useState('');
 
   // Folder renaming state
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingFolderName, setEditingFolderName] = useState('');
+
+  // Helper to get target folder ID and all descendant subfolder IDs recursively
+  const getFolderAndSubfolderIds = (targetId: string): Set<string> => {
+    const ids = new Set<string>([targetId]);
+    let addedMore = true;
+    while (addedMore) {
+      addedMore = false;
+      for (const folder of folders) {
+        if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) {
+          ids.add(folder.id);
+          addedMore = true;
+        }
+      }
+    }
+    return ids;
+  };
+
+  // Calculate total links in folder (including subfolders)
+  const getFolderLinkCount = (folderId: string): number => {
+    const familyIds = getFolderAndSubfolderIds(folderId);
+    const familyFolderObjs = folders.filter((f) => familyIds.has(f.id));
+    const familyNames = new Set(familyFolderObjs.map((f) => f.name.toLowerCase()));
+
+    return bookmarks.filter((b) => {
+      if (b.folderId && familyIds.has(b.folderId)) return true;
+      if (b.category && familyNames.has(b.category.toLowerCase())) return true;
+      return false;
+    }).length;
+  };
 
   // Keyboard shortcut: Ctrl + K or Cmd + K to focus search
   useEffect(() => {
@@ -80,12 +114,16 @@ export const SmartLinkManager: React.FC = () => {
       .filter((b) => b.visitCount && b.visitCount > 0)
       .sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0));
   } else if (selectedFilter !== 'all') {
-    // Filter by specific folderId or category name match
-    displayedBookmarks = displayedBookmarks.filter(
-      (b) =>
-        b.folderId === selectedFilter ||
-        (b.category && b.category.toLowerCase() === selectedFilter.toLowerCase())
-    );
+    const familyIds = getFolderAndSubfolderIds(selectedFilter);
+    const familyFolderObjs = folders.filter((f) => familyIds.has(f.id));
+    const familyNames = new Set(familyFolderObjs.map((f) => f.name.toLowerCase()));
+    familyNames.add(selectedFilter.toLowerCase());
+
+    displayedBookmarks = displayedBookmarks.filter((b) => {
+      if (b.folderId && familyIds.has(b.folderId)) return true;
+      if (b.category && familyNames.has(b.category.toLowerCase())) return true;
+      return false;
+    });
   }
 
   // Tag filter
@@ -307,82 +345,155 @@ export const SmartLinkManager: React.FC = () => {
               </form>
             )}
 
-            <div className="space-y-1 max-h-[220px] overflow-y-auto custom-scrollbar">
-              {folders.map((f) => {
-                const isSelected = selectedFilter === f.id;
-                const linkCount = bookmarks.filter(
-                  (b) => b.folderId === f.id || b.category === f.name
-                ).length;
-
-                if (editingFolderId === f.id) {
-                  return (
-                    <form
-                      key={f.id}
-                      onSubmit={(e) => handleSaveRenameFolder(f.id, e)}
-                      className="flex items-center gap-1 my-1"
-                    >
-                      <input
-                        type="text"
-                        autoFocus
-                        value={editingFolderName}
-                        onChange={(e) => setEditingFolderName(e.target.value)}
-                        className="w-full px-2 py-1 bg-[#161B22] border border-[#58A6FF] rounded text-xs text-[#E6EDF3] focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        className="p-1 text-[#3FB950] hover:bg-[#1C212B] rounded cursor-pointer"
-                      >
-                        <Check className="w-3 h-3" />
-                      </button>
-                    </form>
-                  );
-                }
-
-                return (
-                  <div
-                    key={f.id}
-                    onClick={() => {
-                      setSelectedFilter(f.id);
-                      setSelectedTag(null);
-                    }}
-                    className={`group flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#1C212B] text-[#58A6FF] font-bold border border-[#58A6FF]/30'
-                        : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <Folder className="w-3.5 h-3.5 text-[#58A6FF]/80 shrink-0" />
-                      <span className="truncate">{f.name}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-[10px] bg-[#161B22] px-1.5 py-0.5 rounded text-[#8B949E]">
-                        {linkCount}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => handleStartRenameFolder(f, e)}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 text-[#8B949E] hover:text-[#E6EDF3] transition-opacity cursor-pointer"
-                        title="Rename folder"
-                      >
-                        <Edit2 className="w-2.5 h-2.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteFolder(f.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 text-[#8B949E] hover:text-[#F85149] transition-opacity cursor-pointer"
-                        title="Delete folder"
-                      >
-                        <Trash2 className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
-                  </div>
+            <div className="space-y-1 max-h-[280px] overflow-y-auto custom-scrollbar">
+              {(() => {
+                const rootFolders = folders.filter(
+                  (f) => !f.parentId || !folders.some((parent) => parent.id === f.parentId)
                 );
-              })}
+
+                const renderFolderItem = (f: BookmarkFolder, depth: number = 0): React.ReactNode => {
+                  const isSelected = selectedFilter === f.id;
+                  const linkCount = getFolderLinkCount(f.id);
+                  const subfolders = folders.filter((child) => child.parentId === f.id);
+
+                  if (editingFolderId === f.id) {
+                    return (
+                      <form
+                        key={f.id}
+                        onSubmit={(e) => handleSaveRenameFolder(f.id, e)}
+                        className="flex items-center gap-1 my-1"
+                        style={{ paddingLeft: `${depth * 12 + 8}px` }}
+                      >
+                        <input
+                          type="text"
+                          autoFocus
+                          value={editingFolderName}
+                          onChange={(e) => setEditingFolderName(e.target.value)}
+                          className="w-full px-2 py-1 bg-[#161B22] border border-[#58A6FF] rounded text-xs text-[#E6EDF3] focus:outline-none"
+                        />
+                        <button
+                          type="submit"
+                          className="p-1 text-[#3FB950] hover:bg-[#1C212B] rounded cursor-pointer"
+                        >
+                          <Check className="w-3 h-3" />
+                        </button>
+                      </form>
+                    );
+                  }
+
+                  return (
+                    <React.Fragment key={f.id}>
+                      <div
+                        onClick={() => {
+                          setSelectedFilter(f.id);
+                          setSelectedTag(null);
+                        }}
+                        style={{ paddingLeft: `${depth * 12 + 10}px` }}
+                        className={`group flex items-center justify-between py-1.5 pr-2 rounded text-xs transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#1C212B] text-[#58A6FF] font-bold border border-[#58A6FF]/30'
+                            : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 truncate">
+                          {depth > 0 ? (
+                            <CornerDownRight className="w-3 h-3 text-[#58A6FF]/70 shrink-0" />
+                          ) : (
+                            <Folder className="w-3.5 h-3.5 text-[#58A6FF]/80 shrink-0" />
+                          )}
+                          <span className="truncate">{f.name}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[10px] bg-[#161B22] px-1.5 py-0.5 rounded text-[#8B949E]">
+                            {linkCount}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddingSubfolderParentId(f.id);
+                              setSubfolderName('');
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-[#8B949E] hover:text-[#58A6FF] transition-opacity cursor-pointer"
+                            title="Add Subfolder"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => handleStartRenameFolder(f, e)}
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-[#8B949E] hover:text-[#E6EDF3] transition-opacity cursor-pointer"
+                            title="Rename folder"
+                          >
+                            <Edit2 className="w-2.5 h-2.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteFolder(f.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-[#8B949E] hover:text-[#F85149] transition-opacity cursor-pointer"
+                            title="Delete folder"
+                          >
+                            <Trash2 className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {addingSubfolderParentId === f.id && (
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            if (subfolderName.trim()) {
+                              addFolder(subfolderName.trim(), f.id);
+                              setSubfolderName('');
+                              setAddingSubfolderParentId(null);
+                            }
+                          }}
+                          style={{ paddingLeft: `${(depth + 1) * 12 + 8}px` }}
+                          className="flex items-center gap-1 my-1"
+                        >
+                          <CornerDownRight className="w-3 h-3 text-[#58A6FF] shrink-0" />
+                          <input
+                            type="text"
+                            autoFocus
+                            placeholder="Subfolder name..."
+                            value={subfolderName}
+                            onChange={(e) => setSubfolderName(e.target.value)}
+                            className="w-full px-2 py-1 bg-[#161B22] border border-[#58A6FF] rounded text-xs text-[#E6EDF3] focus:outline-none"
+                          />
+                          <button
+                            type="submit"
+                            className="p-1 text-[#3FB950] hover:bg-[#1C212B] rounded cursor-pointer"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAddingSubfolderParentId(null)}
+                            className="p-1 text-[#F85149] hover:bg-[#1C212B] rounded cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </form>
+                      )}
+
+                      {subfolders.length > 0 && (
+                        <div className="space-y-0.5">
+                          {subfolders.map((child) => renderFolderItem(child, depth + 1))}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                };
+
+                return rootFolders.map((f) => renderFolderItem(f, 0));
+              })()}
             </div>
           </div>
         </div>

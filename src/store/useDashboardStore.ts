@@ -69,7 +69,7 @@ interface DashboardStore {
 
   // Bookmarks & Folders
   folders: BookmarkFolder[];
-  addFolder: (name: string) => void;
+  addFolder: (name: string, parentId?: string) => void;
   deleteFolder: (id: string) => void;
   renameFolder: (id: string, name: string) => void;
 
@@ -192,22 +192,39 @@ export const useDashboardStore = create<DashboardStore>()(
 
       // Folders & Bookmarks State
       folders: INITIAL_FOLDERS,
-      addFolder: (name) => {
+      addFolder: (name, parentId) => {
         if (!name.trim()) return;
         const newFolder: BookmarkFolder = {
           id: 'f_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
           name: name.trim(),
+          parentId,
           createdAt: Date.now()
         };
         set((state) => ({ folders: [...(state.folders || []), newFolder] }));
       },
       deleteFolder: (id) =>
-        set((state) => ({
-          folders: (state.folders || []).filter((f) => f.id !== id),
-          bookmarks: (state.bookmarks || []).map((b) =>
-            b.folderId === id ? { ...b, folderId: undefined } : b
-          )
-        })),
+        set((state) => {
+          const currentFolders = state.folders || [];
+          // Collect id and all child folder IDs recursively
+          const folderIdsToDelete = new Set<string>([id]);
+          let addedMore = true;
+          while (addedMore) {
+            addedMore = false;
+            for (const f of currentFolders) {
+              if (f.parentId && folderIdsToDelete.has(f.parentId) && !folderIdsToDelete.has(f.id)) {
+                folderIdsToDelete.add(f.id);
+                addedMore = true;
+              }
+            }
+          }
+
+          return {
+            folders: currentFolders.filter((f) => !folderIdsToDelete.has(f.id)),
+            bookmarks: (state.bookmarks || []).map((b) =>
+              b.folderId && folderIdsToDelete.has(b.folderId) ? { ...b, folderId: undefined } : b
+            )
+          };
+        }),
       renameFolder: (id, name) =>
         set((state) => ({
           folders: (state.folders || []).map((f) =>

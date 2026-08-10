@@ -14,8 +14,8 @@ export interface SearchEngine {
 export interface BookmarkFolder {
   id: string;
   name: string;
-  color?: string;
   parentId?: string;
+  createdAt: number;
 }
 
 export interface Bookmark {
@@ -23,18 +23,15 @@ export interface Bookmark {
   title: string;
   url: string;
   icon?: string;
-  favicon?: string;
   category?: string;
   folderId?: string;
   description?: string;
   tags?: string[];
   favorite?: boolean;
   isQuickLink?: boolean;
-  createdAt: number;
-  updatedAt?: number;
-  lastUsedAt?: number;
   visitCount?: number;
-  sortOrder?: number;
+  lastUsedAt?: number;
+  createdAt: number;
 }
 
 export interface Todo {

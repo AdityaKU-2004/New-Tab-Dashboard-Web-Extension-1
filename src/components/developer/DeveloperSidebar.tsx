@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   House,
+  Github,
   PanelsTopLeft,
   Bookmark,
   CheckSquare,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 
-export type DeveloperTab = 'home' | 'tabs' | 'bookmarks' | 'tasks' | 'notes' | 'focus';
+export type DeveloperTab = 'home' | 'git' | 'tabs' | 'bookmarks' | 'tasks' | 'notes' | 'focus';
 
 interface DeveloperSidebarProps {
   activeTab: DeveloperTab;
@@ -36,6 +37,7 @@ export const DeveloperSidebar: React.FC<DeveloperSidebarProps> = ({
 
   const navItems: Array<{ id: DeveloperTab; label: string; icon: React.ReactNode; badge?: string }> = [
     { id: 'home', label: 'Home', icon: <House className="w-4 h-4" /> },
+    { id: 'git', label: 'GitHub', icon: <Github className="w-4 h-4" /> },
     { id: 'tabs', label: 'Tabs', icon: <PanelsTopLeft className="w-4 h-4" /> },
     { id: 'bookmarks', label: 'Bookmarks', icon: <Bookmark className="w-4 h-4" /> },
     { id: 'tasks', label: 'Tasks', icon: <CheckSquare className="w-4 h-4" /> },

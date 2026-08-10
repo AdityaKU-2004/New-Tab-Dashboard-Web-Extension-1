@@ -5,9 +5,14 @@ import { useDashboardStore, SEARCH_ENGINES } from '../../store/useDashboardStore
 interface DeveloperTopBarProps {
   onToggleMobileMenu: () => void;
   activeTab: string;
+  onOpenCommandPalette?: () => void;
 }
 
-export const DeveloperTopBar: React.FC<DeveloperTopBarProps> = ({ onToggleMobileMenu, activeTab }) => {
+export const DeveloperTopBar: React.FC<DeveloperTopBarProps> = ({
+  onToggleMobileMenu,
+  activeTab,
+  onOpenCommandPalette
+}) => {
   const setSettingsOpen = useDashboardStore((state) => state.setSettingsOpen);
   const searchEngine = useDashboardStore((state) => state.settings.searchEngine);
   const [query, setQuery] = React.useState('');
@@ -41,22 +46,33 @@ export const DeveloperTopBar: React.FC<DeveloperTopBarProps> = ({ onToggleMobile
       </div>
 
       {/* Middle Area: IDE Command/Search Bar */}
-      <form onSubmit={handleSearch} className="flex-1 max-w-md relative">
-        <div className="relative flex items-center">
-          <Search className="w-3.5 h-3.5 absolute left-3 text-[#8B949E] pointer-events-none" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${currentEngine.name} or type URL...`}
-            className="w-full h-8 pl-8 pr-12 rounded-md bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] placeholder-[#8B949E] text-xs font-mono focus:outline-none focus:border-[#58A6FF] focus:ring-1 focus:ring-[#58A6FF] transition-all"
-          />
-          <div className="absolute right-2 px-1.5 py-0.5 rounded bg-[#161B22] border border-[#30363D] text-[10px] font-mono text-[#8B949E] hidden sm:flex items-center gap-0.5">
-            <Command className="w-2.5 h-2.5" />
-            <span>K</span>
+      <div className="flex-1 max-w-md flex items-center gap-2">
+        <form onSubmit={handleSearch} className="flex-1 relative">
+          <div className="relative flex items-center">
+            <Search className="w-3.5 h-3.5 absolute left-3 text-[#8B949E] pointer-events-none" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Search ${currentEngine.name} or type URL...`}
+              className="w-full h-8 pl-8 pr-3 rounded-md bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] placeholder-[#8B949E] text-xs font-mono focus:outline-none focus:border-[#58A6FF] focus:ring-1 focus:ring-[#58A6FF] transition-all"
+            />
           </div>
-        </div>
-      </form>
+        </form>
+
+        {onOpenCommandPalette && (
+          <button
+            type="button"
+            onClick={onOpenCommandPalette}
+            className="h-8 px-2.5 rounded-md bg-[#161B22] hover:bg-[#1C212B] border border-[#30363D] text-[10px] font-mono text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+            title="Open Developer Command Palette (Ctrl+K)"
+          >
+            <Command className="w-3 h-3 text-[#58A6FF]" />
+            <span className="hidden sm:inline font-bold text-[#E6EDF3]">Cmd Palette</span>
+            <span className="px-1 bg-[#0D1117] border border-[#30363D] rounded text-[9px]">⌘K</span>
+          </button>
+        )}
+      </div>
 
       {/* Right Area: Action Buttons */}
       <div className="flex items-center gap-2">

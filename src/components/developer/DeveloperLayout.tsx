@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
+import { useGitHubStore } from '../../store/useGitHubStore';
 import { DeveloperSidebar, DeveloperTab } from './DeveloperSidebar';
 import { DeveloperTopBar } from './DeveloperTopBar';
 import { DeveloperNotes } from './DeveloperNotes';
@@ -9,11 +10,39 @@ import { SmartLinkManager } from './SmartLinkManager';
 import { DailyBrief } from './DailyBrief';
 import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
+import { GitHubDashboard, GitHubSubTab } from './github/GitHubDashboard';
+import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
 export const DeveloperLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<DeveloperTab>('home');
+  const [gitSubTab, setGitSubTab] = useState<GitHubSubTab>('repos');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Initialize stored GitHub token on Developer layout mount
+  useEffect(() => {
+    useGitHubStore.getState().initToken();
+  }, []);
+
+  // Global shortcut (Ctrl+K or Cmd+K) for Command Palette in Developer layout
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleNavigate = (tab: DeveloperTab, subTab?: GitHubSubTab) => {
+    setActiveTab(tab);
+    if (subTab) {
+      setGitSubTab(subTab);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-[#0D1117] text-[#E6EDF3] font-mono flex flex-col lg:flex-row selection:bg-[#58A6FF] selection:text-[#0D1117]">
@@ -33,6 +62,7 @@ export const DeveloperLayout: React.FC = () => {
         <DeveloperTopBar
           onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           activeTab={activeTab}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         />
 
         {/* Workspace Body */}
@@ -40,7 +70,7 @@ export const DeveloperLayout: React.FC = () => {
           {activeTab === 'home' && (
             <>
               {/* Daily Brief - Primary Dashboard Section */}
-              <DailyBrief onNavigate={setActiveTab} />
+              <DailyBrief onNavigate={handleNavigate} />
 
               {/* Secondary Productivity Modules (Notes & Focus Timer) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -51,6 +81,8 @@ export const DeveloperLayout: React.FC = () => {
           )}
 
           {/* Module Views */}
+          {activeTab === 'git' && <GitHubDashboard initialSubTab={gitSubTab} />}
+
           {activeTab === 'tasks' && (
             <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-5">
               <TodoList />
@@ -73,6 +105,13 @@ export const DeveloperLayout: React.FC = () => {
 
       {/* Drawers & Modals */}
       <SettingsDrawer />
+
+      {/* Developer Command Palette */}
+      <DeveloperCommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 };
