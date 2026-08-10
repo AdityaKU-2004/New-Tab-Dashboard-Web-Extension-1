@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useGitHubStore } from '../../../store/useGitHubStore';
 import { AddGitHubEventModal } from './AddGitHubEventModal';
-import { GitHubDailyTasks } from './GitHubDailyTasks';
 import { Flame, Calendar, Trophy, Zap, Info, Filter, Plus } from 'lucide-react';
 
 type TimeRange = '12' | '24' | '52'; // Weeks to display
@@ -423,11 +422,6 @@ export const GitHubCommitHeatmap: React.FC = () => {
           <div className="w-2.5 h-2.5 rounded-[2px] bg-[#39D353] border border-[#39D353]" title="10+ commits" />
           <span>More</span>
         </div>
-      </div>
-
-      {/* Daily Tasks Section */}
-      <div className="pt-2">
-        <GitHubDailyTasks selectedDate={selectedDay?.dateStr} />
       </div>
 
       {/* Add Custom Event Modal */}

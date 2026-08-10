@@ -3,6 +3,7 @@ import { useGitHubStore } from '../../../store/useGitHubStore';
 import { useDashboardStore } from '../../../store/useDashboardStore';
 import { GitHubCommitHeatmap } from './GitHubCommitHeatmap';
 import { GitHubRepoCommitGraph } from './GitHubRepoCommitGraph';
+import { GitHubDailyTasks } from './GitHubDailyTasks';
 import { AddGitHubEventModal } from './AddGitHubEventModal';
 import {
   Github,
@@ -357,6 +358,7 @@ export const GitHubDashboard: React.FC<GitHubDashboardProps> = ({ initialSubTab 
           {activeSubTab === 'heatmap' && (
             <div className="space-y-5">
               <GitHubCommitHeatmap />
+              <GitHubDailyTasks />
               <GitHubRepoCommitGraph />
             </div>
           )}

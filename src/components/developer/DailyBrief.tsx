@@ -3,6 +3,7 @@ import { useDashboardStore } from '../../store/useDashboardStore';
 import { useClock } from '../../hooks/useClock';
 import { DeveloperTab } from './DeveloperSidebar';
 import { GitHubCompactCard } from './github/GitHubCompactCard';
+import { GitHubDailyTasks } from './github/GitHubDailyTasks';
 import {
   CheckSquare,
   Timer,
@@ -85,6 +86,9 @@ export const DailyBrief: React.FC<DailyBriefProps> = ({ onNavigate }) => {
           </span>
         </div>
       </div>
+
+      {/* DAILY TASKS SECTION - Directly after greeting */}
+      <GitHubDailyTasks />
 
       {/* 3-COLUMN GRID: TODAY'S GOALS, FOCUS & GITHUB */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

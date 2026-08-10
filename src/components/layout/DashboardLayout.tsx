@@ -13,6 +13,7 @@ import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
 import { CyberHudStats } from '../cyberpunk/CyberHudStats';
 import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
 import { DeveloperLayout } from '../developer/DeveloperLayout';
+import { GitHubDailyTasks } from '../developer/github/GitHubDailyTasks';
 import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
@@ -92,6 +93,9 @@ export const DashboardLayout: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Daily Tasks & Learning Reminders - Directly after Greeting & Clock */}
+          <GitHubDailyTasks />
 
           {/* Row 2: Calendar, Todo, Quote */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
