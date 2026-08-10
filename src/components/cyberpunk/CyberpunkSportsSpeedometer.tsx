@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import { Gauge, Zap, Flame, Compass, Activity, ShieldAlert, Cpu, Sparkles } from 'lucide-react';
 
-export const CyberpunkSportsSpeedometer: React.FC = () => {
-  const { cardOpacity, backgroundBlur, enableAnimations } = useDashboardStore((state) => state.settings);
+interface CyberpunkSportsSpeedometerProps {
+  isBackgroundMode?: boolean;
+}
+
+export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProps> = ({ isBackgroundMode }) => {
+  const { cardOpacity, backgroundBlur, speedometerPlacement } = useDashboardStore((state) => state.settings);
+  const isBg = isBackgroundMode ?? (speedometerPlacement === 'background');
 
   // Dynamic Telemetry States (Driven by smooth simulation loop for show)
   const [rpm, setRpm] = useState(2400);
@@ -155,10 +160,14 @@ export const CyberpunkSportsSpeedometer: React.FC = () => {
   const isRedlineFlash = rpm > 7400;
 
   // Glassmorphic inline styles driven by user settings
+  const bgAlpha = isBg
+    ? Math.max(0.02, cardOpacity * 0.45)
+    : Math.max(0.15, cardOpacity * 0.8);
+
   const glassStyle: React.CSSProperties = {
     backdropFilter: `blur(${backgroundBlur}px)`,
     WebkitBackdropFilter: `blur(${backgroundBlur}px)`,
-    backgroundColor: `rgba(8, 13, 26, ${Math.max(0.15, cardOpacity * 0.75)})`,
+    backgroundColor: `rgba(8, 13, 26, ${bgAlpha})`,
   };
 
   return (

@@ -99,6 +99,7 @@ export interface AppSettings {
   backgroundBlur: number; // 0 to 20 px
   cardOpacity: number; // 0.2 to 1.0
   darkOverlayOpacity: number; // 0.0 to 0.8
+  speedometerPlacement?: 'background' | 'header';
   enableAnimations: boolean;
   widgetVisibility: WidgetVisibility;
 }

@@ -17,7 +17,8 @@ import { CyberpunkSportsSpeedometer } from '../cyberpunk/CyberpunkSportsSpeedome
 import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
 export const DeveloperLayout: React.FC = () => {
-  const theme = useDashboardStore((state) => state.settings.theme);
+  const settings = useDashboardStore((state) => state.settings);
+  const theme = settings.theme;
   const [activeTab, setActiveTab] = useState<DeveloperTab>('home');
   const [gitSubTab, setGitSubTab] = useState<GitHubSubTab>('repos');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -71,7 +72,11 @@ export const DeveloperLayout: React.FC = () => {
 
         {/* Workspace Body */}
         <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 overflow-y-auto custom-scrollbar">
-          {theme === 'cyberpunk' && <CyberpunkSportsSpeedometer />}
+          {theme === 'cyberpunk' && (
+            <div className={settings.speedometerPlacement === 'header' ? 'relative z-10' : 'relative z-0'}>
+              <CyberpunkSportsSpeedometer isBackgroundMode={settings.speedometerPlacement !== 'header'} />
+            </div>
+          )}
 
           {activeTab === 'home' && (
             <>

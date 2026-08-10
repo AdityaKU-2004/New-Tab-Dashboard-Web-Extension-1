@@ -20,7 +20,7 @@ import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
   const selectedWallpaper = useDashboardStore((state) => state.selectedWallpaper);
-  const { widgetVisibility, darkOverlayOpacity, theme } = useDashboardStore((state) => state.settings);
+  const { widgetVisibility, darkOverlayOpacity, theme, speedometerPlacement } = useDashboardStore((state) => state.settings);
   useTheme(); // Initializes light/dark theme class and accent variables
 
   if (theme === 'developer') {
@@ -83,7 +83,11 @@ export const DashboardLayout: React.FC = () => {
 
         <main className="flex-1 my-4 space-y-6">
           {/* Cyberpunk Theme Sports Car Speedometer HUD */}
-          {isCyberpunk && <CyberpunkSportsSpeedometer />}
+          {isCyberpunk && (
+            <div className={speedometerPlacement === 'header' ? 'relative z-10' : 'relative z-0'}>
+              <CyberpunkSportsSpeedometer isBackgroundMode={speedometerPlacement !== 'header'} />
+            </div>
+          )}
 
           {/* Row 1: Clock & Search Bar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
