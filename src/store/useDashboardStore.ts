@@ -50,7 +50,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
     calendar: true,
     quote: true,
     recentTabs: true,
-    wallpaperPicker: true
+    wallpaperPicker: true,
+    gmail: true
   }
 };
 

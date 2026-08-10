@@ -14,6 +14,7 @@ import { CyberHudStats } from '../cyberpunk/CyberHudStats';
 import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
 import { DeveloperLayout } from '../developer/DeveloperLayout';
 import { GitHubDailyTasks } from '../developer/github/GitHubDailyTasks';
+import { UnreadGmailWidget } from '../gmail/UnreadGmailWidget';
 import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
@@ -94,8 +95,17 @@ export const DashboardLayout: React.FC = () => {
             )}
           </div>
 
-          {/* Daily Tasks & Learning Reminders - Directly after Greeting & Clock */}
-          <GitHubDailyTasks />
+          {/* Daily Tasks & Gmail Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div className={widgetVisibility.gmail !== false ? 'lg:col-span-7' : 'lg:col-span-12'}>
+              <GitHubDailyTasks />
+            </div>
+            {widgetVisibility.gmail !== false && (
+              <div className="lg:col-span-5">
+                <UnreadGmailWidget />
+              </div>
+            )}
+          </div>
 
           {/* Row 2: Calendar, Todo, Quote */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -12,6 +12,7 @@ import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { GitHubDashboard, GitHubSubTab } from './github/GitHubDashboard';
 import { GitHubDailyTasks } from './github/GitHubDailyTasks';
+import { UnreadGmailWidget } from '../gmail/UnreadGmailWidget';
 import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
 export const DeveloperLayout: React.FC = () => {
@@ -73,6 +74,16 @@ export const DeveloperLayout: React.FC = () => {
               {/* Daily Brief - Primary Dashboard Section */}
               <DailyBrief onNavigate={handleNavigate} />
 
+              {/* Unread Gmail & Daily Tasks Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <div className="lg:col-span-7">
+                  <GitHubDailyTasks />
+                </div>
+                <div className="lg:col-span-5">
+                  <UnreadGmailWidget />
+                </div>
+              </div>
+
               {/* Secondary Productivity Modules (Notes & Focus Timer) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <DeveloperNotes />
@@ -86,7 +97,14 @@ export const DeveloperLayout: React.FC = () => {
 
           {activeTab === 'tasks' && (
             <div className="space-y-6">
-              <GitHubDailyTasks />
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <div className="lg:col-span-7">
+                  <GitHubDailyTasks />
+                </div>
+                <div className="lg:col-span-5">
+                  <UnreadGmailWidget />
+                </div>
+              </div>
               <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-5">
                 <TodoList />
               </div>

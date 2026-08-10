@@ -84,6 +84,7 @@ export interface WidgetVisibility {
   quote: boolean;
   recentTabs: boolean;
   wallpaperPicker: boolean;
+  gmail?: boolean;
 }
 
 export interface AppSettings {
