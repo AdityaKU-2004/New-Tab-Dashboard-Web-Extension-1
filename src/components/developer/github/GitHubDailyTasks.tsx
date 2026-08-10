@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storageService } from '../../../services/storageService';
+import { useDashboardStore } from '../../../store/useDashboardStore';
 import {
   CheckSquare,
   Square,
@@ -38,6 +39,7 @@ interface GitHubDailyTasksProps {
 }
 
 export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate }) => {
+  const theme = useDashboardStore((state) => state.settings.theme);
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
@@ -126,8 +128,8 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
       return {
         label: 'YouTube Video',
         icon: Video,
-        color: 'text-[#FF4E4E]',
-        bgColor: 'bg-[#FF4E4E]/10 border-[#FF4E4E]/30'
+        color: 'text-[#FF4E4E] light:text-rose-600',
+        bgColor: 'bg-[#FF4E4E]/10 light:bg-rose-50 border-[#FF4E4E]/30 light:border-rose-200'
       };
     }
     if (
@@ -139,23 +141,23 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
       return {
         label: 'Coding Link',
         icon: Code2,
-        color: 'text-[#39D353]',
-        bgColor: 'bg-[#0E4429] border-[#26A641]'
+        color: 'text-[#39D353] light:text-emerald-600',
+        bgColor: 'bg-[#0E4429] light:bg-emerald-50 border-[#26A641] light:border-emerald-200'
       };
     }
     if (lower.includes('docs') || lower.includes('developer.mozilla.org')) {
       return {
         label: 'Documentation',
         icon: FileText,
-        color: 'text-[#D2A8FF]',
-        bgColor: 'bg-[#271052] border-[#A371F7]'
+        color: 'text-[#D2A8FF] light:text-purple-600',
+        bgColor: 'bg-[#271052] light:bg-purple-50 border-[#A371F7] light:border-purple-200'
       };
     }
     return {
       label: 'External Link',
       icon: ExternalLink,
-      color: 'text-[#58A6FF]',
-      bgColor: 'bg-[#1C212B] border-[#388BFD]'
+      color: 'text-[#58A6FF] light:text-blue-600',
+      bgColor: 'bg-[#1C212B] light:bg-blue-50 border-[#388BFD] light:border-blue-200'
     };
   };
 
@@ -172,34 +174,121 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
   const getCategoryStyle = (cat: DailyTask['category']) => {
     switch (cat) {
       case 'Coding Practice':
-        return 'bg-[#0E4429] text-[#39D353] border-[#26A641]';
+        return 'bg-[#0E4429] light:bg-emerald-100 text-[#39D353] light:text-emerald-800 border-[#26A641] light:border-emerald-300';
       case 'YouTube Tutorial':
-        return 'bg-[#3C0F13] text-[#FF7B72] border-[#F85149]';
+        return 'bg-[#3C0F13] light:bg-rose-100 text-[#FF7B72] light:text-rose-800 border-[#F85149] light:border-rose-300';
       case 'Documentation':
-        return 'bg-[#271052] text-[#D2A8FF] border-[#A371F7]';
+        return 'bg-[#271052] light:bg-purple-100 text-[#D2A8FF] light:text-purple-800 border-[#A371F7] light:border-purple-300';
       case 'Project Task':
-        return 'bg-[#1C212B] text-[#58A6FF] border-[#388BFD]';
+        return 'bg-[#1C212B] light:bg-blue-100 text-[#58A6FF] light:text-blue-800 border-[#388BFD] light:border-blue-300';
       default:
-        return 'bg-[#341A00] text-[#F2CC60] border-[#D29922]';
+        return 'bg-[#341A00] light:bg-amber-100 text-[#F2CC60] light:text-amber-800 border-[#D29922] light:border-amber-300';
     }
   };
 
+  const isCyberpunk = theme === 'cyberpunk';
+  const isDeveloper = theme === 'developer';
+  const isLight = theme === 'light';
+
+  const containerClass = isCyberpunk
+    ? 'bg-[#080d1a]/90 border border-[#00f3ff]/40 shadow-[0_0_15px_rgba(0,243,255,0.15)] text-[#00f3ff]'
+    : isDeveloper
+    ? 'bg-[#0D1117] border border-[#30363D] text-[#E6EDF3]'
+    : isLight
+    ? 'bg-white border border-slate-200 text-slate-900'
+    : 'bg-slate-900/90 border border-slate-800 text-slate-100';
+
+  const subHeaderBorder = isCyberpunk
+    ? 'border-[#00f3ff]/30'
+    : isDeveloper
+    ? 'border-[#30363D]'
+    : isLight
+    ? 'border-slate-200'
+    : 'border-slate-800';
+
+  const badgeClass = isCyberpunk
+    ? 'bg-[#00f3ff]/10 border border-[#00f3ff]/40 text-[#00f3ff]'
+    : isDeveloper
+    ? 'bg-[#161B22] border border-[#30363D] text-[#8B949E]'
+    : isLight
+    ? 'bg-slate-100 border border-slate-200 text-slate-600'
+    : 'bg-slate-800 border border-slate-700 text-slate-300';
+
+  const titleTextClass = isCyberpunk
+    ? 'text-[#00f3ff]'
+    : isDeveloper
+    ? 'text-[#E6EDF3]'
+    : isLight
+    ? 'text-slate-900'
+    : 'text-slate-100';
+
+  const subTextClass = isCyberpunk
+    ? 'text-[#00f3ff]/70'
+    : isDeveloper
+    ? 'text-[#8B949E]'
+    : isLight
+    ? 'text-slate-500'
+    : 'text-slate-400';
+
+  const addButtonClass = isCyberpunk
+    ? 'bg-[#ff0055] hover:bg-[#ff2a75] border border-[#ff0055] text-white shadow-[0_0_10px_rgba(255,0,85,0.4)]'
+    : isDeveloper
+    ? 'bg-[#238636] hover:bg-[#2EA043] border border-[#3FB950] text-white'
+    : isLight
+    ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-500 text-white'
+    : 'bg-indigo-600 hover:bg-indigo-500 border border-indigo-500 text-white';
+
+  const formBgClass = isCyberpunk
+    ? 'bg-[#0f172a]/95 border border-[#00f3ff]/50 shadow-[0_0_12px_rgba(0,243,255,0.2)]'
+    : isDeveloper
+    ? 'bg-[#161B22] border border-[#58A6FF]/40'
+    : isLight
+    ? 'bg-slate-50 border border-blue-300'
+    : 'bg-slate-800/90 border border-indigo-500/30';
+
+  const inputClass = isCyberpunk
+    ? 'bg-[#050811] border border-[#00f3ff]/40 text-[#00f3ff] placeholder-[#00f3ff]/40 focus:outline-none focus:border-[#ff0055]'
+    : isDeveloper
+    ? 'bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF]'
+    : isLight
+    ? 'bg-white border border-slate-300 text-slate-900 focus:outline-none focus:border-blue-500'
+    : 'bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:border-indigo-500';
+
+  const taskCardClass = (completed: boolean) => {
+    if (completed) {
+      return isCyberpunk
+        ? 'border-[#00f3ff]/20 bg-[#080d1a]/40 text-[#00f3ff]/50 opacity-60'
+        : isDeveloper
+        ? 'border-[#30363D]/60 bg-[#161B22]/40 opacity-70'
+        : isLight
+        ? 'border-slate-200 bg-slate-100/60 opacity-70'
+        : 'border-slate-800 bg-slate-900/40 opacity-70';
+    }
+    return isCyberpunk
+      ? 'bg-[#0c1427]/80 border border-[#00f3ff]/40 hover:border-[#ff0055]/80 text-[#00f3ff]'
+      : isDeveloper
+      ? 'bg-[#161B22] border border-[#30363D] hover:border-[#58A6FF]/50 text-[#E6EDF3]'
+      : isLight
+      ? 'bg-slate-50/80 border border-slate-200 hover:border-blue-400 text-slate-800'
+      : 'bg-slate-800/80 border border-slate-700 hover:border-indigo-500/50 text-slate-100';
+  };
+
   return (
-    <div className="bg-[#0D1117] border border-[#30363D] rounded-lg p-4 sm:p-5 font-mono space-y-4 shadow-sm">
+    <div className={`${containerClass} rounded-lg p-4 sm:p-5 font-mono space-y-4 shadow-sm transition-colors`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#30363D]">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b ${subHeaderBorder}`}>
         <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-[#161B22] border border-[#30363D] rounded-lg text-[#58A6FF]">
+          <div className={`p-2 ${badgeClass} rounded-lg`}>
             <CheckSquare className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[#E6EDF3] flex items-center gap-2">
+            <h3 className={`text-sm font-bold ${titleTextClass} flex items-center gap-2`}>
               <span>Daily Tasks & Learning Reminders</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#161B22] border border-[#30363D] text-[#8B949E]">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${badgeClass}`}>
                 {pendingCount} pending / {completedCount} done
               </span>
             </h3>
-            <p className="text-[11px] text-[#8B949E]">
+            <p className={`text-[11px] ${subTextClass}`}>
               Add everyday reminders, coding problem links, YouTube tutorials & reference docs
             </p>
           </div>
@@ -208,7 +297,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
         <button
           type="button"
           onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-          className="px-3 py-1.5 rounded-md bg-[#238636] hover:bg-[#2EA043] border border-[#3FB950] font-bold text-xs text-white transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-auto shadow-xs"
+          className={`px-3 py-1.5 rounded-md ${addButtonClass} font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-auto shadow-xs`}
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Task with Link</span>
@@ -219,17 +308,17 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
       {isAddFormOpen && (
         <form
           onSubmit={handleAddTask}
-          className="p-4 bg-[#161B22] border border-[#58A6FF]/40 rounded-lg space-y-3 animate-fadeIn"
+          className={`p-4 ${formBgClass} rounded-lg space-y-3 animate-fadeIn`}
         >
-          <div className="flex items-center justify-between text-xs font-bold text-[#58A6FF]">
+          <div className="flex items-center justify-between text-xs font-bold">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#F2CC60]" />
+              <Sparkles className="w-4 h-4 text-[#F2CC60] light:text-amber-500" />
               <span>Create Daily Task / Link Reminder</span>
             </span>
             <button
               type="button"
               onClick={() => setIsAddFormOpen(false)}
-              className="text-[#8B949E] hover:text-[#E6EDF3] text-[11px] cursor-pointer"
+              className={`${subTextClass} hover:underline text-[11px] cursor-pointer`}
             >
               Cancel
             </button>
@@ -238,7 +327,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
           <div className="space-y-3 text-xs">
             {/* Task Title */}
             <div>
-              <label className="text-[10px] font-bold text-[#8B949E] mb-1 block">
+              <label className={`text-[10px] font-bold ${subTextClass} mb-1 block`}>
                 Task Description / Reminder Title *
               </label>
               <input
@@ -247,14 +336,14 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                 placeholder="e.g. Solve 2 LeetCode Medium problems, or Watch System Design YouTube video"
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-[#0D1117] border border-[#30363D] rounded text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF]"
+                className={`w-full px-3 py-2 ${inputClass} rounded`}
               />
             </div>
 
             {/* Link URL & Category */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold text-[#8B949E] mb-1 flex items-center gap-1">
+                <label className={`text-[10px] font-bold ${subTextClass} mb-1 flex items-center gap-1`}>
                   <LinkIcon className="w-3 h-3 text-[#58A6FF]" />
                   <span>Attach Link (YouTube, LeetCode, GitHub, Docs)</span>
                 </label>
@@ -265,7 +354,6 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                   onChange={(e) => {
                     const val = e.target.value;
                     setTaskLink(val);
-                    // Auto-detect category
                     if (val.includes('youtube.com') || val.includes('youtu.be')) {
                       setTaskCategory('YouTube Tutorial');
                     } else if (val.includes('leetcode.com') || val.includes('github.com')) {
@@ -274,25 +362,25 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                       setTaskCategory('Documentation');
                     }
                   }}
-                  className="w-full px-3 py-2 bg-[#0D1117] border border-[#30363D] rounded text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF]"
+                  className={`w-full px-3 py-2 ${inputClass} rounded`}
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#8B949E] mb-1 flex items-center gap-1">
+                <label className={`text-[10px] font-bold ${subTextClass} mb-1 flex items-center gap-1`}>
                   <Tag className="w-3 h-3 text-[#D2A8FF]" />
                   <span>Category</span>
                 </label>
                 <select
                   value={taskCategory}
                   onChange={(e) => setTaskCategory(e.target.value as DailyTask['category'])}
-                  className="w-full px-3 py-2 bg-[#0D1117] border border-[#30363D] rounded text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF] cursor-pointer"
+                  className={`w-full px-3 py-2 ${inputClass} rounded cursor-pointer`}
                 >
-                  <option value="Coding Practice">💻 Coding Practice</option>
-                  <option value="YouTube Tutorial">📺 YouTube Tutorial</option>
-                  <option value="Documentation">📚 Documentation</option>
-                  <option value="Project Task">🚀 Project Task</option>
-                  <option value="General Reminder">📌 General Reminder</option>
+                  <option value="Coding Practice" className="bg-slate-900 text-white">💻 Coding Practice</option>
+                  <option value="YouTube Tutorial" className="bg-slate-900 text-white">📺 YouTube Tutorial</option>
+                  <option value="Documentation" className="bg-slate-900 text-white">📚 Documentation</option>
+                  <option value="Project Task" className="bg-slate-900 text-white">🚀 Project Task</option>
+                  <option value="General Reminder" className="bg-slate-900 text-white">📌 General Reminder</option>
                 </select>
               </div>
             </div>
@@ -300,7 +388,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
             {/* Date & Everyday Reminder Toggle */}
             <div className="flex flex-wrap items-center gap-4 pt-1">
               <div>
-                <label className="text-[10px] font-bold text-[#8B949E] mb-1 flex items-center gap-1">
+                <label className={`text-[10px] font-bold ${subTextClass} mb-1 flex items-center gap-1`}>
                   <Calendar className="w-3 h-3 text-[#3FB950]" />
                   <span>Target Date</span>
                 </label>
@@ -309,7 +397,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                   required
                   value={taskDate}
                   onChange={(e) => setTaskDate(e.target.value)}
-                  className="px-3 py-1.5 bg-[#0D1117] border border-[#30363D] rounded text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF]"
+                  className={`px-3 py-1.5 ${inputClass} rounded`}
                 />
               </div>
 
@@ -319,11 +407,11 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                   id="isEveryday"
                   checked={isEveryday}
                   onChange={(e) => setIsEveryday(e.target.checked)}
-                  className="w-4 h-4 rounded border-[#30363D] bg-[#0D1117] text-[#3FB950] focus:ring-0 cursor-pointer"
+                  className="w-4 h-4 rounded border-[#30363D] bg-transparent text-[#3FB950] focus:ring-0 cursor-pointer"
                 />
                 <label
                   htmlFor="isEveryday"
-                  className="text-xs text-[#E6EDF3] font-bold flex items-center gap-1.5 cursor-pointer"
+                  className={`text-xs ${titleTextClass} font-bold flex items-center gap-1.5 cursor-pointer`}
                 >
                   <Repeat className="w-3.5 h-3.5 text-[#F2CC60]" />
                   <span>Everyday Practice / Recurring Reminder</span>
@@ -332,11 +420,11 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#30363D]/60">
+          <div className={`flex justify-end gap-2 pt-2 border-t ${subHeaderBorder}`}>
             <button
               type="submit"
               disabled={!taskTitle.trim()}
-              className="px-4 py-1.5 rounded bg-[#238636] hover:bg-[#2EA043] border border-[#3FB950] font-bold text-xs text-white transition-colors cursor-pointer disabled:opacity-50"
+              className={`px-4 py-1.5 rounded ${addButtonClass} font-bold text-xs transition-colors cursor-pointer disabled:opacity-50`}
             >
               Save Daily Task
             </button>
@@ -347,7 +435,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
         <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
-          <span className="text-[10px] text-[#8B949E] font-bold flex items-center gap-1 mr-1">
+          <span className={`text-[10px] ${subTextClass} font-bold flex items-center gap-1 mr-1`}>
             <Filter className="w-3 h-3" /> Status:
           </span>
           <button
@@ -355,8 +443,10 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
             onClick={() => setFilterStatus('all')}
             className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
               filterStatus === 'all'
-                ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
-                : 'text-[#8B949E] hover:text-[#E6EDF3]'
+                ? isCyberpunk
+                  ? 'bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/60'
+                  : 'bg-[#1C212B] light:bg-blue-50 text-[#58A6FF] light:text-blue-700 border border-[#58A6FF]/40'
+                : `${subTextClass} hover:underline`
             }`}
           >
             All ({tasks.length})
@@ -366,8 +456,10 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
             onClick={() => setFilterStatus('pending')}
             className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
               filterStatus === 'pending'
-                ? 'bg-[#1C212B] text-[#D29922] border border-[#D29922]/40'
-                : 'text-[#8B949E] hover:text-[#E6EDF3]'
+                ? isCyberpunk
+                  ? 'bg-[#ff0055]/20 text-[#ff0055] border border-[#ff0055]/60'
+                  : 'bg-[#1C212B] light:bg-amber-50 text-[#D29922] light:text-amber-700 border border-[#D29922]/40'
+                : `${subTextClass} hover:underline`
             }`}
           >
             Pending ({pendingCount})
@@ -377,8 +469,10 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
             onClick={() => setFilterStatus('completed')}
             className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
               filterStatus === 'completed'
-                ? 'bg-[#1C212B] text-[#3FB950] border border-[#3FB950]/40'
-                : 'text-[#8B949E] hover:text-[#E6EDF3]'
+                ? isCyberpunk
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/60'
+                  : 'bg-[#1C212B] light:bg-emerald-50 text-[#3FB950] light:text-emerald-700 border border-[#3FB950]/40'
+                : `${subTextClass} hover:underline`
             }`}
           >
             Completed ({completedCount})
@@ -389,28 +483,28 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-2 py-1 bg-[#161B22] border border-[#30363D] rounded text-[10px] text-[#E6EDF3] focus:outline-none focus:border-[#58A6FF] cursor-pointer"
+          className={`px-2 py-1 ${inputClass} rounded text-[10px] cursor-pointer`}
         >
-          <option value="all">All Categories</option>
-          <option value="Coding Practice">Coding Practice</option>
-          <option value="YouTube Tutorial">YouTube Tutorial</option>
-          <option value="Documentation">Documentation</option>
-          <option value="Project Task">Project Task</option>
-          <option value="General Reminder">General Reminder</option>
+          <option value="all" className="bg-slate-900 text-white">All Categories</option>
+          <option value="Coding Practice" className="bg-slate-900 text-white">Coding Practice</option>
+          <option value="YouTube Tutorial" className="bg-slate-900 text-white">YouTube Tutorial</option>
+          <option value="Documentation" className="bg-slate-900 text-white">Documentation</option>
+          <option value="Project Task" className="bg-slate-900 text-white">Project Task</option>
+          <option value="General Reminder" className="bg-slate-900 text-white">General Reminder</option>
         </select>
       </div>
 
       {/* Task List */}
       <div className="space-y-2">
         {isLoading ? (
-          <div className="p-6 text-center text-xs text-[#8B949E] bg-[#161B22] border border-[#30363D] rounded-lg">
+          <div className={`p-6 text-center text-xs ${subTextClass} ${badgeClass} rounded-lg`}>
             Loading daily tasks...
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="p-8 text-center bg-[#161B22]/60 border border-[#30363D] rounded-lg space-y-2">
-            <BookOpen className="w-8 h-8 text-[#30363D] mx-auto" />
-            <p className="text-xs text-[#8B949E] font-bold">No daily tasks or reminders</p>
-            <p className="text-[11px] text-[#8B949E]">
+          <div className={`p-8 text-center ${badgeClass} rounded-lg space-y-2`}>
+            <BookOpen className={`w-8 h-8 ${subTextClass} mx-auto`} />
+            <p className={`text-xs ${titleTextClass} font-bold`}>No daily tasks or reminders</p>
+            <p className={`text-[11px] ${subTextClass}`}>
               {tasks.length === 0
                 ? 'Click "Add Task with Link" above to add daily coding challenges, YouTube learning links, or project reminders.'
                 : 'No tasks match your filter criteria.'}
@@ -425,11 +519,9 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
               return (
                 <div
                   key={task.id}
-                  className={`p-3.5 bg-[#161B22] border rounded-lg transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group ${
+                  className={`p-3.5 ${taskCardClass(
                     task.completed
-                      ? 'border-[#30363D]/60 opacity-70 bg-[#161B22]/40'
-                      : 'border-[#30363D] hover:border-[#58A6FF]/50'
-                  }`}
+                  )} rounded-lg transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group`}
                 >
                   {/* Task details */}
                   <div className="flex items-start gap-3 min-w-0">
@@ -451,8 +543,8 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                         <span
                           className={`text-xs font-semibold ${
                             task.completed
-                              ? 'line-through text-[#8B949E]'
-                              : 'text-[#E6EDF3] group-hover:text-[#58A6FF]'
+                              ? 'line-through opacity-60'
+                              : `${titleTextClass}`
                           }`}
                         >
                           {task.title}
@@ -467,7 +559,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                         </span>
 
                         {task.isEveryday && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded border bg-[#341A00] text-[#F2CC60] border-[#D29922] font-bold flex items-center gap-1">
+                          <span className="text-[9px] px-1.5 py-0.2 rounded border bg-[#341A00] light:bg-amber-100 text-[#F2CC60] light:text-amber-800 border-[#D29922] light:border-amber-300 font-bold flex items-center gap-1">
                             <Repeat className="w-2.5 h-2.5" />
                             <span>Everyday</span>
                           </span>
@@ -475,9 +567,9 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                       </div>
 
                       {/* Date & Link info */}
-                      <div className="flex flex-wrap items-center gap-3 text-[10px] text-[#8B949E]">
+                      <div className={`flex flex-wrap items-center gap-3 text-[10px] ${subTextClass}`}>
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-[#8B949E]" />
+                          <Calendar className="w-3 h-3" />
                           {task.date}
                         </span>
 
@@ -490,7 +582,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                             onClick={(e) => e.stopPropagation()}
                           >
                             <LinkIconComp className={`w-3 h-3 ${linkMeta.color}`} />
-                            <span className="truncate text-[#E6EDF3]">{task.linkUrl}</span>
+                            <span className="truncate">{task.linkUrl}</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0 opacity-70" />
                           </a>
                         )}
@@ -505,7 +597,7 @@ export const GitHubDailyTasks: React.FC<GitHubDailyTasksProps> = ({ selectedDate
                         href={task.linkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-2.5 py-1 bg-[#0D1117] border border-[#30363D] hover:border-[#58A6FF] text-[#58A6FF] hover:text-[#79C0FF] rounded text-[10px] font-bold flex items-center gap-1 transition-colors"
+                        className={`px-2.5 py-1 ${badgeClass} hover:border-[#58A6FF] rounded text-[10px] font-bold flex items-center gap-1 transition-colors`}
                       >
                         <span>Open Link</span>
                         <ExternalLink className="w-3 h-3" />
