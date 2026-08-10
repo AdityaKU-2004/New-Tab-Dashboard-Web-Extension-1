@@ -202,10 +202,17 @@ export const GitHubCommitHeatmap: React.FC = () => {
     }
   };
 
-  const formatDateLabel = (dateStr: string) => {
+  const formatDateLabel = (dateStr?: string) => {
+    if (!dateStr) return '';
     try {
-      const [y, m, d] = dateStr.split('-').map(Number);
+      const parts = dateStr.split('-');
+      if (parts.length < 3) return dateStr;
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      if (isNaN(y) || isNaN(m) || isNaN(d)) return dateStr;
       const date = new Date(y, m - 1, d);
+      if (isNaN(date.getTime())) return dateStr;
       return date.toLocaleDateString(undefined, {
         weekday: 'short',
         month: 'short',

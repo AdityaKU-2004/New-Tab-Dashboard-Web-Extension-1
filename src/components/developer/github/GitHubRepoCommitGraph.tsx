@@ -39,37 +39,90 @@ export const GitHubRepoCommitGraph: React.FC = () => {
   const [repoCommits, setRepoCommits] = useState<GitHubRepoCommitDetail[]>([]);
   const [isFetchingRepoData, setIsFetchingRepoData] = useState(false);
 
-  // Fetch specific repo details when selectedRepoFullName changes
+  // Fetch specific repo details or combined top repos commit activity when selectedRepoFullName changes
   useEffect(() => {
-    if (!token || selectedRepoFullName === 'all') {
+    if (!token) {
       setRepoActivity([]);
       setRepoCommits([]);
       return;
     }
 
-    const [owner, repoName] = selectedRepoFullName.split('/');
-    if (!owner || !repoName) return;
-
     let isMounted = true;
     setIsFetchingRepoData(true);
 
-    Promise.all([
-      githubService.getRepoCommitActivity(token, owner, repoName),
-      githubService.getRepoCommits(token, owner, repoName)
-    ]).then(([act, cList]) => {
-      if (isMounted) {
-        setRepoActivity(act);
-        setRepoCommits(cList);
+    if (selectedRepoFullName === 'all') {
+      // Fetch stats for top user repositories (up to 10) and combine weekly commit counts
+      const topRepos = repos.slice(0, 10);
+      if (topRepos.length === 0) {
+        setRepoActivity([]);
+        setRepoCommits([]);
         setIsFetchingRepoData(false);
+        return;
       }
-    }).catch(() => {
-      if (isMounted) setIsFetchingRepoData(false);
-    });
+
+      const promises = topRepos.map((r) => {
+        const [owner, name] = r.full_name.split('/');
+        return githubService.getRepoCommitActivity(token, owner, name).catch(() => []);
+      });
+
+      Promise.all(promises).then((resultsArray) => {
+        if (!isMounted) return;
+
+        // Combine weekly activity by week timestamp across all fetched repos
+        const weekMap = new Map<number, number>();
+
+        resultsArray.forEach((activityList) => {
+          if (Array.isArray(activityList)) {
+            activityList.forEach((w) => {
+              if (w && typeof w.week === 'number') {
+                const current = weekMap.get(w.week) || 0;
+                const total = typeof w.total === 'number' && !isNaN(w.total) ? w.total : 0;
+                weekMap.set(w.week, current + total);
+              }
+            });
+          }
+        });
+
+        // Convert aggregated map to sorted GitHubRepoCommitActivity array
+        const combinedActivity: GitHubRepoCommitActivity[] = Array.from(weekMap.entries())
+          .sort(([a], [b]) => a - b)
+          .map(([week, total]) => ({
+            week,
+            total,
+            days: [0, 0, 0, 0, 0, 0, 0]
+          }));
+
+        setRepoActivity(combinedActivity);
+        setRepoCommits([]);
+        setIsFetchingRepoData(false);
+      }).catch(() => {
+        if (isMounted) setIsFetchingRepoData(false);
+      });
+    } else {
+      const [owner, repoName] = selectedRepoFullName.split('/');
+      if (!owner || !repoName) {
+        setIsFetchingRepoData(false);
+        return;
+      }
+
+      Promise.all([
+        githubService.getRepoCommitActivity(token, owner, repoName),
+        githubService.getRepoCommits(token, owner, repoName)
+      ]).then(([act, cList]) => {
+        if (isMounted) {
+          setRepoActivity(act);
+          setRepoCommits(cList);
+          setIsFetchingRepoData(false);
+        }
+      }).catch(() => {
+        if (isMounted) setIsFetchingRepoData(false);
+      });
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [selectedRepoFullName, token]);
+  }, [selectedRepoFullName, token, repos]);
 
   const selectedRepoObj = useMemo(() => {
     if (selectedRepoFullName === 'all') return null;
@@ -78,21 +131,24 @@ export const GitHubRepoCommitGraph: React.FC = () => {
 
   // Generate chart data for "All Repositories" or "Specific Repository"
   const chartData = useMemo(() => {
-    if (selectedRepoFullName !== 'all' && repoActivity.length > 0) {
+    if (repoActivity.length > 0) {
       // Use real repo weekly commit activity from GitHub API
       return repoActivity.map((weekItem) => {
         const date = new Date(weekItem.week * 1000);
-        const label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const label = isNaN(date.getTime())
+          ? 'Week'
+          : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const commitCount = typeof weekItem.total === 'number' && !isNaN(weekItem.total) ? weekItem.total : 0;
         return {
           name: label,
-          commits: weekItem.total,
+          commits: commitCount,
           timestamp: weekItem.week
         };
       });
     }
 
-    // Fallback or "All Repositories": construct weekly aggregated trend from events and commits
-    const weeksMap = new Map<string, { label: string; count: number; timestamp: number }>();
+    // Fallback: construct weekly aggregated trend from recent events and commits
+    const weeksMap = new Map<string, { name: string; commits: number; timestamp: number }>();
     const now = new Date();
 
     // Initialize past 12 weeks
@@ -100,44 +156,53 @@ export const GitHubRepoCommitGraph: React.FC = () => {
       const d = new Date(now);
       d.setDate(d.getDate() - i * 7);
       const weekLabel = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      weeksMap.set(weekLabel, { label: weekLabel, count: 0, timestamp: d.getTime() });
+      weeksMap.set(weekLabel, { name: weekLabel, commits: 0, timestamp: d.getTime() });
     }
 
     // Map commits into weeks
-    commits.forEach((c) => {
-      if (c.date) {
-        const d = new Date(c.date);
-        const diffMs = now.getTime() - d.getTime();
-        const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
-        if (diffWeeks >= 0 && diffWeeks < 12) {
-          const weekDate = new Date(now);
-          weekDate.setDate(weekDate.getDate() - diffWeeks * 7);
-          const label = weekDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          const existing = weeksMap.get(label);
-          if (existing) {
-            existing.count += 1;
+    if (Array.isArray(commits)) {
+      commits.forEach((c) => {
+        if (c.date) {
+          const d = new Date(c.date);
+          if (!isNaN(d.getTime())) {
+            const diffMs = now.getTime() - d.getTime();
+            const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
+            if (diffWeeks >= 0 && diffWeeks < 12) {
+              const weekDate = new Date(now);
+              weekDate.setDate(weekDate.getDate() - diffWeeks * 7);
+              const label = weekDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              const existing = weeksMap.get(label);
+              if (existing) {
+                existing.commits += 1;
+              }
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     // Map events
-    events.forEach((ev) => {
-      if (ev.type === 'PushEvent' && ev.created_at) {
-        const d = new Date(ev.created_at);
-        const diffMs = now.getTime() - d.getTime();
-        const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
-        if (diffWeeks >= 0 && diffWeeks < 12) {
-          const weekDate = new Date(now);
-          weekDate.setDate(weekDate.getDate() - diffWeeks * 7);
-          const label = weekDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          const existing = weeksMap.get(label);
-          if (existing) {
-            existing.count += ev.payload?.commits?.length || 1;
+    if (Array.isArray(events)) {
+      events.forEach((ev) => {
+        if (ev.type === 'PushEvent' && ev.created_at) {
+          const d = new Date(ev.created_at);
+          if (!isNaN(d.getTime())) {
+            const diffMs = now.getTime() - d.getTime();
+            const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
+            if (diffWeeks >= 0 && diffWeeks < 12) {
+              const weekDate = new Date(now);
+              weekDate.setDate(weekDate.getDate() - diffWeeks * 7);
+              const label = weekDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              const existing = weeksMap.get(label);
+              if (existing) {
+                const addCount = ev.payload?.commits?.length || 1;
+                existing.commits += typeof addCount === 'number' && !isNaN(addCount) ? addCount : 1;
+              }
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     return Array.from(weeksMap.values());
   }, [selectedRepoFullName, repoActivity, commits, events]);
