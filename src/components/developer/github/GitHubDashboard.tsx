@@ -3,6 +3,7 @@ import { useGitHubStore } from '../../../store/useGitHubStore';
 import { useDashboardStore } from '../../../store/useDashboardStore';
 import { GitHubCommitHeatmap } from './GitHubCommitHeatmap';
 import { GitHubRepoCommitGraph } from './GitHubRepoCommitGraph';
+import { AddGitHubEventModal } from './AddGitHubEventModal';
 import {
   Github,
   GitBranch,
@@ -23,7 +24,8 @@ import {
   User,
   Tag,
   Flame,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 
 export type GitHubSubTab = 'heatmap' | 'graphs' | 'repos' | 'prs' | 'issues' | 'commits' | 'notifications';
@@ -53,6 +55,7 @@ export const GitHubDashboard: React.FC<GitHubDashboardProps> = ({ initialSubTab 
   const [searchQuery, setSearchQuery] = useState('');
   const [inputToken, setInputToken] = useState('');
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
 
   if (settings.theme !== 'developer') {
     return null;
@@ -135,6 +138,15 @@ export const GitHubDashboard: React.FC<GitHubDashboardProps> = ({ initialSubTab 
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsAddEventOpen(true)}
+            className="px-3 py-1.5 rounded bg-[#238636] hover:bg-[#2EA043] border border-[#3FB950] text-xs font-bold text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Event</span>
+          </button>
+
           {token && (
             <button
               type="button"
@@ -605,6 +617,12 @@ export const GitHubDashboard: React.FC<GitHubDashboardProps> = ({ initialSubTab 
           )}
         </div>
       )}
+
+      {/* Add Custom Event Modal */}
+      <AddGitHubEventModal
+        isOpen={isAddEventOpen}
+        onClose={() => setIsAddEventOpen(false)}
+      />
     </div>
   );
 };

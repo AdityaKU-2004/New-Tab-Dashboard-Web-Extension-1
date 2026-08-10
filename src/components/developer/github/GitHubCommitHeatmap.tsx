@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useGitHubStore } from '../../../store/useGitHubStore';
-import { Flame, Calendar, Trophy, Zap, Info, Filter } from 'lucide-react';
+import { AddGitHubEventModal } from './AddGitHubEventModal';
+import { GitHubDailyTasks } from './GitHubDailyTasks';
+import { Flame, Calendar, Trophy, Zap, Info, Filter, Plus } from 'lucide-react';
 
 type TimeRange = '12' | '24' | '52'; // Weeks to display
 
@@ -17,6 +19,8 @@ export const GitHubCommitHeatmap: React.FC = () => {
   const [selectedRange, setSelectedRange] = useState<TimeRange>('24');
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [modalDefaultDate, setModalDefaultDate] = useState<string | undefined>(undefined);
 
   // Calculate daily contribution map
   const dailyActivityMap = useMemo(() => {
@@ -243,41 +247,56 @@ export const GitHubCommitHeatmap: React.FC = () => {
           </div>
         </div>
 
-        {/* Range Selector */}
-        <div className="flex items-center gap-1 bg-[#161B22] p-1 rounded-md border border-[#30363D]">
+        {/* Right Action Bar: Add Event & Range Selector */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setSelectedRange('12')}
-            className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
-              selectedRange === '12'
-                ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
-                : 'text-[#8B949E] hover:text-[#E6EDF3]'
-            }`}
+            onClick={() => {
+              setModalDefaultDate(selectedDay?.dateStr || new Date().toISOString().split('T')[0]);
+              setIsAddEventOpen(true);
+            }}
+            className="px-3 py-1.5 rounded-md bg-[#238636] hover:bg-[#2EA043] border border-[#3FB950] font-bold text-xs text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
           >
-            3 Months
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Event</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setSelectedRange('24')}
-            className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
-              selectedRange === '24'
-                ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
-                : 'text-[#8B949E] hover:text-[#E6EDF3]'
-            }`}
-          >
-            6 Months
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedRange('52')}
-            className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
-              selectedRange === '52'
-                ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
-                : 'text-[#8B949E] hover:text-[#E6EDF3]'
-            }`}
-          >
-            1 Year
-          </button>
+
+          {/* Range Selector */}
+          <div className="flex items-center gap-1 bg-[#161B22] p-1 rounded-md border border-[#30363D]">
+            <button
+              type="button"
+              onClick={() => setSelectedRange('12')}
+              className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
+                selectedRange === '12'
+                  ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
+                  : 'text-[#8B949E] hover:text-[#E6EDF3]'
+              }`}
+            >
+              3 Months
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedRange('24')}
+              className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
+                selectedRange === '24'
+                  ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
+                  : 'text-[#8B949E] hover:text-[#E6EDF3]'
+              }`}
+            >
+              6 Months
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedRange('52')}
+              className={`px-2.5 py-1 text-[10px] font-bold rounded transition-colors cursor-pointer ${
+                selectedRange === '52'
+                  ? 'bg-[#1C212B] text-[#58A6FF] border border-[#58A6FF]/40'
+                  : 'text-[#8B949E] hover:text-[#E6EDF3]'
+              }`}
+            >
+              1 Year
+            </button>
+          </div>
         </div>
       </div>
 
@@ -405,6 +424,18 @@ export const GitHubCommitHeatmap: React.FC = () => {
           <span>More</span>
         </div>
       </div>
+
+      {/* Daily Tasks Section */}
+      <div className="pt-2">
+        <GitHubDailyTasks selectedDate={selectedDay?.dateStr} />
+      </div>
+
+      {/* Add Custom Event Modal */}
+      <AddGitHubEventModal
+        isOpen={isAddEventOpen}
+        onClose={() => setIsAddEventOpen(false)}
+        defaultDate={modalDefaultDate}
+      />
     </div>
   );
 };

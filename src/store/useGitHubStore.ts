@@ -11,6 +11,18 @@ import {
   GitHubApiError
 } from '../services/githubService';
 
+import { storageService } from '../services/storageService';
+
+const CUSTOM_EVENTS_KEY = 'github_custom_events';
+
+interface AddCustomEventParams {
+  repoName: string;
+  eventType: string;
+  title: string;
+  date?: string;
+  commitCount?: number;
+}
+
 interface GitHubState {
   token: string | null;
   user: GitHubUser | null;
@@ -19,6 +31,7 @@ interface GitHubState {
   issues: GitHubIssue[];
   notifications: GitHubNotification[];
   events: GitHubEvent[];
+  customEvents: GitHubEvent[];
   commits: GitHubCommitItem[];
   isLoading: boolean;
   isConnecting: boolean;
@@ -30,6 +43,7 @@ interface GitHubState {
   disconnect: () => Promise<void>;
   deleteToken: () => Promise<void>;
   fetchGitHubData: () => Promise<void>;
+  addCustomEvent: (params: AddCustomEventParams) => Promise<void>;
   clearError: () => void;
 }
 
@@ -41,6 +55,7 @@ export const useGitHubStore = create<GitHubState>((set, get) => ({
   issues: [],
   notifications: [],
   events: [],
+  customEvents: [],
   commits: [],
   isLoading: false,
   isConnecting: false,
@@ -50,9 +65,15 @@ export const useGitHubStore = create<GitHubState>((set, get) => ({
   initToken: async () => {
     try {
       const storedToken = await githubService.getToken();
+      const savedCustomEvents = await storageService.local.get<GitHubEvent[]>(CUSTOM_EVENTS_KEY, []);
+      set({ customEvents: savedCustomEvents });
+
       if (storedToken) {
         set({ token: storedToken });
         await get().fetchGitHubData();
+      } else {
+        // Even if no token, load custom events into events
+        set({ events: savedCustomEvents });
       }
     } catch (err: any) {
       console.error('Failed to initialize GitHub token:', err);
@@ -127,13 +148,15 @@ export const useGitHubStore = create<GitHubState>((set, get) => ({
         githubService.getRecentCommits(token, username)
       ]);
 
+      const combinedEvents = [...get().customEvents, ...events];
+
       set({
         user,
         repos,
         pullRequests,
         issues,
         notifications,
-        events,
+        events: combinedEvents,
         commits,
         isLoading: false,
         lastFetched: Date.now(),
@@ -146,6 +169,38 @@ export const useGitHubStore = create<GitHubState>((set, get) => ({
           : 'Failed to fetch GitHub data. Please check your internet connection.';
       set({ isLoading: false, error: message });
     }
+  },
+
+  addCustomEvent: async (params: AddCustomEventParams) => {
+    const customEvent: GitHubEvent = {
+      id: `custom-event-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      type: params.eventType || 'PushEvent',
+      repo: {
+        name: params.repoName || 'my-project',
+        url: `https://github.com/${params.repoName || 'my-project'}`
+      },
+      created_at: params.date
+        ? new Date(params.date).toISOString()
+        : new Date().toISOString(),
+      payload: {
+        commits: Array.from({ length: params.commitCount || 1 }, (_, i) => ({
+          sha: Math.random().toString(36).substring(2, 9),
+          message: params.title || `Custom commit ${i + 1}`
+        })),
+        title: params.title,
+        description: params.title
+      }
+    };
+
+    const newCustomEvents = [customEvent, ...get().customEvents];
+    const newEvents = [customEvent, ...get().events];
+
+    set({
+      customEvents: newCustomEvents,
+      events: newEvents
+    });
+
+    await storageService.local.set(CUSTOM_EVENTS_KEY, newCustomEvents);
   },
 
   clearError: () => set({ error: null })
