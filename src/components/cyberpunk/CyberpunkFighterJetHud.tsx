@@ -412,9 +412,6 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
   return (
     <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       style={containerStyle}
       className={
         isBg
@@ -435,135 +432,6 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
       {/* Tactical Radar Grid / Crosshair background pattern */}
       <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:24px_24px]" />
-
-      {/* DYNAMIC TARGETING RETICLE OVERLAY (Tracks Mouse with Inertia, Lag Effect & Firing FX) */}
-      <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
-        {/* SCREEN FLASH OVERLAY ON FIRE */}
-        {screenFlashColor && (
-          <div
-            className="absolute inset-0 transition-opacity duration-100 pointer-events-none z-40"
-            style={{ backgroundColor: screenFlashColor }}
-          />
-        )}
-
-        {/* Outer Lead Computing Reticle (Lags behind primary targeting reticle) */}
-        <div
-          className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 text-[#00ffd5]/60"
-          style={{
-            left: `${outerPos.x}%`,
-            top: `${outerPos.y}%`,
-          }}
-        >
-          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-dashed border-[#00ffd5]/40 flex items-center justify-center animate-spin" style={{ animationDuration: '25s' }}>
-            <div className="w-2 h-2 rounded-full bg-[#00ffd5]/50" />
-          </div>
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-mono tracking-widest text-[#00ffd5]/70 bg-black/70 px-1 rounded border border-[#00ffd5]/30">
-            LEAD 12.4°
-          </div>
-        </div>
-
-        {/* Dynamic Vector Lines & Tracer Beams Layer */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
-          {/* Connecting Lag Vector between Outer Lead Reticle & Target Reticle */}
-          <line
-            x1={`${outerPos.x}%`}
-            y1={`${outerPos.y}%`}
-            x2={`${reticlePos.x + recoilOffset.x}%`}
-            y2={`${reticlePos.y + recoilOffset.y}%`}
-            stroke="rgba(0, 255, 213, 0.4)"
-            strokeWidth="1.5"
-            strokeDasharray="4 3"
-          />
-
-          {/* Tracer Beams Fired from Aircraft Nose (Bottom Center) towards Target Reticle */}
-          {fireEffects.map((ef) => (
-            <g key={ef.id} className="animate-ping" style={{ animationDuration: '0.5s' }}>
-              <line
-                x1="50%"
-                y1="95%"
-                x2={`${ef.x}%`}
-                y2={`${ef.y}%`}
-                stroke={ef.weapon === 'CANNON' ? '#00ffd5' : ef.weapon === 'JDAM' ? '#f59e0b' : '#f43f5e'}
-                strokeWidth={ef.weapon === 'CANNON' ? '4' : '6'}
-                strokeLinecap="round"
-                filter="url(#glowCyanJet)"
-              />
-              <circle
-                cx={`${ef.x}%`}
-                cy={`${ef.y}%`}
-                r={ef.weapon === 'CANNON' ? '8' : '14'}
-                fill={ef.weapon === 'CANNON' ? '#00ffd5' : '#f43f5e'}
-              />
-            </g>
-          ))}
-        </svg>
-
-        {/* Primary Targeting Reticle (Follows Mouse with Lag Effect & Recoil Offset) */}
-        <div
-          className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-75 z-40"
-          style={{
-            left: `${reticlePos.x + recoilOffset.x}%`,
-            top: `${reticlePos.y + recoilOffset.y}%`,
-          }}
-        >
-          <div className={`relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center transition-all ${isFiringWeapon ? 'scale-125' : 'scale-100'}`}>
-            
-            {/* Corner Reticle Brackets [ ] */}
-            <div className={`absolute inset-0 border-2 rounded-xl transition-all ${
-              isFiringWeapon
-                ? 'border-rose-500 shadow-[0_0_24px_#f43f5e] scale-110'
-                : isTargetLocked
-                ? 'border-rose-400 shadow-[0_0_12px_#f43f5e]'
-                : 'border-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.5)]'
-            }`}>
-              <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
-              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
-              <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
-              <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
-            </div>
-
-            {/* Inner Crosshair Pipper */}
-            <div className="relative flex items-center justify-center">
-              <div className={`w-2 h-2 rounded-full ${isFiringWeapon ? 'bg-rose-500 animate-ping' : 'bg-[#00ffd5]'}`} />
-              <div className="absolute w-6 h-0.5 bg-[#00ffd5]/80" />
-              <div className="absolute h-6 w-0.5 bg-[#00ffd5]/80" />
-            </div>
-
-            {/* Target Distance & Active Weapon Label */}
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/90 border border-[#00ffd5]/60 px-2 py-0.5 rounded text-[9px] font-extrabold font-mono text-[#00ffd5] flex items-center gap-1 shadow-xl">
-              <TargetIcon className="w-3 h-3 text-rose-400 animate-pulse" />
-              <span>{weapons[activeWeapon].id}</span>
-              <span className="text-white">| RNG: 1.8NM</span>
-              {trackingSecsLeft !== null && (
-                <span className="ml-1 text-rose-400 font-black animate-pulse bg-rose-950/80 px-1 rounded border border-rose-500/50">
-                  🎯 T-{trackingSecsLeft}s
-                </span>
-              )}
-            </div>
-
-            {/* Firing Shockwave Explosion Ring */}
-            {isFiringWeapon && (
-              <div className="absolute inset-0 rounded-full border-4 border-rose-500 animate-ping shadow-[0_0_30px_#f43f5e]" />
-            )}
-          </div>
-        </div>
-
-        {/* Active Fire Burst Impact Flares */}
-        {fireEffects.map((ef) => (
-          <div
-            key={ef.id}
-            className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 flex items-center justify-center"
-            style={{ left: `${ef.x}%`, top: `${ef.y}%` }}
-          >
-            {/* Expanding Burst Shockwave Ring */}
-            <div className="w-24 h-24 rounded-full border-4 border-amber-400 bg-rose-500/30 animate-ping shadow-[0_0_40px_#f59e0b]" />
-            <div className="absolute w-12 h-12 bg-white rounded-full blur-md animate-pulse" />
-            <div className="absolute text-[10px] font-black font-mono text-amber-300 bg-black/90 border border-amber-400 px-2 py-0.5 rounded shadow-xl -top-8 animate-bounce">
-              💥 {ef.weapon} IMPACT
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* TOP HUD CONTROL STRIP */}
       <div className={`relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#00ffd5]/30 ${isBg ? 'mt-16 sm:mt-20' : ''}`}>
@@ -854,83 +722,227 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
           </div>
 
-          {/* CENTER HUD MODULE: ARTIFICIAL HORIZON & COMPASS TAPE (Occupies 3-4 columns on ultra-wide screens) */}
-          <div className="w-full xl:col-span-3 2xl:col-span-4 flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_30px_rgba(0,255,213,0.2)] text-center my-2 xl:my-0 relative overflow-hidden">
+          {/* CENTER HUD GLASS MODULE: ARTIFICIAL HORIZON, PITCH LADDER, SPEED KTS, G-FORCE & TARGETING RETICLE */}
+          <div className="w-full xl:col-span-4 2xl:col-span-6 flex flex-col items-center justify-center p-3 sm:p-5 rounded-3xl bg-black/35 border-2 border-[#00ffd5]/60 backdrop-blur-sm shadow-[0_0_40px_rgba(0,255,213,0.3)] text-center my-2 xl:my-0 relative overflow-hidden transition-all duration-300">
             
             {/* Top Compass Heading Tape */}
-            <div className="w-full flex items-center justify-between px-3 py-1 bg-[#00ffd5]/10 border border-[#00ffd5]/30 rounded-lg text-xs font-black mb-2">
+            <div className="w-full flex items-center justify-between px-3 py-1.5 bg-[#00ffd5]/15 border border-[#00ffd5]/40 rounded-xl text-xs font-black mb-3 shadow-[0_0_12px_rgba(0,255,213,0.2)]">
               <Compass className="w-4 h-4 text-[#00ffd5] animate-spin" style={{ animationDuration: '20s' }} />
-              <div className="tracking-widest text-white">HDG: {heading}° NNE</div>
-              <Navigation className="w-3.5 h-3.5 text-[#00ffd5]" />
+              <div className="tracking-widest text-white font-mono text-sm">HDG: {heading}° NNE</div>
+              <Navigation className="w-4 h-4 text-[#00ffd5]" />
             </div>
 
-            {/* ARTIFICIAL HORIZON COCKPIT VIEWPORT */}
-            <div className="relative w-full h-[180px] sm:h-[210px] rounded-xl border border-[#00ffd5]/50 bg-slate-950/80 overflow-hidden flex items-center justify-center">
-              {/* Animated Pitch / Roll Grid Line */}
+            {/* MAIN ARTIFICIAL HORIZON PILOT GLASS VIEWPORT (Larger, Transparent, Contains Bounded Reticle & Firing FX) */}
+            <div
+              ref={containerRef}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className="relative w-full h-[260px] sm:h-[320px] lg:h-[360px] xl:h-[380px] rounded-2xl border-2 border-[#00ffd5]/70 bg-slate-950/40 backdrop-blur-sm overflow-hidden flex items-center justify-center cursor-crosshair group shadow-[inner_0_0_30px_rgba(0,255,213,0.25)] pointer-events-auto"
+            >
+              {/* DYNAMIC TARGETING RETICLE OVERLAY - STRICTLY CONSTRAINED INSIDE CENTER HUD GLASS */}
+              <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+                {/* SCREEN FLASH OVERLAY ON FIRE */}
+                {screenFlashColor && (
+                  <div
+                    className="absolute inset-0 transition-opacity duration-100 pointer-events-none z-40"
+                    style={{ backgroundColor: screenFlashColor }}
+                  />
+                )}
+
+                {/* Outer Lead Computing Reticle (Lags behind primary targeting reticle) */}
+                <div
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 text-[#00ffd5]/60 pointer-events-none"
+                  style={{
+                    left: `${outerPos.x}%`,
+                    top: `${outerPos.y}%`,
+                  }}
+                >
+                  <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full border border-dashed border-[#00ffd5]/50 flex items-center justify-center animate-spin" style={{ animationDuration: '25s' }}>
+                    <div className="w-2 h-2 rounded-full bg-[#00ffd5]/60" />
+                  </div>
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-mono tracking-widest text-[#00ffd5]/80 bg-black/80 px-1.5 py-0.5 rounded border border-[#00ffd5]/40 shadow-lg">
+                    LEAD 12.4°
+                  </div>
+                </div>
+
+                {/* Dynamic Vector Lines & Tracer Beams Layer */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {/* Connecting Lag Vector between Outer Lead Reticle & Target Reticle */}
+                  <line
+                    x1={`${outerPos.x}%`}
+                    y1={`${outerPos.y}%`}
+                    x2={`${reticlePos.x + recoilOffset.x}%`}
+                    y2={`${reticlePos.y + recoilOffset.y}%`}
+                    stroke="rgba(0, 255, 213, 0.4)"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 3"
+                  />
+
+                  {/* Tracer Beams Fired from Aircraft Nose (Bottom Center) towards Target Reticle */}
+                  {fireEffects.map((ef) => (
+                    <g key={ef.id} className="animate-ping" style={{ animationDuration: '0.5s' }}>
+                      <line
+                        x1="50%"
+                        y1="95%"
+                        x2={`${ef.x}%`}
+                        y2={`${ef.y}%`}
+                        stroke={ef.weapon === 'CANNON' ? '#00ffd5' : ef.weapon === 'JDAM' ? '#f59e0b' : '#f43f5e'}
+                        strokeWidth={ef.weapon === 'CANNON' ? '4' : '6'}
+                        strokeLinecap="round"
+                        filter="url(#glowCyanJet)"
+                      />
+                      <circle
+                        cx={`${ef.x}%`}
+                        cy={`${ef.y}%`}
+                        r={ef.weapon === 'CANNON' ? '8' : '14'}
+                        fill={ef.weapon === 'CANNON' ? '#00ffd5' : '#f43f5e'}
+                      />
+                    </g>
+                  ))}
+                </svg>
+
+                {/* Primary Targeting Reticle (Follows Mouse with Lag Effect & Recoil Offset) */}
+                <div
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-75 z-40"
+                  style={{
+                    left: `${reticlePos.x + recoilOffset.x}%`,
+                    top: `${reticlePos.y + recoilOffset.y}%`,
+                  }}
+                >
+                  <div className={`relative w-14 h-14 sm:w-18 sm:h-18 flex items-center justify-center transition-all ${isFiringWeapon ? 'scale-125' : 'scale-100'}`}>
+                    
+                    {/* Corner Reticle Brackets [ ] */}
+                    <div className={`absolute inset-0 border-2 rounded-xl transition-all ${
+                      isFiringWeapon
+                        ? 'border-rose-500 shadow-[0_0_24px_#f43f5e] scale-110'
+                        : isTargetLocked
+                        ? 'border-rose-400 shadow-[0_0_12px_#f43f5e]'
+                        : 'border-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.5)]'
+                    }`}>
+                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
+                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
+                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
+                    </div>
+
+                    {/* Inner Crosshair Pipper */}
+                    <div className="relative flex items-center justify-center">
+                      <div className={`w-2 h-2 rounded-full ${isFiringWeapon ? 'bg-rose-500 animate-ping' : 'bg-[#00ffd5]'}`} />
+                      <div className="absolute w-6 h-0.5 bg-[#00ffd5]/80" />
+                      <div className="absolute h-6 w-0.5 bg-[#00ffd5]/80" />
+                    </div>
+
+                    {/* Target Distance & Active Weapon Label */}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/90 border border-[#00ffd5]/60 px-2 py-0.5 rounded text-[9px] font-extrabold font-mono text-[#00ffd5] flex items-center gap-1 shadow-xl">
+                      <TargetIcon className="w-3 h-3 text-rose-400 animate-pulse" />
+                      <span>{weapons[activeWeapon].id}</span>
+                      <span className="text-white">| RNG: 1.8NM</span>
+                      {trackingSecsLeft !== null && (
+                        <span className="ml-1 text-rose-400 font-black animate-pulse bg-rose-950/80 px-1 rounded border border-rose-500/50">
+                          🎯 T-{trackingSecsLeft}s
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Firing Shockwave Explosion Ring */}
+                    {isFiringWeapon && (
+                      <div className="absolute inset-0 rounded-full border-4 border-rose-500 animate-ping shadow-[0_0_30px_#f43f5e]" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Active Fire Burst Impact Flares */}
+                {fireEffects.map((ef) => (
+                  <div
+                    key={ef.id}
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 flex items-center justify-center"
+                    style={{ left: `${ef.x}%`, top: `${ef.y}%` }}
+                  >
+                    {/* Expanding Burst Shockwave Ring */}
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-amber-400 bg-rose-500/30 animate-ping shadow-[0_0_40px_#f59e0b]" />
+                    <div className="absolute w-10 h-10 bg-white rounded-full blur-md animate-pulse" />
+                    <div className="absolute text-[10px] font-black font-mono text-amber-300 bg-black/90 border border-amber-400 px-2 py-0.5 rounded shadow-xl -top-8 animate-bounce">
+                      💥 {ef.weapon} IMPACT
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Animated Pitch / Roll Horizon Grid Lines */}
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center transition-transform duration-150 pointer-events-none"
                 style={{
-                  transform: `rotate(${roll}deg) translateY(${pitch * 2.5}px)`
+                  transform: `rotate(${roll}deg) translateY(${pitch * 2.8}px)`
                 }}
               >
                 {/* Horizon Line */}
-                <div className="w-full h-0.5 bg-[#00ffd5] shadow-[0_0_8px_#00ffd5]" />
+                <div className="w-full h-0.5 bg-[#00ffd5] shadow-[0_0_10px_#00ffd5]" />
                 
                 {/* Pitch Ladder Bars */}
-                <div className="w-24 h-0.5 border-t border-dashed border-[#00ffd5]/70 -mt-10 flex justify-between text-[8px] font-bold">
+                <div className="w-32 sm:w-44 h-0.5 border-t border-dashed border-[#00ffd5]/80 -mt-12 flex justify-between text-[9px] font-black">
                   <span>+10</span><span>+10</span>
                 </div>
-                <div className="w-32 h-0.5 border-t border-[#00ffd5] -mt-10 flex justify-between text-[8px] font-bold">
+                <div className="w-40 sm:w-56 h-0.5 border-t-2 border-[#00ffd5] -mt-12 flex justify-between text-[9px] font-black">
                   <span>+20</span><span>+20</span>
                 </div>
-                <div className="w-24 h-0.5 border-t border-dashed border-[#00ffd5]/70 mt-10 flex justify-between text-[8px] font-bold">
+                <div className="w-32 sm:w-44 h-0.5 border-t border-dashed border-[#00ffd5]/80 mt-12 flex justify-between text-[9px] font-black">
                   <span>-10</span><span>-10</span>
                 </div>
-                <div className="w-32 h-0.5 border-t border-[#00ffd5] mt-10 flex justify-between text-[8px] font-bold">
+                <div className="w-40 sm:w-56 h-0.5 border-t-2 border-[#00ffd5] mt-12 flex justify-between text-[9px] font-black">
                   <span>-20</span><span>-20</span>
                 </div>
               </div>
 
-              {/* Fixed Waterline Aircraft reticle in front */}
+              {/* Fixed Waterline Aircraft reticle in center */}
               <div className="relative z-10 flex items-center justify-center pointer-events-none">
                 {/* Center crosshair / Waterline reticle */}
-                <div className="w-10 h-10 border-2 border-[#00ffd5] rounded-full flex items-center justify-center shadow-[0_0_12px_#00ffd5]">
-                  <div className="w-2 h-2 bg-[#00ffd5] rounded-full" />
+                <div className="w-12 h-12 border-2 border-[#00ffd5] rounded-full flex items-center justify-center shadow-[0_0_15px_#00ffd5] bg-[#00ffd5]/10">
+                  <div className="w-2.5 h-2.5 bg-[#00ffd5] rounded-full shadow-[0_0_8px_#00ffd5]" />
                 </div>
-                <div className="absolute w-20 h-0.5 bg-[#00ffd5]" />
+                <div className="absolute w-28 h-0.5 bg-[#00ffd5] shadow-[0_0_8px_#00ffd5]" />
               </div>
 
-              {/* Target Locking Box */}
+              {/* Target Locking Toggle Button inside Glass Viewport */}
               <button
                 type="button"
                 onClick={handleToggleTargetLock}
-                className="absolute top-4 right-4 z-20 pointer-events-auto cursor-pointer group"
+                className="absolute top-3 right-3 z-40 pointer-events-auto cursor-pointer group"
                 title="Toggle Target Lock"
               >
-                <div className={`p-1.5 rounded border transition-all ${isTargetLocked ? 'border-rose-500 bg-rose-500/20 text-rose-400 animate-pulse' : 'border-[#00ffd5]/60 bg-black/60 text-[#00ffd5]'}`}>
+                <div className={`p-2 rounded-xl border transition-all ${isTargetLocked ? 'border-rose-500 bg-rose-500/30 text-rose-300 animate-pulse shadow-[0_0_15px_#f43f5e]' : 'border-[#00ffd5]/60 bg-black/80 text-[#00ffd5] hover:border-[#00ffd5]'}`}>
                   <Crosshair className="w-5 h-5" />
                 </div>
               </button>
 
-              {/* Digital Overlay Telemetry inside horizon */}
-              <div className="absolute bottom-2 left-2 text-[10px] text-left font-bold text-[#00ffd5]/80">
-                <div>AoA: {aoa}°</div>
-                <div>G: +{gForce} G</div>
+              {/* Digital Overlay Telemetry inside horizon (Showing G and KTS/Mach prominently) */}
+              <div className="absolute top-3 left-3 z-20 text-left font-bold text-[#00ffd5] pointer-events-none bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-[#00ffd5]/40 text-xs shadow-lg">
+                <div className="text-white font-extrabold text-xs">{getDisplaySpeed()}</div>
+                <div className="text-[10px] text-[#00ffd5]/80">AoA: {aoa}°</div>
               </div>
-              <div className="absolute bottom-2 right-2 text-[10px] text-right font-bold text-[#00ffd5]/80">
-                <div>RNG: 4.2 NM</div>
-                <div>{isTargetLocked ? 'LOCK ENGAGED' : 'SEARCHING'}</div>
+
+              <div className="absolute bottom-3 left-3 z-20 text-left font-bold text-[#00ffd5] pointer-events-none bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-[#00ffd5]/40 shadow-lg">
+                <div className="text-amber-400 font-extrabold text-sm flex items-center gap-1">
+                  <span>G-FORCE:</span>
+                  <span className="text-white font-mono">+{gForce} G</span>
+                </div>
+              </div>
+
+              <div className="absolute bottom-3 right-3 z-20 text-right font-bold text-[#00ffd5] pointer-events-none bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-[#00ffd5]/40 shadow-lg text-[10px]">
+                <div className="text-white">RNG: 4.2 NM</div>
+                <div className={isTargetLocked ? 'text-rose-400 font-black animate-pulse' : 'text-[#00ffd5]'}>
+                  {isTargetLocked ? '🔒 LOCK ENGAGED' : '📡 SEARCHING'}
+                </div>
               </div>
             </div>
 
             {/* Readout Strip under horizon */}
-            <div className="mt-2.5 pt-2 border-t border-[#00ffd5]/30 w-full flex items-center justify-between text-xs font-bold">
+            <div className="mt-3 pt-2.5 border-t border-[#00ffd5]/40 w-full flex items-center justify-between text-xs font-extrabold">
               <div className="flex items-center gap-1.5 text-[#00ffd5]">
-                <Activity className="w-4 h-4" />
+                <Activity className="w-4 h-4 text-[#00ffd5] animate-pulse" />
                 <span>G-LIMIT: 9.0G</span>
               </div>
-              <div className="px-2 py-0.5 rounded bg-[#00ffd5]/15 border border-[#00ffd5]/40 text-white font-mono">
-                {getDisplaySpeed()}
+              <div className="px-3 py-1 rounded-xl bg-[#00ffd5]/20 border border-[#00ffd5]/60 text-white font-mono text-xs shadow-[0_0_12px_rgba(0,255,213,0.3)]">
+                {getDisplaySpeed()} | {altitudeFt.toLocaleString()} FT
               </div>
             </div>
           </div>
