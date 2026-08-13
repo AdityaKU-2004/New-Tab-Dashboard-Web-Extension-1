@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import {
   Compass,
@@ -88,6 +88,64 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
   const [isAfterburnerActive, setIsAfterburnerActive] = useState(false);
   const [isDeployingFlares, setIsDeployingFlares] = useState(false);
   const [isTargetLocked, setIsTargetLocked] = useState(false);
+
+  // Dynamic Targeting Reticle Mouse Tracking (with Lag Effect & Fire FX)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mousePosRef = useRef({ x: 50, y: 42 });
+  const reticlePosRef = useRef({ x: 50, y: 42 });
+  const outerPosRef = useRef({ x: 50, y: 42 });
+  
+  const [reticlePos, setReticlePos] = useState({ x: 50, y: 42 });
+  const [outerPos, setOuterPos] = useState({ x: 50, y: 42 });
+  const [recoilOffset, setRecoilOffset] = useState({ x: 0, y: 0 });
+  const [screenFlashColor, setScreenFlashColor] = useState<string | null>(null);
+  const [fireEffects, setFireEffects] = useState<
+    Array<{ id: number; x: number; y: number; weapon: WeaponType; timestamp: number }>
+  >([]);
+
+  // Smooth Reticle Lag Interpolation (Lerp) Loop
+  useEffect(() => {
+    let animId: number;
+
+    const animateReticle = () => {
+      const tx = mousePosRef.current.x;
+      const ty = mousePosRef.current.y;
+
+      // Primary Reticle follows mouse with smooth weight (0.15)
+      reticlePosRef.current.x += (tx - reticlePosRef.current.x) * 0.15;
+      reticlePosRef.current.y += (ty - reticlePosRef.current.y) * 0.15;
+
+      // Outer Lead Reticle lags slightly more (0.06) to simulate weapon lead computer
+      outerPosRef.current.x += (tx - outerPosRef.current.x) * 0.06;
+      outerPosRef.current.y += (ty - outerPosRef.current.y) * 0.06;
+
+      setReticlePos({ ...reticlePosRef.current });
+      setOuterPos({ ...outerPosRef.current });
+
+      animId = requestAnimationFrame(animateReticle);
+    };
+
+    animId = requestAnimationFrame(animateReticle);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  // Mouse Movement Handler inside HUD Canvas
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    mousePosRef.current = {
+      x: Math.min(95, Math.max(5, x)),
+      y: Math.min(92, Math.max(8, y))
+    };
+  };
+
+  const handleMouseLeave = () => {
+    // Reset reticle back to center on leave
+    mousePosRef.current = { x: 50, y: 42 };
+  };
 
   // Radar Targets
   const [targets, setTargets] = useState<RadarTarget[]>([
@@ -186,8 +244,8 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
     }, 1800);
   };
 
-  // Interactive Weapon Firing Simulation
-  const handleFireWeapon = () => {
+  // Interactive Weapon Firing Simulation (supports custom reticle coords & FX)
+  const handleFireWeapon = (targetX?: number, targetY?: number) => {
     if (masterArm !== 'ARMED') {
       setFiringLog('⚠️ CANNOT FIRE: MASTER ARM IS SAFE');
       return;
@@ -212,6 +270,35 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
       }
     }));
 
+    // Trigger Fire FX Instance at reticle position
+    const fxX = targetX ?? reticlePosRef.current.x;
+    const fxY = targetY ?? reticlePosRef.current.y;
+    const effectId = Date.now() + Math.random();
+
+    setFireEffects((prev) => [
+      ...prev.slice(-3),
+      { id: effectId, x: fxX, y: fxY, weapon: activeWeapon, timestamp: Date.now() }
+    ]);
+
+    // Recoil Jitter Offset
+    const recoilAmount = activeWeapon === 'CANNON' ? 2 : activeWeapon === 'JDAM' ? 4 : 3;
+    setRecoilOffset({
+      x: (Math.random() - 0.5) * recoilAmount,
+      y: (Math.random() - 0.5) * recoilAmount
+    });
+
+    // Screen Flash Color based on weapon
+    const flash =
+      activeWeapon === 'CANNON'
+        ? 'rgba(0, 255, 213, 0.2)'
+        : activeWeapon === 'JDAM'
+        ? 'rgba(245, 158, 11, 0.25)'
+        : 'rgba(225, 29, 72, 0.25)';
+    setScreenFlashColor(flash);
+
+    setTimeout(() => setRecoilOffset({ x: 0, y: 0 }), 150);
+    setTimeout(() => setScreenFlashColor(null), 250);
+
     if (activeWeapon === 'AMRAAM') {
       setFiringLog('🚀 FOX-3! AIM-120C AMRAAM MISSILE AWAY');
     } else if (activeWeapon === 'SIDEWINDER') {
@@ -224,7 +311,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
     setTimeout(() => {
       setIsFiringWeapon(false);
-    }, 800);
+    }, 600);
   };
 
   // Rearm / Reset Weapons
@@ -291,6 +378,9 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
   return (
     <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={containerStyle}
       className={
         isBg
@@ -300,6 +390,130 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
     >
       {/* Tactical Radar Grid / Crosshair background pattern */}
       <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:24px_24px]" />
+
+      {/* DYNAMIC TARGETING RETICLE OVERLAY (Tracks Mouse with Inertia, Lag Effect & Firing FX) */}
+      <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+        {/* SCREEN FLASH OVERLAY ON FIRE */}
+        {screenFlashColor && (
+          <div
+            className="absolute inset-0 transition-opacity duration-100 pointer-events-none z-40"
+            style={{ backgroundColor: screenFlashColor }}
+          />
+        )}
+
+        {/* Outer Lead Computing Reticle (Lags behind primary targeting reticle) */}
+        <div
+          className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 text-[#00ffd5]/60"
+          style={{
+            left: `${outerPos.x}%`,
+            top: `${outerPos.y}%`,
+          }}
+        >
+          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-dashed border-[#00ffd5]/40 flex items-center justify-center animate-spin" style={{ animationDuration: '25s' }}>
+            <div className="w-2 h-2 rounded-full bg-[#00ffd5]/50" />
+          </div>
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-mono tracking-widest text-[#00ffd5]/70 bg-black/70 px-1 rounded border border-[#00ffd5]/30">
+            LEAD 12.4°
+          </div>
+        </div>
+
+        {/* Dynamic Vector Lines & Tracer Beams Layer */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          {/* Connecting Lag Vector between Outer Lead Reticle & Target Reticle */}
+          <line
+            x1={`${outerPos.x}%`}
+            y1={`${outerPos.y}%`}
+            x2={`${reticlePos.x + recoilOffset.x}%`}
+            y2={`${reticlePos.y + recoilOffset.y}%`}
+            stroke="rgba(0, 255, 213, 0.4)"
+            strokeWidth="1.5"
+            strokeDasharray="4 3"
+          />
+
+          {/* Tracer Beams Fired from Aircraft Nose (Bottom Center) towards Target Reticle */}
+          {fireEffects.map((ef) => (
+            <g key={ef.id} className="animate-ping" style={{ animationDuration: '0.5s' }}>
+              <line
+                x1="50%"
+                y1="95%"
+                x2={`${ef.x}%`}
+                y2={`${ef.y}%`}
+                stroke={ef.weapon === 'CANNON' ? '#00ffd5' : ef.weapon === 'JDAM' ? '#f59e0b' : '#f43f5e'}
+                strokeWidth={ef.weapon === 'CANNON' ? '4' : '6'}
+                strokeLinecap="round"
+                filter="url(#glowCyanJet)"
+              />
+              <circle
+                cx={`${ef.x}%`}
+                cy={`${ef.y}%`}
+                r={ef.weapon === 'CANNON' ? '8' : '14'}
+                fill={ef.weapon === 'CANNON' ? '#00ffd5' : '#f43f5e'}
+              />
+            </g>
+          ))}
+        </svg>
+
+        {/* Primary Targeting Reticle (Follows Mouse with Lag Effect & Recoil Offset) */}
+        <div
+          className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-75 z-40"
+          style={{
+            left: `${reticlePos.x + recoilOffset.x}%`,
+            top: `${reticlePos.y + recoilOffset.y}%`,
+          }}
+        >
+          <div className={`relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center transition-all ${isFiringWeapon ? 'scale-125' : 'scale-100'}`}>
+            
+            {/* Corner Reticle Brackets [ ] */}
+            <div className={`absolute inset-0 border-2 rounded-xl transition-all ${
+              isFiringWeapon
+                ? 'border-rose-500 shadow-[0_0_24px_#f43f5e] scale-110'
+                : isTargetLocked
+                ? 'border-rose-400 shadow-[0_0_12px_#f43f5e]'
+                : 'border-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.5)]'
+            }`}>
+              <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-white" />
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-white" />
+              <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-white" />
+              <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-white" />
+            </div>
+
+            {/* Inner Crosshair Pipper */}
+            <div className="relative flex items-center justify-center">
+              <div className={`w-2 h-2 rounded-full ${isFiringWeapon ? 'bg-rose-500 animate-ping' : 'bg-[#00ffd5]'}`} />
+              <div className="absolute w-6 h-0.5 bg-[#00ffd5]/80" />
+              <div className="absolute h-6 w-0.5 bg-[#00ffd5]/80" />
+            </div>
+
+            {/* Target Distance & Active Weapon Label */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/90 border border-[#00ffd5]/60 px-2 py-0.5 rounded text-[9px] font-extrabold font-mono text-[#00ffd5] flex items-center gap-1 shadow-xl">
+              <TargetIcon className="w-3 h-3 text-rose-400 animate-pulse" />
+              <span>{weapons[activeWeapon].id}</span>
+              <span className="text-white">| RNG: 1.8NM</span>
+            </div>
+
+            {/* Firing Shockwave Explosion Ring */}
+            {isFiringWeapon && (
+              <div className="absolute inset-0 rounded-full border-4 border-rose-500 animate-ping shadow-[0_0_30px_#f43f5e]" />
+            )}
+          </div>
+        </div>
+
+        {/* Active Fire Burst Impact Flares */}
+        {fireEffects.map((ef) => (
+          <div
+            key={ef.id}
+            className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 flex items-center justify-center"
+            style={{ left: `${ef.x}%`, top: `${ef.y}%` }}
+          >
+            {/* Expanding Burst Shockwave Ring */}
+            <div className="w-24 h-24 rounded-full border-4 border-amber-400 bg-rose-500/30 animate-ping shadow-[0_0_40px_#f59e0b]" />
+            <div className="absolute w-12 h-12 bg-white rounded-full blur-md animate-pulse" />
+            <div className="absolute text-[10px] font-black font-mono text-amber-300 bg-black/90 border border-amber-400 px-2 py-0.5 rounded shadow-xl -top-8 animate-bounce">
+              💥 {ef.weapon} IMPACT
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* TOP HUD CONTROL STRIP */}
       <div className={`relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#00ffd5]/30 ${isBg ? 'mt-16 sm:mt-20' : ''}`}>
