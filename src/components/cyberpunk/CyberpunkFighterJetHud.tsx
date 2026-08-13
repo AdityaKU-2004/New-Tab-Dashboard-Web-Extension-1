@@ -950,7 +950,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
         </div>
 
         {/* LOWER SYSTEM PANELS ROW: THREAT & TARGET POD (LEFT BOTTOM) | ARMAMENT STORE (RIGHT BOTTOM) */}
-        <div className="w-full max-w-[1920px] px-2 sm:px-4 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 my-3 items-stretch">
+        <div className="w-full max-w-[1000px] mx-auto px-2 sm:px-4 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 my-3 items-stretch">
           
           {/* LEFT BOTTOM PANEL: RWR THREAT WARNING & TARGET POD */}
           <div className="w-full p-2.5 sm:p-3 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,213,0.15)] flex flex-col justify-between gap-2 pointer-events-auto">
