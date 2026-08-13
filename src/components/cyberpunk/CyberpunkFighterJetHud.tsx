@@ -286,9 +286,9 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
       }
     }));
 
-    // Trigger Fire FX Instance at reticle position
-    const fxX = targetX ?? reticlePosRef.current.x;
-    const fxY = targetY ?? reticlePosRef.current.y;
+    // Trigger Fire FX Instance at reticle position (ensure valid numeric coordinates)
+    const fxX = typeof targetX === 'number' ? targetX : reticlePosRef.current.x;
+    const fxY = typeof targetY === 'number' ? targetY : reticlePosRef.current.y;
     const effectId = Date.now() + Math.random();
 
     setFireEffects((prev) => [
@@ -650,6 +650,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               ref={containerRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
+              onClick={() => handleFireWeapon()}
               className="relative w-full h-[220px] sm:h-[260px] lg:h-[290px] xl:h-[310px] rounded-2xl border-2 border-[#00ffd5]/70 bg-transparent overflow-visible flex items-center justify-center cursor-crosshair group shadow-[0_0_20px_rgba(0,255,213,0.2)] pointer-events-auto"
             >
               {/* DYNAMIC TARGETING RETICLE & LASER OVERLAY - OVERFLOW VISIBLE OUTSIDE SCREEN BOUNDARY */}
@@ -687,7 +688,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                     x2={`${reticlePos.x + recoilOffset.x}%`}
                     y2={`${reticlePos.y + recoilOffset.y}%`}
                     stroke={isFiringWeapon ? '#f43f5e' : isTargetLocked ? '#f59e0b' : '#00ffd5'}
-                    strokeWidth={isFiringWeapon ? '4' : '2'}
+                    strokeWidth={isFiringWeapon ? '3.5' : '2'}
                     strokeDasharray={isFiringWeapon ? 'none' : '6 4'}
                     filter="url(#glowCyanJet)"
                     className="animate-pulse"
@@ -697,16 +698,16 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                   <circle
                     cx="50%"
                     cy="50%"
-                    r={isFiringWeapon ? '12' : '7'}
+                    r={isFiringWeapon ? '10' : '6'}
                     fill="none"
                     stroke={isFiringWeapon ? '#f43f5e' : '#00ffd5'}
                     strokeWidth="2"
-                    className="animate-ping"
+                    className="animate-pulse"
                   />
                   <circle
                     cx="50%"
                     cy="50%"
-                    r="3.5"
+                    r="3"
                     fill={isFiringWeapon ? '#f43f5e' : '#ffffff'}
                   />
 
@@ -723,22 +724,23 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
                   {/* Laser Tracer Beams Fired from CENTER OF DISPLAY (50%, 50%) towards Target Reticle */}
                   {fireEffects.map((ef) => (
-                    <g key={ef.id} className="animate-ping" style={{ animationDuration: '0.4s' }}>
+                    <g key={ef.id}>
                       <line
                         x1="50%"
                         y1="50%"
                         x2={`${ef.x}%`}
                         y2={`${ef.y}%`}
                         stroke={ef.weapon === 'CANNON' ? '#00ffd5' : ef.weapon === 'JDAM' ? '#f59e0b' : '#f43f5e'}
-                        strokeWidth={ef.weapon === 'CANNON' ? '6' : '10'}
+                        strokeWidth={ef.weapon === 'CANNON' ? '4' : '7'}
                         strokeLinecap="round"
                         filter="url(#glowCyanJet)"
                       />
                       <circle
                         cx={`${ef.x}%`}
                         cy={`${ef.y}%`}
-                        r={ef.weapon === 'CANNON' ? '10' : '18'}
+                        r={ef.weapon === 'CANNON' ? '6' : '10'}
                         fill={ef.weapon === 'CANNON' ? '#00ffd5' : '#f43f5e'}
+                        filter="url(#glowCyanJet)"
                       />
                     </g>
                   ))}
@@ -948,13 +950,13 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
         </div>
 
         {/* LOWER SYSTEM PANELS ROW: THREAT & TARGET POD (LEFT BOTTOM) | ARMAMENT STORE (RIGHT BOTTOM) */}
-        <div className="w-full max-w-[1920px] px-2 sm:px-4 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4 items-stretch">
+        <div className="w-full max-w-[1920px] px-2 sm:px-4 grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 my-3 items-stretch">
           
           {/* LEFT BOTTOM PANEL: RWR THREAT WARNING & TARGET POD */}
-          <div className="w-full p-3.5 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] flex flex-col gap-2.5 pointer-events-auto">
-            <div className="flex items-center justify-between border-b border-[#00ffd5]/30 pb-2">
+          <div className="w-full p-2.5 sm:p-3 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,213,0.15)] flex flex-col justify-between gap-2 pointer-events-auto">
+            <div className="flex items-center justify-between border-b border-[#00ffd5]/30 pb-1.5">
               <div className="flex items-center gap-1.5 text-xs font-black text-white">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                 <span>RWR THREAT & TARGET POD</span>
               </div>
               <div className="flex items-center gap-1">
@@ -963,7 +965,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                     key={mode}
                     type="button"
                     onClick={() => setPodMode(mode)}
-                    className={`px-2 py-0.5 text-[10px] font-extrabold rounded border cursor-pointer ${
+                    className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded border cursor-pointer ${
                       podMode === mode
                         ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5]'
                         : 'bg-black/50 text-[#00ffd5]/60 border-[#00ffd5]/30'
@@ -976,18 +978,18 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
 
             {/* Radar Warning Receiver (RWR) Threat Matrix */}
-            <div className="p-2.5 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex flex-col gap-1.5 text-xs">
-              <div className="flex items-center justify-between text-[10px] font-bold text-[#00ffd5]/80">
+            <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex flex-col gap-1 text-[11px]">
+              <div className="flex items-center justify-between text-[9px] font-bold text-[#00ffd5]/80">
                 <span>RWR THREAT DETECTOR</span>
                 <span className="text-emerald-400 font-mono">JAMMER: ACTIVE</span>
               </div>
 
               <div className="space-y-1">
-                <div className="flex items-center justify-between px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/20 text-[10px]">
+                <div className="flex items-center justify-between px-2 py-0.5 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/20 text-[9px]">
                   <span className="text-rose-400 font-bold">MIG-35 BANDIT</span>
                   <span className="text-rose-400 font-black animate-pulse">LOCK WARNING</span>
                 </div>
-                <div className="flex items-center justify-between px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/20 text-[10px]">
+                <div className="flex items-center justify-between px-2 py-0.5 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/20 text-[9px]">
                   <span className="text-amber-400 font-bold">SA-15 SAM RADAR</span>
                   <span className="text-amber-400 font-bold">TRACKING (32 NM)</span>
                 </div>
@@ -995,14 +997,14 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
 
             {/* Countermeasure Stores Dispenser */}
-            <div className="p-2.5 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex flex-col gap-1.5 text-xs">
-              <div className="flex items-center justify-between text-[10px] font-bold text-[#00ffd5]/80">
+            <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex flex-col gap-1 text-[11px]">
+              <div className="flex items-center justify-between text-[9px] font-bold text-[#00ffd5]/80">
                 <span>DEFENSIVE COUNTERMEASURES</span>
                 <span className="text-white font-mono">{flaresCount + chaffCount} STORES</span>
               </div>
 
               {/* Flare Bar */}
-              <div className="space-y-1 text-[10px]">
+              <div className="space-y-0.5 text-[9px]">
                 <div className="flex justify-between font-bold">
                   <span>FLARE PODS</span>
                   <span>{flaresCount} / 30</span>
@@ -1013,7 +1015,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               </div>
 
               {/* Chaff Bar */}
-              <div className="space-y-1 text-[10px]">
+              <div className="space-y-0.5 text-[9px]">
                 <div className="flex justify-between font-bold">
                   <span>CHAFF PODS</span>
                   <span>{chaffCount} / 60</span>
@@ -1025,7 +1027,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
 
             {/* EOTS Targeting Pod Status */}
-            <div className="p-2.5 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex items-center justify-between text-[10px] font-mono">
+            <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex items-center justify-between text-[9px] font-mono">
               <div>
                 <div className="text-white font-bold">LASER DESIGNATOR</div>
                 <div className="text-[#00ffd5]/70">CODE: LZR-1688</div>
@@ -1038,25 +1040,25 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           </div>
 
           {/* RIGHT BOTTOM PANEL: ARMAMENT STORES BAY */}
-          <div className="w-full p-3.5 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] flex flex-col gap-2.5 pointer-events-auto">
-            <div className="flex items-center justify-between border-b border-[#00ffd5]/30 pb-2">
+          <div className="w-full p-2.5 sm:p-3 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,213,0.15)] flex flex-col justify-between gap-2 pointer-events-auto">
+            <div className="flex items-center justify-between border-b border-[#00ffd5]/30 pb-1.5">
               <div className="flex items-center gap-1.5 text-xs font-black text-white">
-                <TargetIcon className="w-4 h-4 text-[#00ffd5]" />
+                <TargetIcon className="w-3.5 h-3.5 text-[#00ffd5]" />
                 <span>ARMAMENT STORES BAY</span>
               </div>
               <button
                 type="button"
                 onClick={handleRearmWeapons}
-                className="text-[10px] px-2 py-0.5 rounded bg-[#00ffd5]/20 hover:bg-[#00ffd5]/40 border border-[#00ffd5]/50 text-[#00ffd5] font-bold flex items-center gap-1 cursor-pointer"
+                className="text-[9px] px-1.5 py-0.5 rounded bg-[#00ffd5]/20 hover:bg-[#00ffd5]/40 border border-[#00ffd5]/50 text-[#00ffd5] font-bold flex items-center gap-1 cursor-pointer"
                 title="Rearm all weapons and countermeasures"
               >
-                <RefreshCw className="w-3 h-3" />
+                <RefreshCw className="w-2.5 h-2.5" />
                 <span>REARM</span>
               </button>
             </div>
 
             {/* Weapon Stores List / Interactive Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
               {(Object.keys(weapons) as WeaponType[]).map((wKey) => {
                 const w = weapons[wKey];
                 const isSelected = activeWeapon === wKey;
@@ -1064,30 +1066,30 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                   <div
                     key={wKey}
                     onClick={() => setActiveWeapon(wKey)}
-                    className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                    className={`p-1.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'bg-[#00ffd5]/20 border-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.3)]'
+                        ? 'bg-[#00ffd5]/20 border-[#00ffd5] shadow-[0_0_10px_rgba(0,255,213,0.3)]'
                         : 'bg-black/50 border-[#00ffd5]/25 hover:border-[#00ffd5]/50'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center gap-1.5 font-black text-white text-[11px]">
+                      <div className="flex items-center gap-1 font-black text-white text-[10px]">
                         <span className={isSelected ? 'text-[#00ffd5]' : 'text-white/60'}>
                           {isSelected ? '▶' : '•'}
                         </span>
                         <span>{w.name}</span>
                       </div>
-                      <div className="text-[9px] text-[#00ffd5]/80 font-mono tracking-wider">
+                      <div className="text-[8px] text-[#00ffd5]/80 font-mono tracking-wider">
                         {w.typeLabel}
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm font-black font-mono text-white">
+                      <div className="text-xs font-black font-mono text-white">
                         {wKey === 'CANNON' ? `${w.count} RNDS` : `${w.count}/${w.maxCount}`}
                       </div>
                       <div
-                        className={`text-[9px] font-black px-1.5 py-0.2 rounded border ${
+                        className={`text-[8px] font-black px-1 py-0.2 rounded border ${
                           w.count === 0
                             ? 'bg-rose-500/20 text-rose-400 border-rose-500/50'
                             : isSelected
@@ -1106,20 +1108,20 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             {/* Interactive FIRE WEAPON Button */}
             <button
               type="button"
-              onClick={handleFireWeapon}
+              onClick={() => handleFireWeapon()}
               disabled={weapons[activeWeapon].count <= 0}
-              className={`w-full py-2.5 px-3 rounded-xl font-black text-xs tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md ${
+              className={`w-full py-2 px-3 rounded-xl font-black text-xs tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md ${
                 weapons[activeWeapon].count <= 0
                   ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                   : 'bg-rose-600 hover:bg-rose-500 text-white border border-rose-400 shadow-[0_0_15px_rgba(225,29,72,0.6)] animate-pulse'
               }`}
             >
-              <Flame className="w-4 h-4 fill-current" />
+              <Flame className="w-3.5 h-3.5 fill-current" />
               <span>FIRE {weapons[activeWeapon].id}</span>
             </button>
 
             {/* Firing Log Terminal Output */}
-            <div className="px-2.5 py-1.5 rounded-lg bg-black/80 border border-[#00ffd5]/30 text-[10px] font-mono text-[#00ffd5] truncate">
+            <div className="px-2 py-1 rounded-lg bg-black/80 border border-[#00ffd5]/30 text-[9px] font-mono text-[#00ffd5] truncate">
               {firingLog}
             </div>
           </div>
