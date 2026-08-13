@@ -415,8 +415,8 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
       style={containerStyle}
       className={
         isBg
-          ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-2 sm:p-4 lg:p-6 font-mono text-[#00ffd5] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
-          : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-2 sm:p-4 lg:p-6 font-mono text-[#00ffd5] overflow-hidden transition-all duration-300 select-none'
+          ? 'fixed inset-0 z-0 pointer-events-auto w-full h-full p-2 sm:p-3 lg:p-4 font-mono text-[#00ffd5] overflow-y-auto overflow-x-hidden select-none flex flex-col justify-between transition-all duration-500'
+          : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-2 sm:p-3 lg:p-4 font-mono text-[#00ffd5] overflow-y-auto overflow-x-hidden transition-all duration-300 select-none max-h-[92vh]'
       }
     >
       {/* Sci-Fi Cockpit Sky Background Wallpaper Layer */}
@@ -576,7 +576,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           
           {/* LEFT GAUGE: AIRSPEED & MACH DIAL */}
           <div className="w-full lg:col-span-3 order-1 flex flex-col items-center justify-center relative">
-            <div className="relative w-[210px] h-[210px] sm:w-[250px] sm:h-[250px] lg:w-[280px] lg:h-[280px] xl:w-[310px] xl:h-[310px] transition-all duration-300">
+            <div className="relative w-[180px] h-[180px] sm:w-[210px] sm:h-[210px] lg:w-[240px] lg:h-[240px] xl:w-[260px] xl:h-[260px] transition-all duration-300">
               <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
                 <defs>
                   <filter id="glowCyanJet" x="-20%" y="-20%" width="140%" height="140%">
@@ -650,7 +650,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               ref={containerRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="relative w-full h-[260px] sm:h-[320px] lg:h-[360px] xl:h-[380px] rounded-2xl border-2 border-[#00ffd5]/70 bg-transparent overflow-visible flex items-center justify-center cursor-crosshair group shadow-[0_0_20px_rgba(0,255,213,0.2)] pointer-events-auto"
+              className="relative w-full h-[220px] sm:h-[260px] lg:h-[290px] xl:h-[310px] rounded-2xl border-2 border-[#00ffd5]/70 bg-transparent overflow-visible flex items-center justify-center cursor-crosshair group shadow-[0_0_20px_rgba(0,255,213,0.2)] pointer-events-auto"
             >
               {/* DYNAMIC TARGETING RETICLE & LASER OVERLAY - OVERFLOW VISIBLE OUTSIDE SCREEN BOUNDARY */}
               <div className="absolute inset-0 z-30 pointer-events-none overflow-visible">
@@ -679,13 +679,13 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                 </div>
 
                 {/* Dynamic Vector Lines & Laser Beams Layer (Emanating from CENTER OF DISPLAY) */}
-                <svg className="absolute -inset-20 w-[calc(100%+10rem)] h-[calc(100%+10rem)] pointer-events-none overflow-visible z-20">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-20">
                   {/* Center Laser Guidance Beam emanating from exact Center of Display (50%, 50%) to Target Reticle */}
                   <line
                     x1="50%"
                     y1="50%"
-                    x2={`calc(${reticlePos.x + recoilOffset.x}% + 5rem)`}
-                    y2={`calc(${reticlePos.y + recoilOffset.y}% + 5rem)`}
+                    x2={`${reticlePos.x + recoilOffset.x}%`}
+                    y2={`${reticlePos.y + recoilOffset.y}%`}
                     stroke={isFiringWeapon ? '#f43f5e' : isTargetLocked ? '#f59e0b' : '#00ffd5'}
                     strokeWidth={isFiringWeapon ? '4' : '2'}
                     strokeDasharray={isFiringWeapon ? 'none' : '6 4'}
@@ -712,10 +712,10 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
                   {/* Connecting Lag Vector between Outer Lead Reticle & Target Reticle */}
                   <line
-                    x1={`calc(${outerPos.x}% + 5rem)`}
-                    y1={`calc(${outerPos.y}% + 5rem)`}
-                    x2={`calc(${reticlePos.x + recoilOffset.x}% + 5rem)`}
-                    y2={`calc(${reticlePos.y + recoilOffset.y}% + 5rem)`}
+                    x1={`${outerPos.x}%`}
+                    y1={`${outerPos.y}%`}
+                    x2={`${reticlePos.x + recoilOffset.x}%`}
+                    y2={`${reticlePos.y + recoilOffset.y}%`}
                     stroke="rgba(0, 255, 213, 0.4)"
                     strokeWidth="1.5"
                     strokeDasharray="4 3"
@@ -727,16 +727,16 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                       <line
                         x1="50%"
                         y1="50%"
-                        x2={`calc(${ef.x}% + 5rem)`}
-                        y2={`calc(${ef.y}% + 5rem)`}
+                        x2={`${ef.x}%`}
+                        y2={`${ef.y}%`}
                         stroke={ef.weapon === 'CANNON' ? '#00ffd5' : ef.weapon === 'JDAM' ? '#f59e0b' : '#f43f5e'}
                         strokeWidth={ef.weapon === 'CANNON' ? '6' : '10'}
                         strokeLinecap="round"
                         filter="url(#glowCyanJet)"
                       />
                       <circle
-                        cx={`calc(${ef.x}% + 5rem)`}
-                        cy={`calc(${ef.y}% + 5rem)`}
+                        cx={`${ef.x}%`}
+                        cy={`${ef.y}%`}
                         r={ef.weapon === 'CANNON' ? '10' : '18'}
                         fill={ef.weapon === 'CANNON' ? '#00ffd5' : '#f43f5e'}
                       />
@@ -892,7 +892,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
 
           {/* RIGHT GAUGE: ALTITUDE & CLIMB DIAL */}
           <div className="w-full lg:col-span-3 order-3 flex flex-col items-center justify-center relative">
-            <div className="relative w-[210px] h-[210px] sm:w-[250px] sm:h-[250px] lg:w-[280px] lg:h-[280px] xl:w-[310px] xl:h-[310px] transition-all duration-300">
+            <div className="relative w-[180px] h-[180px] sm:w-[210px] sm:h-[210px] lg:w-[240px] lg:h-[240px] xl:w-[260px] xl:h-[260px] transition-all duration-300">
               <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
                 {/* Outer Segmented Ring */}
                 <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="6 3" />
