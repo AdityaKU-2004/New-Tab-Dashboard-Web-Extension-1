@@ -312,7 +312,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
       <div className="relative z-10 my-auto py-4 flex flex-col items-center justify-center w-full">
         
         {/* UPPER MAIN INSTRUMENTATION ROW (Left Dial, Center HUD, Right Dial) */}
-        <div className="w-full max-w-[1400px] px-2 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center justify-items-center">
+        <div className="w-full max-w-[1850px] px-2 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center justify-items-center">
           
           {/* LEFT MAIN DIAL: TACHOMETER (RPM x1000) */}
           <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
@@ -516,7 +516,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
         </div>
 
         {/* LOWER SUB-GAUGES AND SWEEPING OUTER ARCS ROW */}
-        <div className="w-full max-w-[1200px] flex flex-wrap items-center justify-between gap-6 mt-4 px-4 sm:px-8">
+        <div className="w-full max-w-[1850px] flex flex-wrap items-center justify-between gap-6 mt-4 px-4 sm:px-8">
           
           {/* BOTTOM LEFT SWEEPING TEMPERATURE ARC (H / C) */}
           <div className="flex items-center gap-2">

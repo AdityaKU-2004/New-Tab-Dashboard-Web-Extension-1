@@ -16,7 +16,12 @@ import {
   RotateCw,
   Navigation,
   Shield,
-  Plane
+  Plane,
+  Crosshair as TargetIcon,
+  AlertTriangle,
+  RefreshCw,
+  Eye,
+  Cpu
 } from 'lucide-react';
 
 interface CyberpunkFighterJetHudProps {
@@ -30,6 +35,18 @@ interface RadarTarget {
   type: 'hostile' | 'friendly' | 'unknown';
   isLocked?: boolean;
   code: string;
+}
+
+type WeaponType = 'AMRAAM' | 'SIDEWINDER' | 'CANNON' | 'JDAM';
+
+interface WeaponSlot {
+  id: WeaponType;
+  name: string;
+  code: string;
+  count: number;
+  maxCount: number;
+  status: 'HOT' | 'READY' | 'ARMED' | 'EMPTY';
+  typeLabel: string;
 }
 
 export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ isBackgroundMode }) => {
@@ -48,15 +65,29 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
   const [aoa, setAoa] = useState(7.4); // Angle of Attack
   const [fuelPercent, setFuelPercent] = useState(78);
   const [flaresCount, setFlaresCount] = useState(30);
+  const [chaffCount, setChaffCount] = useState(60);
   const [masterArm, setMasterArm] = useState<'ARMED' | 'SAFE'>('ARMED');
   const [flightMode, setFlightMode] = useState<'PATROL' | 'RECON' | 'COMBAT' | 'DOGFIGHT'>('COMBAT');
   const [unit, setUnit] = useState<'KTS' | 'MACH' | 'MPH'>('KTS');
+
+  // Interactive Weapon Stores
+  const [activeWeapon, setActiveWeapon] = useState<WeaponType>('AMRAAM');
+  const [weapons, setWeapons] = useState<Record<WeaponType, WeaponSlot>>({
+    AMRAAM: { id: 'AMRAAM', name: 'AIM-120C AMRAAM', code: 'A2A RADAR', count: 4, maxCount: 4, status: 'HOT', typeLabel: 'FOX-3 RADAR' },
+    SIDEWINDER: { id: 'SIDEWINDER', name: 'AIM-9X SIDEWINDER', code: 'IR HEAT', count: 2, maxCount: 2, status: 'READY', typeLabel: 'FOX-2 IR' },
+    CANNON: { id: 'CANNON', name: '20MM M61A2 CANNON', code: 'GUNS', count: 510, maxCount: 510, status: 'ARMED', typeLabel: '20MM VULCAN' },
+    JDAM: { id: 'JDAM', name: 'GBU-31 JDAM', code: 'A2G GPS', count: 2, maxCount: 2, status: 'READY', typeLabel: 'GPS BOMB' },
+  });
+  const [firingLog, setFiringLog] = useState<string>('SYSTEM READY - SELECT TARGET');
+  const [isFiringWeapon, setIsFiringWeapon] = useState(false);
+
+  // Targeting Pod Mode
+  const [podMode, setPodMode] = useState<'FLIR' | 'NIGHT' | 'TV'>('FLIR');
 
   // Interactive Action States
   const [isAfterburnerActive, setIsAfterburnerActive] = useState(false);
   const [isDeployingFlares, setIsDeployingFlares] = useState(false);
   const [isTargetLocked, setIsTargetLocked] = useState(false);
-  const [lockedTargetCode, setLockedTargetCode] = useState<string | null>('BOGEY-01');
 
   // Radar Targets
   const [targets, setTargets] = useState<RadarTarget[]>([
@@ -148,10 +179,65 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
     if (flaresCount <= 0 || isDeployingFlares) return;
     setIsDeployingFlares(true);
     setFlaresCount((prev) => Math.max(0, prev - 3));
+    setChaffCount((prev) => Math.max(0, prev - 5));
 
     setTimeout(() => {
       setIsDeployingFlares(false);
     }, 1800);
+  };
+
+  // Interactive Weapon Firing Simulation
+  const handleFireWeapon = () => {
+    if (masterArm !== 'ARMED') {
+      setFiringLog('⚠️ CANNOT FIRE: MASTER ARM IS SAFE');
+      return;
+    }
+
+    const current = weapons[activeWeapon];
+    if (current.count <= 0) {
+      setFiringLog(`❌ NO AMMO: ${current.name} EMPTY`);
+      return;
+    }
+
+    setIsFiringWeapon(true);
+    const decrement = activeWeapon === 'CANNON' ? 30 : 1;
+    const newCount = Math.max(0, current.count - decrement);
+
+    setWeapons((prev) => ({
+      ...prev,
+      [activeWeapon]: {
+        ...prev[activeWeapon],
+        count: newCount,
+        status: newCount === 0 ? 'EMPTY' : prev[activeWeapon].status
+      }
+    }));
+
+    if (activeWeapon === 'AMRAAM') {
+      setFiringLog('🚀 FOX-3! AIM-120C AMRAAM MISSILE AWAY');
+    } else if (activeWeapon === 'SIDEWINDER') {
+      setFiringLog('🔥 FOX-2! AIM-9X SIDEWINDER ENGAGED');
+    } else if (activeWeapon === 'CANNON') {
+      setFiringLog('⚡ GUNS GUNS GUNS! 20MM BURST (-30 RNDS)');
+    } else {
+      setFiringLog('💣 PICKLE! GBU-31 JDAM RELEASED');
+    }
+
+    setTimeout(() => {
+      setIsFiringWeapon(false);
+    }, 800);
+  };
+
+  // Rearm / Reset Weapons
+  const handleRearmWeapons = () => {
+    setWeapons({
+      AMRAAM: { id: 'AMRAAM', name: 'AIM-120C AMRAAM', code: 'A2A RADAR', count: 4, maxCount: 4, status: 'HOT', typeLabel: 'FOX-3 RADAR' },
+      SIDEWINDER: { id: 'SIDEWINDER', name: 'AIM-9X SIDEWINDER', code: 'IR HEAT', count: 2, maxCount: 2, status: 'READY', typeLabel: 'FOX-2 IR' },
+      CANNON: { id: 'CANNON', name: '20MM M61A2 CANNON', code: 'GUNS', count: 510, maxCount: 510, status: 'ARMED', typeLabel: '20MM VULCAN' },
+      JDAM: { id: 'JDAM', name: 'GBU-31 JDAM', code: 'A2G GPS', count: 2, maxCount: 2, status: 'READY', typeLabel: 'GPS BOMB' },
+    });
+    setFlaresCount(30);
+    setChaffCount(60);
+    setFiringLog('🔄 WEAPONS & COUNTERMEASURES REARMED');
   };
 
   // Interactive Radar Target Locking
@@ -208,8 +294,8 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
       style={containerStyle}
       className={
         isBg
-          ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-4 sm:p-6 font-mono text-[#00ffd5] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
-          : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-4 sm:p-6 font-mono text-[#00ffd5] overflow-hidden transition-all duration-300 select-none'
+          ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-2 sm:p-4 lg:p-6 font-mono text-[#00ffd5] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
+          : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-2 sm:p-4 lg:p-6 font-mono text-[#00ffd5] overflow-hidden transition-all duration-300 select-none'
       }
     >
       {/* Tactical Radar Grid / Crosshair background pattern */}
@@ -225,7 +311,9 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             <h3 className="text-xs sm:text-sm font-black tracking-widest text-white flex items-center gap-2">
               <span>FIGHTER JET COCKPIT HUD</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00ffd5]/20 border border-[#00ffd5]/60 text-[#00ffd5] font-bold">
-                {isAfterburnerActive
+                {isFiringWeapon
+                  ? '💥 WEAPON FIRED'
+                  : isAfterburnerActive
                   ? '🔥 AFTERBURNER'
                   : isDeployingFlares
                   ? '⚡ FLARES DEPLOYED'
@@ -330,13 +418,102 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
         </div>
       </div>
 
-      {/* MAIN COCKPIT HUD GRID (Left Gauge, Center Artificial Horizon, Right Gauge) */}
-      <div className="relative z-10 my-auto py-4 flex flex-col items-center justify-center w-full">
-        <div className="w-full max-w-[1400px] px-2 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center justify-items-center">
+      {/* MAIN FULL-WIDTH COCKPIT HUD GRID (Left Armament | Left Dial | Center HUD | Right Dial | Right Threat Pod) */}
+      <div className="relative z-10 my-auto py-3 flex flex-col items-center justify-center w-full">
+        
+        {/* Responsive 5-Column Grid spanning full container width */}
+        <div className="w-full max-w-[1920px] px-2 sm:px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-12 2xl:grid-cols-16 gap-4 sm:gap-5 items-center justify-items-center">
           
-          {/* LEFT GAUGE: AIRSPEED & MACH DIAL */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
-            <div className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[340px] lg:h-[340px] transition-all duration-300">
+          {/* FAR LEFT PANEL: WEAPONS BAY & HARDPOINTS STORES (Occupies 3 columns on ultra-wide screens) */}
+          <div className="w-full xl:col-span-3 2xl:col-span-3 p-3 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] flex flex-col gap-2.5 pointer-events-auto">
+            <div className="flex items-center justify-between border-b border-[#00ffd5]/30 pb-2">
+              <div className="flex items-center gap-1.5 text-xs font-black text-white">
+                <TargetIcon className="w-4 h-4 text-[#00ffd5]" />
+                <span>ARMAMENT STORES BAY</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleRearmWeapons}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-[#00ffd5]/20 hover:bg-[#00ffd5]/40 border border-[#00ffd5]/50 text-[#00ffd5] font-bold flex items-center gap-1 cursor-pointer"
+                title="Rearm all weapons and countermeasures"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>REARM</span>
+              </button>
+            </div>
+
+            {/* Weapon Stores List / Interactive Selectors */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2 text-xs">
+              {(Object.keys(weapons) as WeaponType[]).map((wKey) => {
+                const w = weapons[wKey];
+                const isSelected = activeWeapon === wKey;
+                return (
+                  <div
+                    key={wKey}
+                    onClick={() => setActiveWeapon(wKey)}
+                    className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? 'bg-[#00ffd5]/20 border-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.3)]'
+                        : 'bg-black/50 border-[#00ffd5]/25 hover:border-[#00ffd5]/50'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 font-black text-white text-[11px]">
+                        <span className={isSelected ? 'text-[#00ffd5]' : 'text-white/60'}>
+                          {isSelected ? '▶' : '•'}
+                        </span>
+                        <span>{w.name}</span>
+                      </div>
+                      <div className="text-[9px] text-[#00ffd5]/80 font-mono tracking-wider">
+                        {w.typeLabel}
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-sm font-black font-mono text-white">
+                        {wKey === 'CANNON' ? `${w.count} RNDS` : `${w.count}/${w.maxCount}`}
+                      </div>
+                      <div
+                        className={`text-[9px] font-black px-1.5 py-0.2 rounded border ${
+                          w.count === 0
+                            ? 'bg-rose-500/20 text-rose-400 border-rose-500/50'
+                            : isSelected
+                            ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5]'
+                            : 'bg-[#00ffd5]/10 text-[#00ffd5] border-[#00ffd5]/30'
+                        }`}
+                      >
+                        {w.count === 0 ? 'EMPTY' : w.status}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Interactive FIRE WEAPON Button */}
+            <button
+              type="button"
+              onClick={handleFireWeapon}
+              disabled={weapons[activeWeapon].count <= 0}
+              className={`w-full py-2 px-3 rounded-xl font-black text-xs tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md ${
+                weapons[activeWeapon].count <= 0
+                  ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                  : 'bg-rose-600 hover:bg-rose-500 text-white border border-rose-400 shadow-[0_0_15px_rgba(225,29,72,0.6)] animate-pulse'
+              }`}
+            >
+              <Flame className="w-4 h-4 fill-current" />
+              <span>FIRE {weapons[activeWeapon].id}</span>
+            </button>
+
+            {/* Firing Log Terminal Output */}
+            <div className="px-2.5 py-1.5 rounded-lg bg-black/80 border border-[#00ffd5]/30 text-[10px] font-mono text-[#00ffd5] truncate">
+              {firingLog}
+            </div>
+          </div>
+
+          {/* LEFT GAUGE: AIRSPEED & MACH DIAL (Occupies 3 columns on ultra-wide screens) */}
+          <div className="w-full xl:col-span-3 2xl:col-span-3 flex flex-col items-center justify-center relative">
+            <div className="relative w-[220px] h-[220px] sm:w-[270px] sm:h-[270px] lg:w-[310px] lg:h-[310px] transition-all duration-300">
               <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
                 <defs>
                   <filter id="glowCyanJet" x="-20%" y="-20%" width="140%" height="140%">
@@ -395,11 +572,11 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
           </div>
 
-          {/* CENTER HUD MODULE: ARTIFICIAL HORIZON & COMPASS TAPE */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_30px_rgba(0,255,213,0.2)] w-full min-w-[260px] lg:min-w-[340px] text-center my-2 md:my-0 relative overflow-hidden">
+          {/* CENTER HUD MODULE: ARTIFICIAL HORIZON & COMPASS TAPE (Occupies 3-4 columns on ultra-wide screens) */}
+          <div className="w-full xl:col-span-3 2xl:col-span-4 flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_30px_rgba(0,255,213,0.2)] text-center my-2 xl:my-0 relative overflow-hidden">
             
             {/* Top Compass Heading Tape */}
-            <div className="w-full flex items-center justify-between px-3 py-1 bg-[#00ffd5]/10 border border-[#00ffd5]/30 rounded-lg text-xs font-black mb-3">
+            <div className="w-full flex items-center justify-between px-3 py-1 bg-[#00ffd5]/10 border border-[#00ffd5]/30 rounded-lg text-xs font-black mb-2">
               <Compass className="w-4 h-4 text-[#00ffd5] animate-spin" style={{ animationDuration: '20s' }} />
               <div className="tracking-widest text-white">HDG: {heading}° NNE</div>
               <Navigation className="w-3.5 h-3.5 text-[#00ffd5]" />
@@ -445,7 +622,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               <button
                 type="button"
                 onClick={handleToggleTargetLock}
-                className="absolute top-6 right-6 z-20 pointer-events-auto cursor-pointer group"
+                className="absolute top-4 right-4 z-20 pointer-events-auto cursor-pointer group"
                 title="Toggle Target Lock"
               >
                 <div className={`p-1.5 rounded border transition-all ${isTargetLocked ? 'border-rose-500 bg-rose-500/20 text-rose-400 animate-pulse' : 'border-[#00ffd5]/60 bg-black/60 text-[#00ffd5]'}`}>
@@ -465,7 +642,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
 
             {/* Readout Strip under horizon */}
-            <div className="mt-3 pt-2.5 border-t border-[#00ffd5]/30 w-full flex items-center justify-between text-xs font-bold">
+            <div className="mt-2.5 pt-2 border-t border-[#00ffd5]/30 w-full flex items-center justify-between text-xs font-bold">
               <div className="flex items-center gap-1.5 text-[#00ffd5]">
                 <Activity className="w-4 h-4" />
                 <span>G-LIMIT: 9.0G</span>
@@ -476,9 +653,9 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
           </div>
 
-          {/* RIGHT GAUGE: ALTITUDE & CLIMB DIAL */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
-            <div className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[340px] lg:h-[340px] transition-all duration-300">
+          {/* RIGHT GAUGE: ALTITUDE & CLIMB DIAL (Occupies 3 columns on ultra-wide screens) */}
+          <div className="w-full xl:col-span-3 2xl:col-span-3 flex flex-col items-center justify-center relative">
+            <div className="relative w-[220px] h-[220px] sm:w-[270px] sm:h-[270px] lg:w-[310px] lg:h-[310px] transition-all duration-300">
               <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
                 {/* Outer Segmented Ring */}
                 <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="6 3" />
@@ -531,10 +708,98 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
             </div>
           </div>
 
+          {/* FAR RIGHT PANEL: THREAT WARNING & TARGETING POD (Occupies 3 columns on ultra-wide screens) */}
+          <div className="w-full xl:col-span-3 2xl:col-span-3 p-3 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] flex flex-col gap-2.5 pointer-events-auto">
+            <div className="flex items-center justify-between border-b border-[#00ffd5]/30 pb-2">
+              <div className="flex items-center gap-1.5 text-xs font-black text-white">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span>RWR THREAT & TARGET POD</span>
+              </div>
+              <div className="flex items-center gap-1">
+                {(['FLIR', 'NIGHT', 'TV'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setPodMode(mode)}
+                    className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded border cursor-pointer ${
+                      podMode === mode
+                        ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5]'
+                        : 'bg-black/50 text-[#00ffd5]/60 border-[#00ffd5]/30'
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Radar Warning Receiver (RWR) Threat Matrix */}
+            <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex flex-col gap-1.5 text-xs">
+              <div className="flex items-center justify-between text-[10px] font-bold text-[#00ffd5]/80">
+                <span>RWR THREAT DETECTOR</span>
+                <span className="text-emerald-400 font-mono">JAMMER: ACTIVE</span>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/20 text-[10px]">
+                  <span className="text-rose-400 font-bold">MIG-35 BANDIT</span>
+                  <span className="text-rose-400 font-black animate-pulse">LOCK WARNING</span>
+                </div>
+                <div className="flex items-center justify-between px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/20 text-[10px]">
+                  <span className="text-amber-400 font-bold">SA-15 SAM RADAR</span>
+                  <span className="text-amber-400 font-bold">TRACKING (32 NM)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Countermeasure Stores Dispenser */}
+            <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex flex-col gap-1.5 text-xs">
+              <div className="flex items-center justify-between text-[10px] font-bold text-[#00ffd5]/80">
+                <span>DEFENSIVE COUNTERMEASURES</span>
+                <span className="text-white font-mono">{flaresCount + chaffCount} STORES</span>
+              </div>
+
+              {/* Flare Bar */}
+              <div className="space-y-1 text-[10px]">
+                <div className="flex justify-between font-bold">
+                  <span>FLARE PODS</span>
+                  <span>{flaresCount} / 30</span>
+                </div>
+                <div className="w-full h-1.5 rounded bg-slate-900 border border-[#00ffd5]/40 overflow-hidden">
+                  <div className="h-full bg-[#00ffd5]" style={{ width: `${(flaresCount / 30) * 100}%` }} />
+                </div>
+              </div>
+
+              {/* Chaff Bar */}
+              <div className="space-y-1 text-[10px]">
+                <div className="flex justify-between font-bold">
+                  <span>CHAFF PODS</span>
+                  <span>{chaffCount} / 60</span>
+                </div>
+                <div className="w-full h-1.5 rounded bg-slate-900 border border-[#00ffd5]/40 overflow-hidden">
+                  <div className="h-full bg-[#00ffd5]" style={{ width: `${(chaffCount / 60) * 100}%` }} />
+                </div>
+              </div>
+            </div>
+
+            {/* EOTS Targeting Pod Status */}
+            <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/25 flex items-center justify-between text-[10px] font-mono">
+              <div>
+                <div className="text-white font-bold">LASER DESIGNATOR</div>
+                <div className="text-[#00ffd5]/70">CODE: LZR-1688</div>
+              </div>
+              <div className="text-right">
+                <div className="text-emerald-400 font-bold">TGT RANGE</div>
+                <div className="text-white">4.2 NM (+380 KTS)</div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
         {/* LOWER SUB-GAUGES & TACTICAL RADAR SWEEP ROW */}
-        <div className="w-full max-w-[1200px] flex flex-wrap items-center justify-between gap-6 mt-4 px-4 sm:px-8">
+        <div className="w-full max-w-[1850px] flex flex-wrap items-center justify-between gap-6 mt-4 px-4 sm:px-8">
           
           {/* TACTICAL RADAR SCOPE (Interactive 360 Sweep Display) */}
           <div className="flex items-center gap-3">
@@ -609,7 +874,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                 <Shield className="w-3.5 h-3.5" />
                 <span>WEAPONS / FUEL</span>
               </div>
-              <div className="text-xs font-bold text-white">AMRAAM x4 | SIDW x2</div>
+              <div className="text-xs font-bold text-white">AMRAAM x{weapons.AMRAAM.count} | SIDW x{weapons.SIDEWINDER.count}</div>
               <div className="text-[10px] text-[#00ffd5]/80">INTERNAL FUEL: {fuelPercent}%</div>
             </div>
             <div className="relative w-24 h-16">
@@ -642,3 +907,4 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
     </div>
   );
 };
+
