@@ -116,16 +116,36 @@
   z-index: 40;
 }
 
-/* Subtle Cyber Scanlines overlay */
+/* Subtle Cyber Scanlines overlay with CRT flicker animation */
+@keyframes crt-flicker {
+  0% { opacity: 0.98; }
+  8% { opacity: 0.88; }
+  15% { opacity: 0.99; }
+  23% { opacity: 0.91; }
+  30% { opacity: 0.96; }
+  38% { opacity: 0.85; }
+  45% { opacity: 1; }
+  53% { opacity: 0.89; }
+  60% { opacity: 0.98; }
+  68% { opacity: 0.92; }
+  75% { opacity: 0.87; }
+  83% { opacity: 0.95; }
+  90% { opacity: 0.99; }
+  95% { opacity: 0.90; }
+  100% { opacity: 0.98; }
+}
+
 .cyber-scanlines {
+  position: relative;
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0),
     rgba(255, 255, 255, 0) 50%,
-    rgba(0, 243, 255, 0.03) 50%,
-    rgba(0, 243, 255, 0.03)
+    rgba(0, 243, 255, 0.035) 50%,
+    rgba(0, 243, 255, 0.035)
   );
   background-size: 100% 4px;
+  animation: crt-flicker 0.15s infinite;
 }
 
 
