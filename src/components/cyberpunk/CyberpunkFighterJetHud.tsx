@@ -1,0 +1,644 @@
+import React, { useState, useEffect } from 'react';
+import { useDashboardStore } from '../../store/useDashboardStore';
+import {
+  Compass,
+  Crosshair,
+  ShieldAlert,
+  Zap,
+  Flame,
+  Radio,
+  Target,
+  Wind,
+  Layers,
+  Gauge,
+  Activity,
+  Disc,
+  RotateCw,
+  Navigation,
+  Shield,
+  Plane
+} from 'lucide-react';
+
+interface CyberpunkFighterJetHudProps {
+  isBackgroundMode?: boolean;
+}
+
+interface RadarTarget {
+  id: number;
+  x: number; // -100 to 100
+  y: number; // -100 to 100
+  type: 'hostile' | 'friendly' | 'unknown';
+  isLocked?: boolean;
+  code: string;
+}
+
+export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ isBackgroundMode }) => {
+  const { cardOpacity, backgroundBlur, speedometerPlacement } = useDashboardStore((state) => state.settings);
+  const updateSettings = useDashboardStore((state) => state.updateSettings);
+  const isBg = isBackgroundMode ?? (speedometerPlacement === 'background');
+
+  // Flight Telemetry States
+  const [airspeedKts, setAirspeedKts] = useState(640);
+  const [altitudeFt, setAltitudeFt] = useState(24500);
+  const [machNumber, setMachNumber] = useState(1.42);
+  const [pitch, setPitch] = useState(4); // -30 to +30 deg
+  const [roll, setRoll] = useState(-3); // -45 to +45 deg
+  const [heading, setHeading] = useState(285); // 0 to 360 deg
+  const [gForce, setGForce] = useState(2.8);
+  const [aoa, setAoa] = useState(7.4); // Angle of Attack
+  const [fuelPercent, setFuelPercent] = useState(78);
+  const [flaresCount, setFlaresCount] = useState(30);
+  const [masterArm, setMasterArm] = useState<'ARMED' | 'SAFE'>('ARMED');
+  const [flightMode, setFlightMode] = useState<'PATROL' | 'RECON' | 'COMBAT' | 'DOGFIGHT'>('COMBAT');
+  const [unit, setUnit] = useState<'KTS' | 'MACH' | 'MPH'>('KTS');
+
+  // Interactive Action States
+  const [isAfterburnerActive, setIsAfterburnerActive] = useState(false);
+  const [isDeployingFlares, setIsDeployingFlares] = useState(false);
+  const [isTargetLocked, setIsTargetLocked] = useState(false);
+  const [lockedTargetCode, setLockedTargetCode] = useState<string | null>('BOGEY-01');
+
+  // Radar Targets
+  const [targets, setTargets] = useState<RadarTarget[]>([
+    { id: 1, x: 35, y: -45, type: 'hostile', isLocked: true, code: 'BOGEY-01' },
+    { id: 2, x: -50, y: -20, type: 'hostile', code: 'BOGEY-02' },
+    { id: 3, x: 20, y: 60, type: 'friendly', code: 'VIPER-04' },
+    { id: 4, x: -30, y: 50, type: 'unknown', code: 'BANDIT-09' }
+  ]);
+  const [sweepAngle, setSweepAngle] = useState(0);
+
+  // Radar Sweep & Target Dynamics Loop
+  useEffect(() => {
+    const sweepInterval = setInterval(() => {
+      setSweepAngle((prev) => (prev + 4) % 360);
+
+      // Drifting simulation for radar targets
+      setTargets((prevTargets) =>
+        prevTargets.map((t) => {
+          const deltaX = (Math.random() - 0.48) * 1.5;
+          const deltaY = (Math.random() - 0.48) * 1.5;
+          return {
+            ...t,
+            x: Math.min(85, Math.max(-85, t.x + deltaX)),
+            y: Math.min(85, Math.max(-85, t.y + deltaY))
+          };
+        })
+      );
+    }, 50);
+
+    return () => clearInterval(sweepInterval);
+  }, []);
+
+  // Main Telemetry Simulation Loop
+  useEffect(() => {
+    let tick = 0;
+    const interval = setInterval(() => {
+      if (isAfterburnerActive) return;
+
+      tick++;
+      const speedOffset = Math.sin(tick * 0.15) * 18;
+      const altOffset = Math.cos(tick * 0.1) * 120;
+      const pitchOffset = Math.sin(tick * 0.2) * 3;
+      const rollOffset = Math.cos(tick * 0.15) * 4;
+
+      setAirspeedKts((prev) => +(640 + speedOffset).toFixed(0));
+      setAltitudeFt((prev) => +(24500 + altOffset).toFixed(0));
+      setMachNumber((prev) => +((640 + speedOffset) / 661.4).toFixed(2));
+      setPitch((prev) => +(pitchOffset).toFixed(1));
+      setRoll((prev) => +(rollOffset).toFixed(1));
+      setHeading((prev) => (285 + Math.round(Math.sin(tick * 0.05) * 6)) % 360);
+      setGForce((prev) => +(1.8 + Math.abs(speedOffset) * 0.06).toFixed(1));
+
+      if (tick % 20 === 0) {
+        setFuelPercent((prev) => Math.max(10, +(prev - 0.1).toFixed(1)));
+      }
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [isAfterburnerActive]);
+
+  // Interactive Afterburner Boost Trigger
+  const handleAfterburner = () => {
+    if (isAfterburnerActive) return;
+    setIsAfterburnerActive(true);
+
+    let step = 0;
+    const boostInterval = setInterval(() => {
+      step++;
+      if (step < 10) {
+        setAirspeedKts((prev) => Math.min(1250, prev + 55));
+        setMachNumber((prev) => Math.min(2.45, +(prev + 0.12).toFixed(2)));
+        setAltitudeFt((prev) => prev + 220);
+        setGForce((prev) => Math.min(7.8, +(prev + 0.5).toFixed(1)));
+        setPitch(14);
+      } else if (step < 20) {
+        setAirspeedKts((prev) => Math.max(640, prev - 45));
+        setMachNumber((prev) => Math.max(0.95, +(prev - 0.1).toFixed(2)));
+        setGForce((prev) => Math.max(2.1, +(prev - 0.4).toFixed(1)));
+        setPitch(4);
+      } else {
+        clearInterval(boostInterval);
+        setIsAfterburnerActive(false);
+      }
+    }, 120);
+  };
+
+  // Interactive Flare Countermeasure Deployment
+  const handleDeployFlares = () => {
+    if (flaresCount <= 0 || isDeployingFlares) return;
+    setIsDeployingFlares(true);
+    setFlaresCount((prev) => Math.max(0, prev - 3));
+
+    setTimeout(() => {
+      setIsDeployingFlares(false);
+    }, 1800);
+  };
+
+  // Interactive Radar Target Locking
+  const handleToggleTargetLock = () => {
+    setIsTargetLocked((prev) => !prev);
+  };
+
+  // Convert Airspeed based on unit setting
+  const getDisplaySpeed = () => {
+    if (unit === 'MACH') return `MACH ${machNumber}`;
+    if (unit === 'MPH') return `${(airspeedKts * 1.15078).toFixed(0)} MPH`;
+    return `${airspeedKts} KTS`;
+  };
+
+  // Gauge Angle Helpers
+  const getAngle = (ratio: number) => 135 + Math.min(1, Math.max(0, ratio)) * 270;
+  const polarToCartesian = (cx: number, cy: number, radius: number, angleDeg: number) => {
+    const rad = (angleDeg * Math.PI) / 180;
+    return {
+      x: cx + radius * Math.cos(rad),
+      y: cy + radius * Math.sin(rad)
+    };
+  };
+
+  // Airspeed Dial (0 - 1200 Kts)
+  const speedRatio = Math.min(1, airspeedKts / 1200);
+  const speedAngle = getAngle(speedRatio);
+  const speedNeedleEnd = polarToCartesian(110, 110, 82, speedAngle);
+
+  // Altitude Dial (0 - 60,000 Ft)
+  const altRatio = Math.min(1, altitudeFt / 60000);
+  const altAngle = getAngle(altRatio);
+  const altNeedleEnd = polarToCartesian(110, 110, 82, altAngle);
+
+  // Background style computation
+  const bgAlpha = isBg
+    ? Math.min(0.25, Math.max(0.02, cardOpacity * 0.35))
+    : Math.max(0.18, cardOpacity * 0.85);
+
+  const containerStyle: React.CSSProperties = isBg
+    ? {
+        backdropFilter: `blur(${Math.min(backgroundBlur, 8)}px)`,
+        WebkitBackdropFilter: `blur(${Math.min(backgroundBlur, 8)}px)`,
+        backgroundColor: `rgba(2, 10, 14, ${bgAlpha})`
+      }
+    : {
+        backdropFilter: `blur(${backgroundBlur}px)`,
+        WebkitBackdropFilter: `blur(${backgroundBlur}px)`,
+        backgroundColor: `rgba(4, 14, 20, ${bgAlpha})`
+      };
+
+  return (
+    <div
+      style={containerStyle}
+      className={
+        isBg
+          ? 'fixed inset-0 z-0 pointer-events-none w-full h-full p-4 sm:p-6 font-mono text-[#00ffd5] overflow-hidden select-none flex flex-col justify-between transition-all duration-500'
+          : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-4 sm:p-6 font-mono text-[#00ffd5] overflow-hidden transition-all duration-300 select-none'
+      }
+    >
+      {/* Tactical Radar Grid / Crosshair background pattern */}
+      <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:24px_24px]" />
+
+      {/* TOP HUD CONTROL STRIP */}
+      <div className={`relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#00ffd5]/30 ${isBg ? 'mt-16 sm:mt-20' : ''}`}>
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 rounded-lg bg-[#00ffd5]/15 border border-[#00ffd5]/50 shadow-[0_0_12px_rgba(0,255,213,0.3)]">
+            <Plane className="w-4 h-4 text-[#00ffd5] animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-xs sm:text-sm font-black tracking-widest text-white flex items-center gap-2">
+              <span>FIGHTER JET COCKPIT HUD</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00ffd5]/20 border border-[#00ffd5]/60 text-[#00ffd5] font-bold">
+                {isAfterburnerActive
+                  ? '🔥 AFTERBURNER'
+                  : isDeployingFlares
+                  ? '⚡ FLARES DEPLOYED'
+                  : 'FLIGHT READY'}
+              </span>
+            </h3>
+          </div>
+        </div>
+
+        {/* Center: HUD Switcher (Car vs Jet) & Flight Mode Toggle */}
+        <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Quick HUD Theme Switcher */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-black/80 border border-[#00ffd5]/40 shadow-inner">
+            <button
+              type="button"
+              onClick={() => updateSettings({ cyberHudStyle: 'car' })}
+              className="px-2 py-1 text-[10px] font-bold rounded-lg text-white/50 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+              title="Switch to Sports Car Speedometer"
+            >
+              <span>🚗</span>
+              <span className="hidden sm:inline">Car</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => updateSettings({ cyberHudStyle: 'fighter_jet' })}
+              className="px-2 py-1 text-[10px] font-black rounded-lg bg-[#00ffd5] text-slate-950 shadow-[0_0_10px_#00ffd5] cursor-pointer flex items-center gap-1"
+              title="Active Fighter Jet Cockpit"
+            >
+              <span>✈️</span>
+              <span className="hidden sm:inline">Jet</span>
+            </button>
+          </div>
+
+          {/* Flight Mode Buttons */}
+          <div className="hidden lg:flex items-center gap-1">
+            {(['PATROL', 'RECON', 'COMBAT', 'DOGFIGHT'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setFlightMode(m)}
+                className={`px-2 py-1 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer ${
+                  flightMode === m
+                    ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5] shadow-[0_0_12px_#00ffd5] font-black'
+                    : 'bg-black/60 text-[#00ffd5]/60 border-[#00ffd5]/30 hover:text-[#00ffd5]'
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Master Arm & Interactive Actions */}
+        <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+          {/* Master Arm Toggle */}
+          <button
+            type="button"
+            onClick={() => setMasterArm(masterArm === 'ARMED' ? 'SAFE' : 'ARMED')}
+            className={`px-2 py-1 text-xs font-black rounded-lg border transition-all cursor-pointer ${
+              masterArm === 'ARMED'
+                ? 'bg-rose-500/20 text-rose-400 border-rose-500/80 shadow-[0_0_10px_rgba(244,63,94,0.4)]'
+                : 'bg-[#00ffd5]/10 text-[#00ffd5]/60 border-[#00ffd5]/30'
+            }`}
+          >
+            {masterArm}
+          </button>
+
+          {/* Speed Unit Selector */}
+          <button
+            type="button"
+            onClick={() => {
+              if (unit === 'KTS') setUnit('MACH');
+              else if (unit === 'MACH') setUnit('MPH');
+              else setUnit('KTS');
+            }}
+            className="px-2 py-1 rounded-lg bg-[#00ffd5]/20 hover:bg-[#00ffd5]/35 border border-[#00ffd5]/50 text-xs font-bold transition-colors cursor-pointer text-white"
+          >
+            {unit}
+          </button>
+
+          {/* Afterburner Button */}
+          <button
+            type="button"
+            onClick={handleAfterburner}
+            disabled={isAfterburnerActive}
+            className="px-2.5 py-1 rounded-lg bg-[#00ffd5] hover:bg-white text-slate-950 font-black text-xs shadow-[0_0_15px_#00ffd5] transition-all cursor-pointer flex items-center gap-1 active:scale-95 disabled:opacity-50"
+          >
+            <Flame className="w-3.5 h-3.5 fill-current" />
+            <span className="hidden sm:inline">BURNER</span>
+          </button>
+
+          {/* Flare Deploy Button */}
+          <button
+            type="button"
+            onClick={handleDeployFlares}
+            disabled={flaresCount <= 0 || isDeployingFlares}
+            className="px-2.5 py-1 rounded-lg bg-[#00ffd5]/20 hover:bg-[#00ffd5]/40 border border-[#00ffd5] text-[#00ffd5] font-extrabold text-xs shadow-[0_0_12px_rgba(0,255,213,0.4)] transition-all cursor-pointer flex items-center gap-1 active:scale-95 disabled:opacity-40"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">FLARES ({flaresCount})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN COCKPIT HUD GRID (Left Gauge, Center Artificial Horizon, Right Gauge) */}
+      <div className="relative z-10 my-auto py-4 flex flex-col items-center justify-center w-full">
+        <div className="w-full max-w-[1400px] px-2 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center justify-items-center">
+          
+          {/* LEFT GAUGE: AIRSPEED & MACH DIAL */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
+            <div className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[340px] lg:h-[340px] transition-all duration-300">
+              <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
+                <defs>
+                  <filter id="glowCyanJet" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00ffd5" floodOpacity="0.9" />
+                  </filter>
+                </defs>
+
+                {/* Outer Segmented Ring */}
+                <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="6 3" />
+                <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(0,255,213,0.6)" strokeWidth="2" />
+
+                {/* Ticks: Airspeed 0 to 1200 KTS */}
+                {Array.from({ length: 13 }).map((_, i) => {
+                  const val = i * 100;
+                  const deg = 135 + (i / 12) * 270;
+                  const p1 = polarToCartesian(110, 110, 96, deg);
+                  const p2 = polarToCartesian(110, 110, 86, deg);
+                  const pText = polarToCartesian(110, 110, 72, deg);
+                  return (
+                    <g key={i}>
+                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#00ffd5" strokeWidth="2" />
+                      <text x={pText.x} y={pText.y + 3} textAnchor="middle" fill="#00ffd5" fontSize="8" fontWeight="bold">
+                        {val}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Inner Ring with Mach Label */}
+                <circle cx="110" cy="110" r="52" fill="none" stroke="rgba(0,255,213,0.7)" strokeWidth="1.5" strokeDasharray="12 4" />
+                <text x="110" y="148" textAnchor="middle" fill="rgba(0,255,213,0.8)" fontSize="8" fontWeight="bold" letterSpacing="1">
+                  AIRSPEED (KTS)
+                </text>
+
+                {/* Speed Needle */}
+                <line
+                  x1="110"
+                  y1="110"
+                  x2={speedNeedleEnd.x}
+                  y2={speedNeedleEnd.y}
+                  stroke="#00ffd5"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  filter="url(#glowCyanJet)"
+                  className="transition-all duration-150"
+                />
+
+                {/* Pivot */}
+                <circle cx="110" cy="110" r="14" fill="#020a0e" stroke="#00ffd5" strokeWidth="2" />
+                <circle cx="110" cy="110" r="6" fill="#00ffd5" filter="url(#glowCyanJet)" />
+              </svg>
+            </div>
+            <div className="mt-1 text-center">
+              <div className="text-xs font-black text-[#00ffd5] tracking-widest uppercase">AIRSPEED INDICATOR</div>
+              <div className="text-lg font-bold text-white font-mono">{getDisplaySpeed()}</div>
+            </div>
+          </div>
+
+          {/* CENTER HUD MODULE: ARTIFICIAL HORIZON & COMPASS TAPE */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl bg-black/70 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_30px_rgba(0,255,213,0.2)] w-full min-w-[260px] lg:min-w-[340px] text-center my-2 md:my-0 relative overflow-hidden">
+            
+            {/* Top Compass Heading Tape */}
+            <div className="w-full flex items-center justify-between px-3 py-1 bg-[#00ffd5]/10 border border-[#00ffd5]/30 rounded-lg text-xs font-black mb-3">
+              <Compass className="w-4 h-4 text-[#00ffd5] animate-spin" style={{ animationDuration: '20s' }} />
+              <div className="tracking-widest text-white">HDG: {heading}° NNE</div>
+              <Navigation className="w-3.5 h-3.5 text-[#00ffd5]" />
+            </div>
+
+            {/* ARTIFICIAL HORIZON COCKPIT VIEWPORT */}
+            <div className="relative w-full h-[180px] sm:h-[210px] rounded-xl border border-[#00ffd5]/50 bg-slate-950/80 overflow-hidden flex items-center justify-center">
+              {/* Animated Pitch / Roll Grid Line */}
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center transition-transform duration-150 pointer-events-none"
+                style={{
+                  transform: `rotate(${roll}deg) translateY(${pitch * 2.5}px)`
+                }}
+              >
+                {/* Horizon Line */}
+                <div className="w-full h-0.5 bg-[#00ffd5] shadow-[0_0_8px_#00ffd5]" />
+                
+                {/* Pitch Ladder Bars */}
+                <div className="w-24 h-0.5 border-t border-dashed border-[#00ffd5]/70 -mt-10 flex justify-between text-[8px] font-bold">
+                  <span>+10</span><span>+10</span>
+                </div>
+                <div className="w-32 h-0.5 border-t border-[#00ffd5] -mt-10 flex justify-between text-[8px] font-bold">
+                  <span>+20</span><span>+20</span>
+                </div>
+                <div className="w-24 h-0.5 border-t border-dashed border-[#00ffd5]/70 mt-10 flex justify-between text-[8px] font-bold">
+                  <span>-10</span><span>-10</span>
+                </div>
+                <div className="w-32 h-0.5 border-t border-[#00ffd5] mt-10 flex justify-between text-[8px] font-bold">
+                  <span>-20</span><span>-20</span>
+                </div>
+              </div>
+
+              {/* Fixed Waterline Aircraft reticle in front */}
+              <div className="relative z-10 flex items-center justify-center pointer-events-none">
+                {/* Center crosshair / Waterline reticle */}
+                <div className="w-10 h-10 border-2 border-[#00ffd5] rounded-full flex items-center justify-center shadow-[0_0_12px_#00ffd5]">
+                  <div className="w-2 h-2 bg-[#00ffd5] rounded-full" />
+                </div>
+                <div className="absolute w-20 h-0.5 bg-[#00ffd5]" />
+              </div>
+
+              {/* Target Locking Box */}
+              <button
+                type="button"
+                onClick={handleToggleTargetLock}
+                className="absolute top-6 right-6 z-20 pointer-events-auto cursor-pointer group"
+                title="Toggle Target Lock"
+              >
+                <div className={`p-1.5 rounded border transition-all ${isTargetLocked ? 'border-rose-500 bg-rose-500/20 text-rose-400 animate-pulse' : 'border-[#00ffd5]/60 bg-black/60 text-[#00ffd5]'}`}>
+                  <Crosshair className="w-5 h-5" />
+                </div>
+              </button>
+
+              {/* Digital Overlay Telemetry inside horizon */}
+              <div className="absolute bottom-2 left-2 text-[10px] text-left font-bold text-[#00ffd5]/80">
+                <div>AoA: {aoa}°</div>
+                <div>G: +{gForce} G</div>
+              </div>
+              <div className="absolute bottom-2 right-2 text-[10px] text-right font-bold text-[#00ffd5]/80">
+                <div>RNG: 4.2 NM</div>
+                <div>{isTargetLocked ? 'LOCK ENGAGED' : 'SEARCHING'}</div>
+              </div>
+            </div>
+
+            {/* Readout Strip under horizon */}
+            <div className="mt-3 pt-2.5 border-t border-[#00ffd5]/30 w-full flex items-center justify-between text-xs font-bold">
+              <div className="flex items-center gap-1.5 text-[#00ffd5]">
+                <Activity className="w-4 h-4" />
+                <span>G-LIMIT: 9.0G</span>
+              </div>
+              <div className="px-2 py-0.5 rounded bg-[#00ffd5]/15 border border-[#00ffd5]/40 text-white font-mono">
+                {getDisplaySpeed()}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT GAUGE: ALTITUDE & CLIMB DIAL */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
+            <div className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[340px] lg:h-[340px] transition-all duration-300">
+              <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
+                {/* Outer Segmented Ring */}
+                <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="6 3" />
+                <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(0,255,213,0.6)" strokeWidth="2" />
+
+                {/* Ticks: Altitude 0 to 60k FT */}
+                {Array.from({ length: 13 }).map((_, i) => {
+                  const val = i * 5; // x1000 FT
+                  const deg = 135 + (i / 12) * 270;
+                  const p1 = polarToCartesian(110, 110, 96, deg);
+                  const p2 = polarToCartesian(110, 110, 86, deg);
+                  const pText = polarToCartesian(110, 110, 72, deg);
+                  return (
+                    <g key={i}>
+                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#00ffd5" strokeWidth="2" />
+                      <text x={pText.x} y={pText.y + 3} textAnchor="middle" fill="#00ffd5" fontSize="8" fontWeight="bold">
+                        {val}k
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Inner Ring with Baro label */}
+                <circle cx="110" cy="110" r="52" fill="none" stroke="rgba(0,255,213,0.7)" strokeWidth="1.5" strokeDasharray="12 4" />
+                <text x="110" y="148" textAnchor="middle" fill="rgba(0,255,213,0.8)" fontSize="8" fontWeight="bold" letterSpacing="1">
+                  ALTITUDE (FT)
+                </text>
+
+                {/* Altitude Needle */}
+                <line
+                  x1="110"
+                  y1="110"
+                  x2={altNeedleEnd.x}
+                  y2={altNeedleEnd.y}
+                  stroke="#00ffd5"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  filter="url(#glowCyanJet)"
+                  className="transition-all duration-150"
+                />
+
+                {/* Pivot */}
+                <circle cx="110" cy="110" r="14" fill="#020a0e" stroke="#00ffd5" strokeWidth="2" />
+                <circle cx="110" cy="110" r="6" fill="#00ffd5" filter="url(#glowCyanJet)" />
+              </svg>
+            </div>
+            <div className="mt-1 text-center">
+              <div className="text-xs font-black text-[#00ffd5] tracking-widest uppercase">ALTITUDE INDICATOR</div>
+              <div className="text-lg font-bold text-white font-mono">{altitudeFt.toLocaleString()} FT</div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* LOWER SUB-GAUGES & TACTICAL RADAR SWEEP ROW */}
+        <div className="w-full max-w-[1200px] flex flex-wrap items-center justify-between gap-6 mt-4 px-4 sm:px-8">
+          
+          {/* TACTICAL RADAR SCOPE (Interactive 360 Sweep Display) */}
+          <div className="flex items-center gap-3">
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-[#00ffd5]/60 bg-black/80 overflow-hidden shadow-[0_0_20px_rgba(0,255,213,0.2)]">
+              {/* Radar Rings */}
+              <div className="absolute inset-2 rounded-full border border-[#00ffd5]/20 pointer-events-none" />
+              <div className="absolute inset-6 rounded-full border border-[#00ffd5]/30 pointer-events-none" />
+              <div className="absolute inset-10 rounded-full border border-[#00ffd5]/40 pointer-events-none" />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-full h-px bg-[#00ffd5]/20" />
+                <div className="h-full w-px bg-[#00ffd5]/20 absolute" />
+              </div>
+
+              {/* Sweeping Line */}
+              <div
+                className="absolute top-1/2 left-1/2 w-1/2 h-0.5 bg-gradient-to-r from-transparent to-[#00ffd5] origin-left pointer-events-none shadow-[0_0_8px_#00ffd5]"
+                style={{ transform: `rotate(${sweepAngle}deg)` }}
+              />
+
+              {/* Radar Targets (Blips) */}
+              {targets.map((t) => (
+                <div
+                  key={t.id}
+                  className={`absolute w-2.5 h-2.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all ${
+                    t.type === 'hostile'
+                      ? t.isLocked || isTargetLocked
+                        ? 'bg-rose-500 border-2 border-white shadow-[0_0_10px_#f43f5e] animate-ping'
+                        : 'bg-rose-400 shadow-[0_0_6px_#f43f5e]'
+                      : 'bg-[#00ffd5] shadow-[0_0_6px_#00ffd5]'
+                  }`}
+                  style={{
+                    left: `${50 + t.x * 0.4}%`,
+                    top: `${50 + t.y * 0.4}%`
+                  }}
+                  title={`Target ${t.code}`}
+                />
+              ))}
+            </div>
+            <div className="flex flex-col text-left">
+              <div className="flex items-center gap-1 text-[11px] font-black text-[#00ffd5]">
+                <Radio className="w-3.5 h-3.5" />
+                <span>RADAR SCOPE</span>
+              </div>
+              <div className="text-xs font-bold text-white">4 TARGETS IN RANGE</div>
+              <div className="text-[10px] text-[#00ffd5]/70">RANGE: 40 NM (TWS)</div>
+            </div>
+          </div>
+
+          {/* CENTER SYSTEM GAUGES (AoA & G-Force) */}
+          <div className="flex items-center justify-center gap-6 sm:gap-10 my-1">
+            <div className="flex flex-col items-center">
+              <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/40 text-center min-w-[90px]">
+                <div className="text-[10px] font-black text-[#00ffd5] uppercase">AoA INDEX</div>
+                <div className="text-sm font-black text-white">{aoa}°</div>
+                <div className="text-[9px] text-[#00ffd5]/60">OPTIMAL 8.0°</div>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div className="p-2 rounded-xl bg-black/60 border border-[#00ffd5]/40 text-center min-w-[90px]">
+                <div className="text-[10px] font-black text-[#00ffd5] uppercase">G-FORCE</div>
+                <div className="text-sm font-black text-white">+{gForce} G</div>
+                <div className="text-[9px] text-[#00ffd5]/60">MAX +9.0G</div>
+              </div>
+            </div>
+          </div>
+
+          {/* SWEEPING FUEL & WEAPONS STATUS */}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col text-right">
+              <div className="flex items-center justify-end gap-1 text-[11px] font-black text-[#00ffd5]">
+                <Shield className="w-3.5 h-3.5" />
+                <span>WEAPONS / FUEL</span>
+              </div>
+              <div className="text-xs font-bold text-white">AMRAAM x4 | SIDW x2</div>
+              <div className="text-[10px] text-[#00ffd5]/80">INTERNAL FUEL: {fuelPercent}%</div>
+            </div>
+            <div className="relative w-24 h-16">
+              <svg viewBox="0 0 100 60" className="w-full h-full overflow-visible">
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="6" strokeLinecap="round" />
+                <path
+                  d="M 10 50 A 40 40 0 0 1 90 50"
+                  fill="none"
+                  stroke="#00ffd5"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray="100"
+                  strokeDashoffset={100 - fuelPercent}
+                  filter="url(#glowCyanJet)"
+                />
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* FOOTER TELEMETRY STRIP */}
+      <div className="relative z-10 flex items-center justify-between text-[10px] font-extrabold border-t border-[#00ffd5]/20 pt-2 text-[#00ffd5]/70">
+        <div>SYS: F-35 CYBER COCKPIT HUD | FLIGHT SIM V4.2</div>
+        <div className="hidden sm:block">TACTICAL DATA LINK 16 ACTIVE</div>
+        <div className="text-white">COORDINATES: 37.7749° N | 122.4194° W</div>
+      </div>
+    </div>
+  );
+};

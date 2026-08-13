@@ -11,7 +11,7 @@ import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { WallpaperPicker } from '../wallpaper/WallpaperPicker';
 import { CyberHudStats } from '../cyberpunk/CyberHudStats';
-import { CyberpunkSportsSpeedometer } from '../cyberpunk/CyberpunkSportsSpeedometer';
+import { CyberpunkHudContainer } from '../cyberpunk/CyberpunkHudContainer';
 import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
 import { DeveloperLayout } from '../developer/DeveloperLayout';
 import { GitHubDailyTasks } from '../developer/github/GitHubDailyTasks';
@@ -79,7 +79,7 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Cyberpunk Theme Fullscreen Background Speedometer HUD Wallpaper */}
       {isCyberpunk && speedometerPlacement === 'background' && (
-        <CyberpunkSportsSpeedometer isBackgroundMode={true} />
+        <CyberpunkHudContainer isBackgroundMode={true} />
       )}
 
       {/* Main Content Container */}
@@ -90,7 +90,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Cyberpunk Theme Sports Car Speedometer HUD (Header Block Mode) */}
           {isCyberpunk && speedometerPlacement === 'header' && (
             <div className="relative z-10">
-              <CyberpunkSportsSpeedometer isBackgroundMode={false} />
+              <CyberpunkHudContainer isBackgroundMode={false} />
             </div>
           )}
 

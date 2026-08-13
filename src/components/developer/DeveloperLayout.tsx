@@ -13,7 +13,7 @@ import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { GitHubDashboard, GitHubSubTab } from './github/GitHubDashboard';
 import { GitHubDailyTasks } from './github/GitHubDailyTasks';
 import { UnreadGmailWidget } from '../gmail/UnreadGmailWidget';
-import { CyberpunkSportsSpeedometer } from '../cyberpunk/CyberpunkSportsSpeedometer';
+import { CyberpunkHudContainer } from '../cyberpunk/CyberpunkHudContainer';
 import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
 export const DeveloperLayout: React.FC = () => {
@@ -53,7 +53,7 @@ export const DeveloperLayout: React.FC = () => {
     <div className="min-h-screen w-full bg-[#0D1117] text-[#E6EDF3] font-mono flex flex-col lg:flex-row selection:bg-[#58A6FF] selection:text-[#0D1117] relative">
       {/* Cyberpunk Fullscreen Background Speedometer HUD Wallpaper */}
       {theme === 'cyberpunk' && settings.speedometerPlacement === 'background' && (
-        <CyberpunkSportsSpeedometer isBackgroundMode={true} />
+        <CyberpunkHudContainer isBackgroundMode={true} />
       )}
 
       {/* Persistent Left Sidebar */}
@@ -79,7 +79,7 @@ export const DeveloperLayout: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 overflow-y-auto custom-scrollbar relative z-10">
           {theme === 'cyberpunk' && settings.speedometerPlacement === 'header' && (
             <div className="relative z-10">
-              <CyberpunkSportsSpeedometer isBackgroundMode={false} />
+              <CyberpunkHudContainer isBackgroundMode={false} />
             </div>
           )}
 

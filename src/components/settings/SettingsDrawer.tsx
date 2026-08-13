@@ -295,6 +295,39 @@ export const SettingsDrawer: React.FC = () => {
 
                     <div className="pt-2 border-t border-white/10 light:border-slate-200/60 space-y-1.5">
                       <span className="block text-xs font-semibold text-white/80 light:text-slate-700">
+                        Cyberpunk HUD Theme Style
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateSettings({ cyberHudStyle: 'car' })}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
+                            (settings.cyberHudStyle || 'car') === 'car'
+                              ? 'bg-accent text-white border-accent-full shadow-md'
+                              : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
+                          }`}
+                        >
+                          <span>🚗</span>
+                          <span>Sports Car</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => updateSettings({ cyberHudStyle: 'fighter_jet' })}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
+                            settings.cyberHudStyle === 'fighter_jet'
+                              ? 'bg-accent text-white border-accent-full shadow-md'
+                              : 'bg-white/10 hover:bg-white/20 border-white/10 light:bg-slate-100 light:border-slate-200 light:text-slate-800'
+                          }`}
+                        >
+                          <span>✈️</span>
+                          <span>Fighter Jet</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/10 light:border-slate-200/60 space-y-1.5">
+                      <span className="block text-xs font-semibold text-white/80 light:text-slate-700">
                         Speedometer HUD Display Mode
                       </span>
                       <div className="grid grid-cols-3 gap-1.5">

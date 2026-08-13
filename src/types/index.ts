@@ -103,6 +103,7 @@ export interface AppSettings {
   cardOpacity: number; // 0.2 to 1.0
   darkOverlayOpacity: number; // 0.0 to 0.8
   speedometerPlacement?: 'background' | 'header' | 'hidden';
+  cyberHudStyle?: 'car' | 'fighter_jet';
   enableAnimations: boolean;
   widgetVisibility: WidgetVisibility;
 }

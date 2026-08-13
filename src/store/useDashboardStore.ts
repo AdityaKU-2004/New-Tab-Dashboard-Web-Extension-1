@@ -42,6 +42,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cardOpacity: 0.08,
   darkOverlayOpacity: 0.35,
   speedometerPlacement: 'background',
+  cyberHudStyle: 'car',
   enableAnimations: true,
   widgetVisibility: {
     clock: true,

@@ -22,6 +22,7 @@ interface CyberpunkSportsSpeedometerProps {
 
 export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProps> = ({ isBackgroundMode }) => {
   const { cardOpacity, backgroundBlur, speedometerPlacement } = useDashboardStore((state) => state.settings);
+  const updateSettings = useDashboardStore((state) => state.updateSettings);
   const isBg = isBackgroundMode ?? (speedometerPlacement === 'background');
 
   // Dynamic Telemetry States
@@ -212,22 +213,46 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
           </div>
         </div>
 
-        {/* Top Center: Drive Mode Selector */}
-        <div className="hidden md:flex items-center gap-1.5 pointer-events-auto">
-          {(['ECO', 'NORMAL', 'BOOST', 'SPORT'] as const).map((m) => (
+        {/* Top Center: HUD Theme Switcher & Drive Mode Selector */}
+        <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Quick HUD Theme Switcher */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-black/80 border border-[#00ffd5]/40 shadow-inner">
             <button
-              key={m}
               type="button"
-              onClick={() => setDriveMode(m)}
-              className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer ${
-                driveMode === m
-                  ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5] shadow-[0_0_12px_#00ffd5] font-black'
-                  : 'bg-black/60 text-[#00ffd5]/60 border-[#00ffd5]/30 hover:text-[#00ffd5]'
-              }`}
+              onClick={() => updateSettings({ cyberHudStyle: 'car' })}
+              className="px-2 py-1 text-[10px] font-black rounded-lg bg-[#00ffd5] text-slate-950 shadow-[0_0_10px_#00ffd5] cursor-pointer flex items-center gap-1"
+              title="Active Sports Car Speedometer"
             >
-              {m}
+              <span>🚗</span>
+              <span className="hidden sm:inline">Car</span>
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => updateSettings({ cyberHudStyle: 'fighter_jet' })}
+              className="px-2 py-1 text-[10px] font-bold rounded-lg text-white/50 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+              title="Switch to Fighter Jet Cockpit"
+            >
+              <span>✈️</span>
+              <span className="hidden sm:inline">Jet</span>
+            </button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-1.5">
+            {(['ECO', 'NORMAL', 'BOOST', 'SPORT'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setDriveMode(m)}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer ${
+                  driveMode === m
+                    ? 'bg-[#00ffd5] text-slate-950 border-[#00ffd5] shadow-[0_0_12px_#00ffd5] font-black'
+                    : 'bg-black/60 text-[#00ffd5]/60 border-[#00ffd5]/30 hover:text-[#00ffd5]'
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Top Right: PRND Gear Selector & Interactive Actions */}
