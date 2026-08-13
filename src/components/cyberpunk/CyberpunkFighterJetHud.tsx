@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
+import cockpitWallpaperImg from '../../assets/images/cyberpunk_cockpit_wallpaper_1786628911452.jpg';
+import { FIGHTER_JET_COCKPIT_WALLPAPER } from '../../mock/wallpapers';
 import {
   Compass,
   Crosshair,
@@ -21,7 +23,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Eye,
-  Cpu
+  Cpu,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface CyberpunkFighterJetHudProps {
@@ -52,6 +55,8 @@ interface WeaponSlot {
 export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ isBackgroundMode }) => {
   const { cardOpacity, backgroundBlur, speedometerPlacement } = useDashboardStore((state) => state.settings);
   const updateSettings = useDashboardStore((state) => state.updateSettings);
+  const selectedWallpaper = useDashboardStore((state) => state.selectedWallpaper);
+  const setSelectedWallpaper = useDashboardStore((state) => state.setSelectedWallpaper);
   const isBg = isBackgroundMode ?? (speedometerPlacement === 'background');
 
   // Flight Telemetry States
@@ -102,6 +107,17 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
   const [fireEffects, setFireEffects] = useState<
     Array<{ id: number; x: number; y: number; weapon: WeaponType; timestamp: number }>
   >([]);
+
+  // 5-Second Missile Tracking Timer
+  const [trackingSecsLeft, setTrackingSecsLeft] = useState<number | null>(null);
+  const trackingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
+    };
+  }, []);
 
   // Smooth Reticle Lag Interpolation (Lerp) Loop
   useEffect(() => {
@@ -244,7 +260,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
     }, 1800);
   };
 
-  // Interactive Weapon Firing Simulation (supports custom reticle coords & FX)
+  // Interactive Weapon Firing Simulation (5s tracking & auto-stop)
   const handleFireWeapon = (targetX?: number, targetY?: number) => {
     if (masterArm !== 'ARMED') {
       setFiringLog('⚠️ CANNOT FIRE: MASTER ARM IS SAFE');
@@ -299,19 +315,37 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
     setTimeout(() => setRecoilOffset({ x: 0, y: 0 }), 150);
     setTimeout(() => setScreenFlashColor(null), 250);
 
-    if (activeWeapon === 'AMRAAM') {
-      setFiringLog('🚀 FOX-3! AIM-120C AMRAAM MISSILE AWAY');
-    } else if (activeWeapon === 'SIDEWINDER') {
-      setFiringLog('🔥 FOX-2! AIM-9X SIDEWINDER ENGAGED');
-    } else if (activeWeapon === 'CANNON') {
-      setFiringLog('⚡ GUNS GUNS GUNS! 20MM BURST (-30 RNDS)');
-    } else {
-      setFiringLog('💣 PICKLE! GBU-31 JDAM RELEASED');
+    const initialLog =
+      activeWeapon === 'AMRAAM'
+        ? '🚀 FOX-3! AIM-120C AMRAAM AWAY [TRACKING: T-5s]'
+        : activeWeapon === 'SIDEWINDER'
+        ? '🔥 FOX-2! AIM-9X SIDEWINDER ENGAGED [TRACKING: T-5s]'
+        : activeWeapon === 'CANNON'
+        ? '⚡ GUNS GUNS GUNS! 20MM BURST [TARGETING: T-5s]'
+        : '💣 PICKLE! GBU-31 JDAM RELEASED [GUIDANCE: T-5s]';
+    setFiringLog(initialLog);
+
+    // Reset and start 5-Second Missile Tracking Countdown & Auto-Stop
+    if (trackingTimerRef.current) {
+      clearInterval(trackingTimerRef.current);
     }
 
-    setTimeout(() => {
-      setIsFiringWeapon(false);
-    }, 600);
+    setTrackingSecsLeft(5);
+
+    let secs = 5;
+    trackingTimerRef.current = setInterval(() => {
+      secs -= 1;
+      if (secs > 0) {
+        setTrackingSecsLeft(secs);
+        setFiringLog(`🎯 WEAPON TRACKING IN PROGRESS... [T-${secs}s]`);
+      } else {
+        if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
+        setTrackingSecsLeft(null);
+        setIsFiringWeapon(false);
+        setFireEffects([]); // Stop missile tracking and clear animations after 5 seconds!
+        setFiringLog('💥 TARGET IMPACT CONFIRMED - TRACKING TERMINATED (T+5.0s)');
+      }
+    }, 1000);
   };
 
   // Rearm / Reset Weapons
@@ -388,6 +422,17 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           : 'relative w-full rounded-3xl border border-[#00ffd5]/40 shadow-[0_0_40px_rgba(0,255,213,0.25)] p-2 sm:p-4 lg:p-6 font-mono text-[#00ffd5] overflow-hidden transition-all duration-300 select-none'
       }
     >
+      {/* Sci-Fi Cockpit Sky Background Wallpaper Layer */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img
+          src={cockpitWallpaperImg}
+          alt="Fighter Jet Cockpit Wallpaper"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover opacity-30 mix-blend-luminosity scale-105 filter contrast-125 saturate-150"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#020a0e] via-[#020a0e]/60 to-transparent" />
+      </div>
+
       {/* Tactical Radar Grid / Crosshair background pattern */}
       <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:24px_24px]" />
 
@@ -489,6 +534,11 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               <TargetIcon className="w-3 h-3 text-rose-400 animate-pulse" />
               <span>{weapons[activeWeapon].id}</span>
               <span className="text-white">| RNG: 1.8NM</span>
+              {trackingSecsLeft !== null && (
+                <span className="ml-1 text-rose-400 font-black animate-pulse bg-rose-950/80 px-1 rounded border border-rose-500/50">
+                  🎯 T-{trackingSecsLeft}s
+                </span>
+              )}
             </div>
 
             {/* Firing Shockwave Explosion Ring */}
@@ -537,8 +587,26 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           </div>
         </div>
 
-        {/* Center: HUD Switcher (Car vs Jet) & Flight Mode Toggle */}
+        {/* Center: HUD Switcher (Car vs Jet), Wallpaper Setter & Flight Mode Toggle */}
         <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Apply Cockpit Wallpaper Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedWallpaper(FIGHTER_JET_COCKPIT_WALLPAPER);
+              setFiringLog('🌄 COCKPIT WALLPAPER APPLIED TO DASHBOARD');
+            }}
+            className={`px-2.5 py-1 text-[10px] font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedWallpaper?.id === FIGHTER_JET_COCKPIT_WALLPAPER.id
+                ? 'bg-[#00ffd5]/20 border-[#00ffd5] text-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.4)] font-black'
+                : 'bg-black/80 border-[#00ffd5]/30 text-white/70 hover:text-white hover:border-[#00ffd5]/60'
+            }`}
+            title="Set Sci-Fi Cockpit wallpaper as dashboard wallpaper"
+          >
+            <ImageIcon className="w-3 h-3 text-[#00ffd5]" />
+            <span className="hidden sm:inline">Cockpit Wallpaper</span>
+          </button>
+
           {/* Quick HUD Theme Switcher */}
           <div className="flex items-center gap-1 p-1 rounded-xl bg-black/80 border border-[#00ffd5]/40 shadow-inner">
             <button

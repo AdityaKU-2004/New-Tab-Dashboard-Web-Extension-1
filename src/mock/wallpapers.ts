@@ -1,5 +1,6 @@
 import { Wallpaper } from '../types';
 import cyberpunkSamuraiImg from '../assets/images/cyberpunk_samurai_1786112527505.jpg';
+import cockpitWallpaperImg from '../assets/images/cyberpunk_cockpit_wallpaper_1786628911452.jpg';
 
 export const CYBERPUNK_WALLPAPER: Wallpaper = {
   id: 'cyberpunk-samurai-1',
@@ -8,6 +9,15 @@ export const CYBERPUNK_WALLPAPER: Wallpaper = {
   url: cyberpunkSamuraiImg,
   thumbnail: cyberpunkSamuraiImg,
   author: 'Cyberpunk HUD'
+};
+
+export const FIGHTER_JET_COCKPIT_WALLPAPER: Wallpaper = {
+  id: 'cyberpunk-fighter-cockpit',
+  name: 'Fighter Jet Cockpit Sky',
+  category: 'abstract',
+  url: cockpitWallpaperImg,
+  thumbnail: cockpitWallpaperImg,
+  author: 'Fighter Jet HUD'
 };
 
 export const LIVE_WALLPAPERS: Wallpaper[] = [
@@ -88,6 +98,7 @@ export const LIVE_WALLPAPERS: Wallpaper[] = [
 export const INITIAL_WALLPAPERS: Wallpaper[] = [
   ...LIVE_WALLPAPERS,
   CYBERPUNK_WALLPAPER,
+  FIGHTER_JET_COCKPIT_WALLPAPER,
   {
     id: 'frosted-glass-1',
     name: 'Frosted Twilight Mesh',
