@@ -636,7 +636,7 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           </div>
 
           {/* CENTER OF SCREEN: PILOT HUD GLASS MODULE */}
-          <div className="w-full lg:col-span-6 order-2 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl bg-black/10 border-2 border-[#00ffd5]/60 shadow-[0_0_40px_rgba(0,255,213,0.15)] text-center my-2 lg:my-0 relative overflow-hidden transition-all duration-300">
+          <div className="w-full lg:col-span-6 order-2 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl bg-black/10 border-2 border-[#00ffd5]/60 shadow-[0_0_40px_rgba(0,255,213,0.15)] text-center my-2 lg:my-0 relative overflow-visible transition-all duration-300">
             
             {/* Top Compass Heading Tape */}
             <div className="w-full flex items-center justify-between px-3 py-1.5 bg-black/20 border border-[#00ffd5]/40 rounded-xl text-xs font-black mb-2.5 shadow-[0_0_12px_rgba(0,255,213,0.15)]">
@@ -645,26 +645,26 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               <Navigation className="w-4 h-4 text-[#00ffd5]" />
             </div>
 
-            {/* MAIN ARTIFICIAL HORIZON PILOT GLASS VIEWPORT */}
+            {/* MAIN ARTIFICIAL HORIZON PILOT GLASS VIEWPORT (Overflow Visible to project laser & targeting components outside screen boundary) */}
             <div
               ref={containerRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="relative w-full h-[260px] sm:h-[320px] lg:h-[360px] xl:h-[380px] rounded-2xl border-2 border-[#00ffd5]/70 bg-transparent overflow-hidden flex items-center justify-center cursor-crosshair group shadow-[0_0_20px_rgba(0,255,213,0.2)] pointer-events-auto"
+              className="relative w-full h-[260px] sm:h-[320px] lg:h-[360px] xl:h-[380px] rounded-2xl border-2 border-[#00ffd5]/70 bg-transparent overflow-visible flex items-center justify-center cursor-crosshair group shadow-[0_0_20px_rgba(0,255,213,0.2)] pointer-events-auto"
             >
-              {/* DYNAMIC TARGETING RETICLE OVERLAY - STRICTLY CONSTRAINED INSIDE CENTER HUD GLASS */}
-              <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+              {/* DYNAMIC TARGETING RETICLE & LASER OVERLAY - OVERFLOW VISIBLE OUTSIDE SCREEN BOUNDARY */}
+              <div className="absolute inset-0 z-30 pointer-events-none overflow-visible">
                 {/* SCREEN FLASH OVERLAY ON FIRE */}
                 {screenFlashColor && (
                   <div
-                    className="absolute inset-0 transition-opacity duration-100 pointer-events-none z-40"
+                    className="absolute inset-0 transition-opacity duration-100 pointer-events-none z-40 rounded-2xl"
                     style={{ backgroundColor: screenFlashColor }}
                   />
                 )}
 
                 {/* Outer Lead Computing Reticle (Lags behind primary targeting reticle) */}
                 <div
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 text-[#00ffd5]/60 pointer-events-none"
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 text-[#00ffd5]/60 pointer-events-none z-30"
                   style={{
                     left: `${outerPos.x}%`,
                     top: `${outerPos.y}%`,
@@ -678,36 +678,66 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
                   </div>
                 </div>
 
-                {/* Dynamic Vector Lines & Tracer Beams Layer */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                {/* Dynamic Vector Lines & Laser Beams Layer (Emanating from CENTER OF DISPLAY) */}
+                <svg className="absolute -inset-20 w-[calc(100%+10rem)] h-[calc(100%+10rem)] pointer-events-none overflow-visible z-20">
+                  {/* Center Laser Guidance Beam emanating from exact Center of Display (50%, 50%) to Target Reticle */}
+                  <line
+                    x1="50%"
+                    y1="50%"
+                    x2={`calc(${reticlePos.x + recoilOffset.x}% + 5rem)`}
+                    y2={`calc(${reticlePos.y + recoilOffset.y}% + 5rem)`}
+                    stroke={isFiringWeapon ? '#f43f5e' : isTargetLocked ? '#f59e0b' : '#00ffd5'}
+                    strokeWidth={isFiringWeapon ? '4' : '2'}
+                    strokeDasharray={isFiringWeapon ? 'none' : '6 4'}
+                    filter="url(#glowCyanJet)"
+                    className="animate-pulse"
+                  />
+
+                  {/* Pulsing Armament Laser Emitter Ring at Center of Display */}
+                  <circle
+                    cx="50%"
+                    cy="50%"
+                    r={isFiringWeapon ? '12' : '7'}
+                    fill="none"
+                    stroke={isFiringWeapon ? '#f43f5e' : '#00ffd5'}
+                    strokeWidth="2"
+                    className="animate-ping"
+                  />
+                  <circle
+                    cx="50%"
+                    cy="50%"
+                    r="3.5"
+                    fill={isFiringWeapon ? '#f43f5e' : '#ffffff'}
+                  />
+
                   {/* Connecting Lag Vector between Outer Lead Reticle & Target Reticle */}
                   <line
-                    x1={`${outerPos.x}%`}
-                    y1={`${outerPos.y}%`}
-                    x2={`${reticlePos.x + recoilOffset.x}%`}
-                    y2={`${reticlePos.y + recoilOffset.y}%`}
+                    x1={`calc(${outerPos.x}% + 5rem)`}
+                    y1={`calc(${outerPos.y}% + 5rem)`}
+                    x2={`calc(${reticlePos.x + recoilOffset.x}% + 5rem)`}
+                    y2={`calc(${reticlePos.y + recoilOffset.y}% + 5rem)`}
                     stroke="rgba(0, 255, 213, 0.4)"
                     strokeWidth="1.5"
                     strokeDasharray="4 3"
                   />
 
-                  {/* Tracer Beams Fired from Aircraft Nose (Bottom Center) towards Target Reticle */}
+                  {/* Laser Tracer Beams Fired from CENTER OF DISPLAY (50%, 50%) towards Target Reticle */}
                   {fireEffects.map((ef) => (
-                    <g key={ef.id} className="animate-ping" style={{ animationDuration: '0.5s' }}>
+                    <g key={ef.id} className="animate-ping" style={{ animationDuration: '0.4s' }}>
                       <line
                         x1="50%"
-                        y1="95%"
-                        x2={`${ef.x}%`}
-                        y2={`${ef.y}%`}
+                        y1="50%"
+                        x2={`calc(${ef.x}% + 5rem)`}
+                        y2={`calc(${ef.y}% + 5rem)`}
                         stroke={ef.weapon === 'CANNON' ? '#00ffd5' : ef.weapon === 'JDAM' ? '#f59e0b' : '#f43f5e'}
-                        strokeWidth={ef.weapon === 'CANNON' ? '4' : '6'}
+                        strokeWidth={ef.weapon === 'CANNON' ? '6' : '10'}
                         strokeLinecap="round"
                         filter="url(#glowCyanJet)"
                       />
                       <circle
-                        cx={`${ef.x}%`}
-                        cy={`${ef.y}%`}
-                        r={ef.weapon === 'CANNON' ? '8' : '14'}
+                        cx={`calc(${ef.x}% + 5rem)`}
+                        cy={`calc(${ef.y}% + 5rem)`}
+                        r={ef.weapon === 'CANNON' ? '10' : '18'}
                         fill={ef.weapon === 'CANNON' ? '#00ffd5' : '#f43f5e'}
                       />
                     </g>
