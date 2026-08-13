@@ -197,7 +197,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:20px_20px]" />
 
       {/* TOP COMPACT CONTROL STRIP */}
-      <div className="relative z-10 flex items-center justify-between gap-4 pb-3 border-b border-[#00ffd5]/30">
+      <div className={`relative z-10 flex items-center justify-between gap-4 pb-3 border-b border-[#00ffd5]/30 ${isBg ? 'mt-16 sm:mt-20' : ''}`}>
         <div className="flex items-center gap-3">
           <div className="p-1.5 rounded-lg bg-[#00ffd5]/15 border border-[#00ffd5]/50 shadow-[0_0_12px_rgba(0,255,213,0.3)]">
             <Disc className="w-4 h-4 animate-spin text-[#00ffd5]" style={{ animationDuration: '6s' }} />
@@ -284,14 +284,14 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
       </div>
 
       {/* MAIN FUTURISTIC DUAL-DIAL & CENTER HUD CLUSTER */}
-      <div className="relative z-10 my-auto py-2 flex flex-col items-center justify-center">
+      <div className="relative z-10 my-auto py-4 flex flex-col items-center justify-center w-full">
         
         {/* UPPER MAIN INSTRUMENTATION ROW (Left Dial, Center HUD, Right Dial) */}
-        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-4 items-center justify-items-center">
+        <div className="w-full max-w-[1400px] px-2 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center justify-items-center">
           
           {/* LEFT MAIN DIAL: TACHOMETER (RPM x1000) */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center relative">
-            <div className="relative w-[210px] h-[210px] sm:w-[240px] sm:h-[240px]">
+          <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
+            <div className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[340px] lg:h-[340px] transition-all duration-300">
               <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
                 <defs>
                   <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
@@ -378,7 +378,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
           </div>
 
           {/* CENTER HUD DATA MODULE */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center p-3 rounded-2xl bg-black/60 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] min-w-[240px] text-center my-2 md:my-0">
+          <div className="md:col-span-4 flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl bg-black/60 border border-[#00ffd5]/40 backdrop-blur-md shadow-[0_0_25px_rgba(0,255,213,0.15)] w-full min-w-[260px] lg:min-w-[320px] text-center my-2 md:my-0">
             
             {/* Top Indicator Blinkers & Hazard */}
             <div className="flex items-center justify-center gap-6 mb-2">
@@ -390,40 +390,40 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
             </div>
 
             {/* SPEED Title */}
-            <div className="text-[11px] font-black text-[#00ffd5]/80 tracking-[0.3em] uppercase mb-1">
+            <div className="text-xs font-black text-[#00ffd5]/80 tracking-[0.3em] uppercase mb-1">
               SPEED
             </div>
 
             {/* Large Futuristic Glow Digital Readout */}
-            <div className="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_0_20px_#00ffd5] font-mono">
+            <div className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight drop-shadow-[0_0_25px_#00ffd5] font-mono">
               {displaySpeed.toFixed(1)}
-              <span className="text-xs sm:text-sm text-[#00ffd5] font-bold ml-1.5 tracking-widest">{unit}</span>
+              <span className="text-sm sm:text-base text-[#00ffd5] font-bold ml-2 tracking-widest">{unit}</span>
             </div>
 
             {/* Center Status Indicators */}
-            <div className="mt-3 pt-2.5 border-t border-[#00ffd5]/30 w-full flex flex-col gap-1.5 text-[10px] font-bold">
+            <div className="mt-4 pt-3 border-t border-[#00ffd5]/30 w-full flex flex-col gap-2 text-xs font-bold">
               {/* Battery Level Bar */}
-              <div className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/30">
+              <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/30">
                 <div className="flex items-center gap-1.5 text-[#00ffd5]">
-                  <Battery className="w-3.5 h-3.5" />
+                  <Battery className="w-4 h-4" />
                   <span>BATTERY LEVEL: {batteryPercent}%</span>
                 </div>
-                <div className="w-12 h-2 rounded bg-black border border-[#00ffd5]/50 overflow-hidden">
+                <div className="w-16 h-2.5 rounded bg-black border border-[#00ffd5]/50 overflow-hidden">
                   <div className="h-full bg-[#00ffd5]" style={{ width: `${batteryPercent}%` }} />
                 </div>
               </div>
 
               {/* Seatbelt status badge */}
-              <div className="flex items-center justify-center gap-1.5 px-2 py-1 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/30 text-[#00ffd5]">
-                <ShieldCheck className="w-3.5 h-3.5" />
+              <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded bg-[#00ffd5]/10 border border-[#00ffd5]/30 text-[#00ffd5]">
+                <ShieldCheck className="w-4 h-4" />
                 <span>SEATBELT LOCKED</span>
               </div>
             </div>
           </div>
 
           {/* RIGHT MAIN DIAL: SPEEDOMETER (0-280 MPH with inner KM/H scale) */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center relative">
-            <div className="relative w-[210px] h-[210px] sm:w-[240px] sm:h-[240px]">
+          <div className="md:col-span-4 flex flex-col items-center justify-center relative w-full">
+            <div className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[340px] lg:h-[340px] transition-all duration-300">
               <svg viewBox="0 0 220 220" className="w-full h-full overflow-visible">
                 {/* Outer Segmented Outer Ring */}
                 <circle cx="110" cy="110" r="102" fill="none" stroke="rgba(0,255,213,0.3)" strokeWidth="1.5" strokeDasharray="4 4" />
@@ -491,7 +491,7 @@ export const CyberpunkSportsSpeedometer: React.FC<CyberpunkSportsSpeedometerProp
         </div>
 
         {/* LOWER SUB-GAUGES AND SWEEPING OUTER ARCS ROW */}
-        <div className="w-full max-w-4xl flex flex-wrap items-center justify-between gap-4 mt-3 px-4">
+        <div className="w-full max-w-[1200px] flex flex-wrap items-center justify-between gap-6 mt-4 px-4 sm:px-8">
           
           {/* BOTTOM LEFT SWEEPING TEMPERATURE ARC (H / C) */}
           <div className="flex items-center gap-2">
