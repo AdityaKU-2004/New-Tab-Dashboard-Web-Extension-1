@@ -425,9 +425,9 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           src={cockpitWallpaperImg}
           alt="Fighter Jet Cockpit Wallpaper"
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover opacity-30 mix-blend-luminosity scale-105 filter contrast-125 saturate-150"
+          className="w-full h-full object-cover opacity-70 scale-105 filter contrast-110 saturate-125"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020a0e] via-[#020a0e]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#020a0e]/70 via-[#020a0e]/30 to-transparent" />
       </div>
 
       {/* Tactical Radar Grid / Crosshair background pattern */}
@@ -723,21 +723,21 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           </div>
 
           {/* CENTER HUD GLASS MODULE: ARTIFICIAL HORIZON, PITCH LADDER, SPEED KTS, G-FORCE & TARGETING RETICLE */}
-          <div className="w-full xl:col-span-4 2xl:col-span-6 flex flex-col items-center justify-center p-3 sm:p-5 rounded-3xl bg-black/35 border-2 border-[#00ffd5]/60 backdrop-blur-sm shadow-[0_0_40px_rgba(0,255,213,0.3)] text-center my-2 xl:my-0 relative overflow-hidden transition-all duration-300">
+          <div className="w-full xl:col-span-4 2xl:col-span-6 flex flex-col items-center justify-center p-2 sm:p-4 rounded-3xl bg-black/10 border-2 border-[#00ffd5]/60 shadow-[0_0_40px_rgba(0,255,213,0.15)] text-center my-2 xl:my-0 relative overflow-hidden transition-all duration-300">
             
             {/* Top Compass Heading Tape */}
-            <div className="w-full flex items-center justify-between px-3 py-1.5 bg-[#00ffd5]/15 border border-[#00ffd5]/40 rounded-xl text-xs font-black mb-3 shadow-[0_0_12px_rgba(0,255,213,0.2)]">
+            <div className="w-full flex items-center justify-between px-3 py-1.5 bg-black/20 border border-[#00ffd5]/40 rounded-xl text-xs font-black mb-2.5 shadow-[0_0_12px_rgba(0,255,213,0.15)]">
               <Compass className="w-4 h-4 text-[#00ffd5] animate-spin" style={{ animationDuration: '20s' }} />
               <div className="tracking-widest text-white font-mono text-sm">HDG: {heading}° NNE</div>
               <Navigation className="w-4 h-4 text-[#00ffd5]" />
             </div>
 
-            {/* MAIN ARTIFICIAL HORIZON PILOT GLASS VIEWPORT (Larger, Transparent, Contains Bounded Reticle & Firing FX) */}
+            {/* MAIN ARTIFICIAL HORIZON PILOT GLASS VIEWPORT (Ultra-Transparent High-Tech Glass Viewport) */}
             <div
               ref={containerRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="relative w-full h-[260px] sm:h-[320px] lg:h-[360px] xl:h-[380px] rounded-2xl border-2 border-[#00ffd5]/70 bg-slate-950/40 backdrop-blur-sm overflow-hidden flex items-center justify-center cursor-crosshair group shadow-[inner_0_0_30px_rgba(0,255,213,0.25)] pointer-events-auto"
+              className="relative w-full h-[260px] sm:h-[320px] lg:h-[360px] xl:h-[380px] rounded-2xl border-2 border-[#00ffd5]/70 bg-transparent overflow-hidden flex items-center justify-center cursor-crosshair group shadow-[0_0_20px_rgba(0,255,213,0.2)] pointer-events-auto"
             >
               {/* DYNAMIC TARGETING RETICLE OVERLAY - STRICTLY CONSTRAINED INSIDE CENTER HUD GLASS */}
               <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
@@ -915,19 +915,19 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
               </button>
 
               {/* Digital Overlay Telemetry inside horizon (Showing G and KTS/Mach prominently) */}
-              <div className="absolute top-3 left-3 z-20 text-left font-bold text-[#00ffd5] pointer-events-none bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-[#00ffd5]/40 text-xs shadow-lg">
+              <div className="absolute top-3 left-3 z-20 text-left font-bold text-[#00ffd5] pointer-events-none bg-black/30 px-2 py-1 rounded-lg border border-[#00ffd5]/40 text-xs shadow-md">
                 <div className="text-white font-extrabold text-xs">{getDisplaySpeed()}</div>
                 <div className="text-[10px] text-[#00ffd5]/80">AoA: {aoa}°</div>
               </div>
 
-              <div className="absolute bottom-3 left-3 z-20 text-left font-bold text-[#00ffd5] pointer-events-none bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-[#00ffd5]/40 shadow-lg">
+              <div className="absolute bottom-3 left-3 z-20 text-left font-bold text-[#00ffd5] pointer-events-none bg-black/30 px-2.5 py-1 rounded-lg border border-[#00ffd5]/40 shadow-md">
                 <div className="text-amber-400 font-extrabold text-sm flex items-center gap-1">
                   <span>G-FORCE:</span>
                   <span className="text-white font-mono">+{gForce} G</span>
                 </div>
               </div>
 
-              <div className="absolute bottom-3 right-3 z-20 text-right font-bold text-[#00ffd5] pointer-events-none bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-[#00ffd5]/40 shadow-lg text-[10px]">
+              <div className="absolute bottom-3 right-3 z-20 text-right font-bold text-[#00ffd5] pointer-events-none bg-black/30 px-2.5 py-1 rounded-lg border border-[#00ffd5]/40 shadow-md text-[10px]">
                 <div className="text-white">RNG: 4.2 NM</div>
                 <div className={isTargetLocked ? 'text-rose-400 font-black animate-pulse' : 'text-[#00ffd5]'}>
                   {isTargetLocked ? '🔒 LOCK ENGAGED' : '📡 SEARCHING'}
