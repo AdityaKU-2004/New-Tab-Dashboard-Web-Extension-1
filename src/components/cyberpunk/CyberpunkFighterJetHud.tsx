@@ -89,10 +89,34 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
   // Targeting Pod Mode
   const [podMode, setPodMode] = useState<'FLIR' | 'NIGHT' | 'TV'>('FLIR');
 
-  // Interactive Action States
+  // Dynamic Action States
   const [isAfterburnerActive, setIsAfterburnerActive] = useState(false);
   const [isDeployingFlares, setIsDeployingFlares] = useState(false);
   const [isTargetLocked, setIsTargetLocked] = useState(false);
+
+  // Tactical Grid Overlay & Target Proximity State
+  const [showTacticalGrid, setShowTacticalGrid] = useState<boolean>(true);
+  const [gridProjection, setGridProjection] = useState<'3D' | 'TOP_DOWN'>('3D');
+
+  // Handle acquiring lock on a target clicked from the tactical grid overlay
+  const handleSelectTarget = (targetId: number) => {
+    setTargets((prev) =>
+      prev.map((t) => ({
+        ...t,
+        isLocked: t.id === targetId
+      }))
+    );
+    setIsTargetLocked(true);
+    const target = targets.find((t) => t.id === targetId);
+    if (target) {
+      const distNm = +(Math.sqrt(target.x * target.x + target.y * target.y) * 0.45).toFixed(1);
+      setFiringLog(`🎯 LOCK ACQUIRED: ${target.code} (${distNm} NM)`);
+      mousePosRef.current = {
+        x: Math.min(90, Math.max(10, 50 + target.x * 0.35)),
+        y: Math.min(85, Math.max(15, 42 + target.y * 0.35))
+      };
+    }
+  };
 
   // Dynamic Targeting Reticle Mouse Tracking (with Lag Effect & Fire FX)
   const containerRef = useRef<HTMLDivElement>(null);
@@ -433,6 +457,158 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
       {/* Tactical Radar Grid / Crosshair background pattern */}
       <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00ffd5_1px,transparent_1px)] [background-size:24px_24px]" />
 
+      {/* REAL-TIME TACTICAL GRID OVERLAY BEHIND HUD ELEMENTS */}
+      {showTacticalGrid && (
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+          {/* 3D Wireframe Grid Perspective Floor */}
+          <div
+            className="absolute inset-0 transition-transform duration-500 ease-out origin-center"
+            style={{
+              transform:
+                gridProjection === '3D'
+                  ? `perspective(800px) rotateX(${55 + pitch * 0.4}deg) rotateZ(${roll * 0.4}deg) translateY(${pitch * 1.5}px)`
+                  : 'none'
+            }}
+          >
+            <svg className="w-full h-full opacity-35" preserveAspectRatio="none">
+              <defs>
+                <pattern id="tacticalGridPattern" width="50" height="50" patternUnits="userSpaceOnUse">
+                  <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#00ffd5" strokeWidth="0.8" strokeOpacity="0.4" />
+                  <circle cx="25" cy="25" r="1.5" fill="#00ffd5" fillOpacity="0.6" />
+                </pattern>
+              </defs>
+
+              {/* Grid Gridlines Surface */}
+              <rect width="100%" height="100%" fill="url(#tacticalGridPattern)" />
+
+              {/* Concentric Tactical Proximity Distance Rings */}
+              <circle cx="50%" cy="50%" r="42%" fill="none" stroke="#00ffd5" strokeWidth="1" strokeDasharray="8 6" strokeOpacity="0.3" />
+              <circle cx="50%" cy="50%" r="28%" fill="none" stroke="#00ffd5" strokeWidth="1" strokeDasharray="6 4" strokeOpacity="0.4" />
+              <circle cx="50%" cy="50%" r="18%" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="4 4" strokeOpacity="0.6" />
+              <circle cx="50%" cy="50%" r="9%" fill="none" stroke="#f43f5e" strokeWidth="2" strokeDasharray="2 2" strokeOpacity="0.8" className="animate-pulse" />
+
+              {/* Tactical Center Crosshair Axes */}
+              <line x1="0%" y1="50%" x2="100%" y2="50%" stroke="#00ffd5" strokeWidth="1" strokeOpacity="0.35" strokeDasharray="10 5" />
+              <line x1="50%" y1="0%" x2="50%" y2="100%" stroke="#00ffd5" strokeWidth="1" strokeOpacity="0.35" strokeDasharray="10 5" />
+
+              {/* Dynamic Radar Sweep Arc Sector Line */}
+              <line
+                x1="50%"
+                y1="50%"
+                x2={`${50 + 50 * Math.cos((sweepAngle * Math.PI) / 180)}%`}
+                y2={`${50 + 50 * Math.sin((sweepAngle * Math.PI) / 180)}%`}
+                stroke="#00ffd5"
+                strokeWidth="2"
+                strokeOpacity="0.5"
+                filter="url(#glowCyanJet)"
+              />
+            </svg>
+          </div>
+
+          {/* Real-time Target Proximity Vector Lines & Interactive Marker Overlay */}
+          <div className="absolute inset-0 pointer-events-none">
+            <svg className="w-full h-full overflow-visible">
+              {targets.map((t) => {
+                const tX = 50 + t.x * 0.42;
+                const tY = 50 + t.y * 0.42;
+                const distNm = +(Math.sqrt(t.x * t.x + t.y * t.y) * 0.45).toFixed(1);
+                const isDanger = distNm < 15;
+                const isCaution = distNm >= 15 && distNm < 30;
+                const strokeColor = t.type === 'hostile' ? (isDanger ? '#f43f5e' : isCaution ? '#f59e0b' : '#00ffd5') : '#00ffd5';
+
+                return (
+                  <g key={t.id}>
+                    {/* Vector Line connecting Aircraft Center (50%, 50%) to Target Location */}
+                    <line
+                      x1="50%"
+                      y1="50%"
+                      x2={`${tX}%`}
+                      y2={`${tY}%`}
+                      stroke={strokeColor}
+                      strokeWidth={isDanger ? '2' : '1'}
+                      strokeDasharray={isDanger ? 'none' : '4 4'}
+                      strokeOpacity={isDanger ? '0.9' : '0.5'}
+                    />
+
+                    {/* Proximity Warning Ring Halo */}
+                    <circle
+                      cx={`${tX}%`}
+                      cy={`${tY}%`}
+                      r={isDanger ? '18' : '12'}
+                      fill="none"
+                      stroke={strokeColor}
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                      className={isDanger ? 'animate-pulse' : ''}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Target Proximity Badges (Clickable to Acquire Lock) */}
+            {targets.map((t) => {
+              const tX = 50 + t.x * 0.42;
+              const tY = 50 + t.y * 0.42;
+              const distNm = +(Math.sqrt(t.x * t.x + t.y * t.y) * 0.45).toFixed(1);
+              const isDanger = distNm < 15;
+              const isCaution = distNm >= 15 && distNm < 30;
+              const isLocked = t.isLocked || (isTargetLocked && t.type === 'hostile');
+
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => handleSelectTarget(t.id)}
+                  style={{ left: `${tX}%`, top: `${tY}%` }}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer group z-20"
+                  title={`Click to acquire lock on ${t.code}`}
+                >
+                  {/* Target Marker Icon */}
+                  <div
+                    className={`w-5 h-5 border-2 transform rotate-45 flex items-center justify-center transition-all ${
+                      isLocked
+                        ? 'border-rose-500 bg-rose-500/30 shadow-[0_0_15px_#f43f5e] scale-125'
+                        : isDanger
+                        ? 'border-rose-400 bg-rose-500/20 shadow-[0_0_10px_#f43f5e]'
+                        : isCaution
+                        ? 'border-amber-400 bg-amber-500/20 shadow-[0_0_8px_#f59e0b]'
+                        : 'border-[#00ffd5] bg-[#00ffd5]/20 shadow-[0_0_8px_#00ffd5]'
+                    }`}
+                  >
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        t.type === 'hostile' ? 'bg-rose-500' : t.type === 'friendly' ? 'bg-emerald-400' : 'bg-amber-400'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Target Proximity Tag */}
+                  <div
+                    className={`absolute top-6 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded text-[8px] font-mono font-black border backdrop-blur-md transition-all ${
+                      isLocked
+                        ? 'bg-rose-950/90 text-white border-rose-500 shadow-[0_0_10px_#f43f5e]'
+                        : isDanger
+                        ? 'bg-rose-950/80 text-rose-300 border-rose-500/80'
+                        : isCaution
+                        ? 'bg-amber-950/80 text-amber-300 border-amber-500/80'
+                        : 'bg-black/80 text-[#00ffd5] border-[#00ffd5]/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>{t.code}</span>
+                      <span className="font-bold">{distNm} NM</span>
+                    </div>
+                    {isDanger && (
+                      <div className="text-[7px] text-rose-400 font-extrabold animate-pulse">⚡ PROXIMITY</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* TOP HUD CONTROL STRIP */}
       <div className={`relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#00ffd5]/30 ${isBg ? 'mt-16 sm:mt-20' : ''}`}>
         <div className="flex items-center gap-3">
@@ -473,6 +649,32 @@ export const CyberpunkFighterJetHud: React.FC<CyberpunkFighterJetHudProps> = ({ 
           >
             <ImageIcon className="w-3 h-3 text-[#00ffd5]" />
             <span className="hidden sm:inline">Cockpit Wallpaper</span>
+          </button>
+
+          {/* Tactical Grid Overlay Mode Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (!showTacticalGrid) {
+                setShowTacticalGrid(true);
+                setGridProjection('3D');
+              } else if (gridProjection === '3D') {
+                setGridProjection('TOP_DOWN');
+              } else {
+                setShowTacticalGrid(false);
+              }
+            }}
+            className={`px-2.5 py-1 text-[10px] font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+              showTacticalGrid
+                ? 'bg-[#00ffd5]/20 border-[#00ffd5] text-[#00ffd5] shadow-[0_0_12px_rgba(0,255,213,0.4)] font-black'
+                : 'bg-black/80 border-[#00ffd5]/30 text-white/50 hover:text-white hover:border-[#00ffd5]/60'
+            }`}
+            title="Toggle Tactical Grid Overlay (3D PERSPECTIVE / TOP-DOWN RADAR / OFF)"
+          >
+            <Crosshair className="w-3 h-3 text-[#00ffd5]" />
+            <span className="hidden sm:inline">
+              GRID: {showTacticalGrid ? gridProjection : 'OFF'}
+            </span>
           </button>
 
           {/* Quick HUD Theme Switcher */}
