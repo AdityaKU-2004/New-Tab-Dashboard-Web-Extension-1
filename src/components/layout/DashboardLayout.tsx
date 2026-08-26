@@ -82,18 +82,21 @@ export const DashboardLayout: React.FC = () => {
         <CyberpunkHudContainer isBackgroundMode={true} />
       )}
 
-      {/* Main Content Container */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col min-h-screen justify-between">
+      {/* Top Navigation Bar Header */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <Header />
+      </div>
 
-        <main className="flex-1 my-4 space-y-6">
-          {/* Cyberpunk Theme Sports Car Speedometer HUD (Header Block Mode) */}
-          {isCyberpunk && speedometerPlacement === 'header' && (
-            <div className="relative z-10">
-              <CyberpunkHudContainer isBackgroundMode={false} />
-            </div>
-          )}
+      {/* Cyberpunk HUD in Header Mode - Occupies Full Width of Screen */}
+      {isCyberpunk && speedometerPlacement === 'header' && (
+        <div className="relative z-10 w-full px-2 sm:px-4 lg:px-6 my-2">
+          <CyberpunkHudContainer isBackgroundMode={false} />
+        </div>
+      )}
 
+      {/* Main Content Container */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-col flex-1 justify-between">
+        <main className="flex-1 my-2 space-y-6">
           {/* Row 1: Clock & Search Bar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
             {widgetVisibility.clock && (

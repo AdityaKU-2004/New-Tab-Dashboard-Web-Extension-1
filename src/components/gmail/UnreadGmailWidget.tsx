@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { User } from 'firebase/auth';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import {
   signInWithGoogle,
   logoutGoogle,
   initAuthListener,
+  GoogleUser,
+  isExtensionEnvironment,
 } from '../../services/googleAuthService';
 import { fetchUnreadGmailMessages, GmailMessage } from '../../services/gmailService';
 import {
@@ -17,15 +18,17 @@ import {
   Inbox,
   Clock,
   User as UserIcon,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const UnreadGmailWidget: React.FC = () => {
   const theme = useDashboardStore((state) => state.settings.theme);
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<GoogleUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const isExt = isExtensionEnvironment();
 
   const [messages, setMessages] = useState<GmailMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -199,21 +202,39 @@ export const UnreadGmailWidget: React.FC = () => {
       {/* Header Bar */}
       <div className={`flex items-center justify-between pb-3 border-b ${subHeaderBorder}`}>
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 shrink-0">
-            <Mail className="w-5 h-5" />
-          </div>
+          {user?.picture ? (
+            <img
+              src={user.picture}
+              alt={user.name || 'User'}
+              className="w-9 h-9 rounded-lg border border-red-500/30 object-cover shrink-0"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 shrink-0">
+              <Mail className="w-5 h-5" />
+            </div>
+          )}
           <div className="min-w-0">
             <h3 className={`text-sm font-bold ${titleTextClass} flex items-center gap-2 truncate`}>
-              <span>Unread Gmail</span>
+              <span>{user ? user.name || 'Unread Gmail' : 'Unread Gmail'}</span>
               {!needsAuth && user && (
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${badgeClass}`}>
                   {unreadCount} unread
                 </span>
               )}
             </h3>
-            <p className={`text-[11px] ${subTextClass} truncate`}>
-              {user ? user.email : 'Connect Gmail account to view inbox updates'}
-            </p>
+            <div className="flex items-center gap-1.5 truncate">
+              <p className={`text-[11px] ${subTextClass} truncate`}>
+                {user ? user.email : 'Connect Google Account to view unread inbox updates'}
+              </p>
+              {user && (
+                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+                  isExt ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                }`}>
+                  {isExt ? 'Chrome Identity' : 'OAuth'}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

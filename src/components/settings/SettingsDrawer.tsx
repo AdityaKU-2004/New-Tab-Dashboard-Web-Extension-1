@@ -5,6 +5,7 @@ import { AccentColor, SearchEngineId, ThemeMode, WidgetVisibility } from '../../
 import { ACCENT_COLOR_CLASSES } from '../../hooks/useTheme';
 import { CYBERPUNK_WALLPAPER } from '../../mock/wallpapers';
 import { GitHubSettingsSection } from '../developer/github/GitHubSettingsSection';
+import { GoogleAuthSettingsSection } from './GoogleAuthSettingsSection';
 import {
   X,
   RotateCcw,
@@ -429,6 +430,9 @@ export const SettingsDrawer: React.FC = () => {
 
                 {/* 6. GitHub Settings (Developer Theme Only) */}
                 <GitHubSettingsSection />
+
+                {/* 7. Google Account & Extension Authentication */}
+                <GoogleAuthSettingsSection />
               </div>
             </div>
 
