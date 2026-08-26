@@ -7,6 +7,7 @@ export interface GoogleUser {
   picture?: string;
   givenName?: string;
   familyName?: string;
+  isDemo?: boolean;
 }
 
 export interface AuthState {
@@ -20,7 +21,7 @@ const STORAGE_USER_KEY = 'dashboard_google_user';
 const STORAGE_TOKEN_KEY = 'dashboard_google_access_token';
 const STORAGE_CLIENT_ID_KEY = 'dashboard_google_client_id';
 
-// Default Google OAuth Client ID (can also be customized in extension or settings)
+// Default Google OAuth Client ID (can be customized in extension or settings)
 export const DEFAULT_CLIENT_ID = '217330540944-qvlrgelgpl3o216v1sfk6qvf27ohau4p.apps.googleusercontent.com';
 
 export const GMAIL_SCOPES = [
@@ -42,7 +43,7 @@ export const isExtensionEnvironment = (): boolean => {
   return (
     typeof chrome !== 'undefined' &&
     !!chrome?.identity &&
-    typeof chrome.identity.getAuthToken === 'function'
+    typeof chrome.identity?.getAuthToken === 'function'
   );
 };
 
@@ -68,6 +69,19 @@ const notifyListeners = () => {
  * Fetch Google User profile using access token
  */
 export const fetchGoogleUserProfile = async (accessToken: string): Promise<GoogleUser> => {
+  // If demo token, return mock user
+  if (accessToken === 'demo_token' || accessToken.startsWith('demo_')) {
+    return {
+      id: 'demo-user-12345',
+      email: 'pilot.operator@cyberdash.io',
+      name: 'Tactical Pilot (Demo)',
+      picture: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      givenName: 'Tactical',
+      familyName: 'Pilot',
+      isDemo: true,
+    };
+  }
+
   const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -86,6 +100,7 @@ export const fetchGoogleUserProfile = async (accessToken: string): Promise<Googl
     picture: data.picture || '',
     givenName: data.given_name || '',
     familyName: data.family_name || '',
+    isDemo: false,
   };
 };
 
@@ -165,9 +180,15 @@ async function restoreFromStorage() {
   const savedToken = await storageService.local.get<string | null>(STORAGE_TOKEN_KEY, null);
 
   if (savedUser && savedToken) {
-    // Validate token
+    if (savedToken.startsWith('demo_')) {
+      cachedUser = savedUser;
+      cachedAccessToken = savedToken;
+      notifyListeners();
+      return;
+    }
+
+    // Validate real token
     try {
-      // Light check if token is still valid
       const user = await fetchGoogleUserProfile(savedToken);
       cachedUser = user;
       cachedAccessToken = savedToken;
@@ -185,9 +206,60 @@ async function restoreFromStorage() {
 }
 
 /**
+ * Sign in with Demo / Preview Test Account
+ * Perfect for development preview when running outside of an unpacked Chrome Extension!
+ */
+export const signInWithDemoAccount = async (
+  email = 'pilot.operator@cyberdash.io',
+  name = 'Tactical Pilot (Demo)'
+): Promise<{ user: GoogleUser; accessToken: string }> => {
+  const demoUser: GoogleUser = {
+    id: 'demo-user-12345',
+    email,
+    name,
+    picture: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    givenName: name.split(' ')[0],
+    familyName: name.split(' ')[1] || '',
+    isDemo: true,
+  };
+
+  const demoToken = 'demo_token';
+  cachedAccessToken = demoToken;
+  cachedUser = demoUser;
+
+  await storageService.local.set(STORAGE_USER_KEY, demoUser);
+  await storageService.local.set(STORAGE_TOKEN_KEY, demoToken);
+
+  notifyListeners();
+  return { user: demoUser, accessToken: demoToken };
+};
+
+/**
+ * Sign in directly with an OAuth access token (e.g. from Google OAuth Playground or custom flow)
+ */
+export const signInWithAccessToken = async (
+  token: string
+): Promise<{ user: GoogleUser; accessToken: string }> => {
+  const cleanToken = token.trim();
+  if (!cleanToken) {
+    throw new Error('Access token cannot be empty');
+  }
+
+  const user = await fetchGoogleUserProfile(cleanToken);
+  cachedAccessToken = cleanToken;
+  cachedUser = user;
+
+  await storageService.local.set(STORAGE_USER_KEY, user);
+  await storageService.local.set(STORAGE_TOKEN_KEY, cleanToken);
+
+  notifyListeners();
+  return { user, accessToken: cleanToken };
+};
+
+/**
  * Main Sign In with Google Method:
- * - In Chrome Extension: uses chrome.identity.getAuthToken or launchWebAuthFlow
- * - In Web / Preview / Tab: uses Google Identity Services / OAuth2 popup flow
+ * - In Chrome Extension: uses native chrome.identity.getAuthToken
+ * - In Web / Preview / Tab: uses Google Identity Services or standard OAuth flow with demo fallback
  */
 export const signInWithGoogle = async (): Promise<{ user: GoogleUser; accessToken: string }> => {
   // 1. Chrome Extension Environment Flow
@@ -203,8 +275,8 @@ export const signInWithGoogle = async (): Promise<{ user: GoogleUser; accessToke
             try {
               const res = await signInViaWebAuthFlow();
               resolve(res);
-            } catch (fallbackErr) {
-              reject(new Error(errorMsg));
+            } catch (fallbackErr: any) {
+              reject(new Error(fallbackErr?.message || errorMsg));
             }
           } else {
             reject(new Error(errorMsg));
@@ -227,7 +299,7 @@ export const signInWithGoogle = async (): Promise<{ user: GoogleUser; accessToke
     });
   }
 
-  // 2. Web / Browser / Standalone Tab Flow (Google Identity Services / OAuth 2.0 Popup)
+  // 2. Web / Browser / Standalone Tab Flow
   return signInViaWebFlow();
 };
 
@@ -253,7 +325,6 @@ const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; accessToken: 
         return;
       }
 
-      // Parse hash fragment for access_token
       const url = new URL(responseUrl);
       const hashParams = new URLSearchParams(url.hash.substring(1));
       const accessToken = hashParams.get('access_token');
@@ -293,7 +364,8 @@ const signInViaWebFlow = async (): Promise<{ user: GoogleUser; accessToken: stri
           scope: GMAIL_SCOPES,
           callback: async (tokenResponse: any) => {
             if (tokenResponse.error) {
-              reject(new Error(tokenResponse.error_description || tokenResponse.error));
+              const errDesc = tokenResponse.error_description || tokenResponse.error;
+              reject(new Error(`Google OAuth error: ${errDesc}`));
               return;
             }
             if (!tokenResponse.access_token) {
@@ -312,10 +384,12 @@ const signInViaWebFlow = async (): Promise<{ user: GoogleUser; accessToken: stri
               reject(err);
             }
           },
+          error_callback: (nonOAuthError: any) => {
+            reject(new Error(nonOAuthError?.message || 'Google OAuth request failed (origin not authorized)'));
+          }
         });
         tokenClient.requestAccessToken({ prompt: 'consent' });
-      } catch (err) {
-        // If GSI initialization fails, fallback to standard popup
+      } catch (err: any) {
         signInViaPopup(clientId).then(resolve).catch(reject);
       }
     });
@@ -326,7 +400,7 @@ const signInViaWebFlow = async (): Promise<{ user: GoogleUser; accessToken: stri
 };
 
 /**
- * Generic OAuth 2.0 Popup Flow
+ * Generic OAuth 2.0 Popup Flow with clean error handling
  */
 const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessToken: string }> => {
   return new Promise((resolve, reject) => {
@@ -352,30 +426,38 @@ const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessTok
     );
 
     if (!popup) {
-      reject(new Error('Popup blocked. Please allow popups for this page to sign in with Google.'));
+      reject(new Error('Popup blocked. Please allow popups for this page or use Demo Mode / Direct Token.'));
       return;
     }
+
+    let isCompleted = false;
 
     // Polling interval to check popup response
     const interval = setInterval(async () => {
       try {
         if (!popup || popup.closed) {
           clearInterval(interval);
-          reject(new Error('Google Sign-In popup was closed before completing'));
+          if (!isCompleted) {
+            reject(
+              new Error(
+                'Google Sign-In popup was closed. (Note: Google OAuth rejects unregistered preview URLs. In Chrome Extension, native chrome.identity works automatically! Or use "Demo Sign-in" in preview).'
+              )
+            );
+          }
           return;
         }
 
-        // Try accessing popup location hash if same origin redirect landed
         let hash = '';
         try {
           if (popup.location.origin === window.location.origin) {
             hash = popup.location.hash;
           }
         } catch {
-          // Cross-origin access error while on google.com - normal, ignore
+          // Cross-origin access error while on google.com - expected
         }
 
         if (hash && hash.includes('access_token=')) {
+          isCompleted = true;
           clearInterval(interval);
           popup.close();
 
@@ -383,7 +465,7 @@ const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessTok
           const accessToken = hashParams.get('access_token');
 
           if (!accessToken) {
-            reject(new Error('Failed to retrieve access token from popup'));
+            reject(new Error('Failed to retrieve access token from popup response'));
             return;
           }
 
@@ -402,11 +484,11 @@ const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessTok
       }
     }, 500);
 
-    // Timeout after 3 minutes
+    // Timeout after 2 minutes
     setTimeout(() => {
       clearInterval(interval);
       if (popup && !popup.closed) popup.close();
-    }, 180000);
+    }, 120000);
   });
 };
 
@@ -425,7 +507,7 @@ export const logoutGoogle = async (): Promise<void> => {
   await storageService.local.set(STORAGE_TOKEN_KEY, null);
 
   // Clear Chrome extension cached token if in extension
-  if (isExtensionEnvironment() && tokenToRevoke) {
+  if (isExtensionEnvironment() && tokenToRevoke && tokenToRevoke !== 'demo_token') {
     try {
       chrome.identity.removeCachedAuthToken({ token: tokenToRevoke }, () => {
         // done
@@ -435,15 +517,15 @@ export const logoutGoogle = async (): Promise<void> => {
     }
   }
 
-  // Revoke token with Google
-  if (tokenToRevoke) {
+  // Revoke token with Google if real token
+  if (tokenToRevoke && tokenToRevoke !== 'demo_token' && !tokenToRevoke.startsWith('demo_')) {
     try {
       fetch(`https://oauth2.googleapis.com/revoke?token=${tokenToRevoke}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       }).catch(() => {});
     } catch {
-      // ignore network errors on revoke
+      // ignore network errors
     }
   }
 

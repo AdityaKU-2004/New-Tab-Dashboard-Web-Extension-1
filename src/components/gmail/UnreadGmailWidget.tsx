@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import {
   signInWithGoogle,
+  signInWithDemoAccount,
+  signInWithAccessToken,
   logoutGoogle,
   initAuthListener,
   GoogleUser,
@@ -15,10 +17,13 @@ import {
   LogOut,
   CheckCircle2,
   AlertCircle,
-  Inbox,
   Clock,
   User as UserIcon,
+  Sparkles,
+  Key,
   ShieldCheck,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export const UnreadGmailWidget: React.FC = () => {
@@ -28,6 +33,8 @@ export const UnreadGmailWidget: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [manualToken, setManualToken] = useState('');
   const isExt = isExtensionEnvironment();
 
   const [messages, setMessages] = useState<GmailMessage[]>([]);
@@ -63,7 +70,7 @@ export const UnreadGmailWidget: React.FC = () => {
     } catch (err: any) {
       if (err.message === 'UNAUTHORIZED') {
         setNeedsAuth(true);
-        setError('Session expired. Please sign in again.');
+        setError('Session expired or unauthorized. Please sign in again.');
       } else {
         setError(err.message || 'Failed to fetch unread emails');
       }
@@ -92,8 +99,49 @@ export const UnreadGmailWidget: React.FC = () => {
         await loadUnreadEmails(result.accessToken);
       }
     } catch (err: any) {
-      console.error('Sign-in failed:', err);
-      setError(err.message || 'Failed to sign in with Google');
+      console.warn('Sign-in attempt notice:', err);
+      setError(
+        err.message ||
+          'Google Sign-in failed. In Chrome Extension (chrome://extensions), Chrome Identity signs in natively! In web preview, you can also use Demo Mode or paste a token below.'
+      );
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  // Handle Demo Mode Sign-in
+  const handleDemoSignIn = async () => {
+    setIsLoggingIn(true);
+    setError(null);
+    try {
+      const result = await signInWithDemoAccount();
+      setUser(result.user);
+      setToken(result.accessToken);
+      setNeedsAuth(false);
+      await loadUnreadEmails(result.accessToken);
+    } catch (err: any) {
+      setError(err.message || 'Failed to initialize demo account');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  // Handle Manual Token Submission
+  const handleManualTokenSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualToken.trim()) return;
+    setIsLoggingIn(true);
+    setError(null);
+    try {
+      const result = await signInWithAccessToken(manualToken.trim());
+      setUser(result.user);
+      setToken(result.accessToken);
+      setNeedsAuth(false);
+      setManualToken('');
+      setShowTokenInput(false);
+      await loadUnreadEmails(result.accessToken);
+    } catch (err: any) {
+      setError(err.message || 'Invalid access token');
     } finally {
       setIsLoggingIn(false);
     }
@@ -225,13 +273,19 @@ export const UnreadGmailWidget: React.FC = () => {
             </h3>
             <div className="flex items-center gap-1.5 truncate">
               <p className={`text-[11px] ${subTextClass} truncate`}>
-                {user ? user.email : 'Connect Google Account to view unread inbox updates'}
+                {user ? user.email : 'Google Account unread inbox synchronization'}
               </p>
               {user && (
-                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
-                  isExt ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                }`}>
-                  {isExt ? 'Chrome Identity' : 'OAuth'}
+                <span
+                  className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+                    user.isDemo
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      : isExt
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  }`}
+                >
+                  {user.isDemo ? 'Demo Mode' : isExt ? 'Chrome Identity' : 'OAuth'}
                 </span>
               )}
             </div>
@@ -290,37 +344,38 @@ export const UnreadGmailWidget: React.FC = () => {
       {/* Main Body State */}
       {needsAuth || !user ? (
         /* Sign-in prompt state */
-        <div className={`p-5 text-center space-y-4 rounded-lg ${
-          isCyberpunk
-            ? 'bg-[#050811] border border-[#00f3ff]/20'
-            : isDeveloper
-            ? 'bg-[#161B22]/60 border border-[#30363D]'
-            : isLight
-            ? 'bg-slate-50 border border-slate-200'
-            : 'bg-slate-950/50 border border-slate-800'
-        }`}>
+        <div
+          className={`p-5 text-center space-y-4 rounded-lg ${
+            isCyberpunk
+              ? 'bg-[#050811] border border-[#00f3ff]/20'
+              : isDeveloper
+              ? 'bg-[#161B22]/60 border border-[#30363D]'
+              : isLight
+              ? 'bg-slate-50 border border-slate-200'
+              : 'bg-slate-950/50 border border-slate-800'
+          }`}
+        >
           <div className="w-12 h-12 mx-auto rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
             <Mail className="w-6 h-6" />
           </div>
-          <div className="max-w-sm mx-auto space-y-1">
-            <h4 className={`text-xs font-bold ${titleTextClass}`}>
-              Gmail Disconnected
-            </h4>
+          <div className="max-w-md mx-auto space-y-1.5">
+            <h4 className={`text-xs font-bold ${titleTextClass}`}>Connect Google / Extension Inbox</h4>
             <p className={`text-[11px] ${subTextClass}`}>
-              Sign in with your Google Account to view real-time unread emails right here on your tab dashboard.
+              In an unpacked Chrome Extension, native Chrome Identity connects automatically. In browser preview, use Google Sign-in or click Demo Preview below.
             </p>
           </div>
 
-          {/* Official Material Design "Sign in with Google" Button */}
-          <div className="pt-1 flex justify-center">
+          {/* Action Buttons */}
+          <div className="pt-1 flex flex-wrap items-center justify-center gap-2.5">
+            {/* Google Sign-in Button */}
             <button
               type="button"
               onClick={handleLogin}
               disabled={isLoggingIn}
-              className="group relative inline-flex items-center gap-3 px-4 py-2.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-300 shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-60"
+              className="group relative inline-flex items-center gap-2.5 px-4 py-2 rounded-md bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs border border-slate-300 shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-60"
             >
               {isLoggingIn ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-slate-500" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-500" />
               ) : (
                 <svg className="w-4 h-4" viewBox="0 0 48 48">
                   <path
@@ -341,9 +396,62 @@ export const UnreadGmailWidget: React.FC = () => {
                   />
                 </svg>
               )}
-              <span>{isLoggingIn ? 'Connecting...' : 'Sign in with Google'}</span>
+              <span>{isLoggingIn ? 'Authenticating...' : 'Sign in with Google'}</span>
+            </button>
+
+            {/* Instant Demo / Preview Mode Button */}
+            <button
+              type="button"
+              onClick={handleDemoSignIn}
+              disabled={isLoggingIn}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-accent/15 hover:bg-accent/25 text-accent font-semibold text-xs border border-accent/40 transition-all cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Preview Demo Inbox</span>
             </button>
           </div>
+
+          {/* Direct Token Toggle */}
+          <div className="pt-2 border-t border-white/5 light:border-slate-200">
+            <button
+              type="button"
+              onClick={() => setShowTokenInput(!showTokenInput)}
+              className="text-[10px] text-white/50 light:text-slate-500 hover:text-white light:hover:text-slate-800 flex items-center justify-center gap-1 mx-auto cursor-pointer"
+            >
+              <Key className="w-3 h-3" />
+              <span>{showTokenInput ? 'Hide token entry' : 'Direct OAuth Access Token Entry'}</span>
+              {showTokenInput ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            {showTokenInput && (
+              <form onSubmit={handleManualTokenSubmit} className="mt-2.5 max-w-sm mx-auto flex gap-2">
+                <input
+                  type="password"
+                  value={manualToken}
+                  onChange={(e) => setManualToken(e.target.value)}
+                  placeholder="Paste Google OAuth Bearer Token (ya29...)"
+                  className="flex-1 px-2.5 py-1.5 text-[11px] rounded bg-black/40 border border-white/20 text-white font-mono light:bg-white light:border-slate-300 light:text-slate-800"
+                />
+                <button
+                  type="submit"
+                  disabled={!manualToken.trim() || isLoggingIn}
+                  className="px-3 py-1.5 bg-accent text-white rounded text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+                >
+                  Connect
+                </button>
+              </form>
+            )}
+          </div>
+
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 text-left text-[11px] space-y-1.5">
+              <div className="flex items-center gap-1.5 font-bold">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Sign-In Notice</span>
+              </div>
+              <p className="opacity-90">{error}</p>
+            </div>
+          )}
         </div>
       ) : isLoading ? (
         /* Loading skeleton */
@@ -366,28 +474,39 @@ export const UnreadGmailWidget: React.FC = () => {
         <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 text-xs space-y-2 flex items-start gap-2.5">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div className="flex-1 space-y-1">
-            <p className="font-bold">Gmail Error</p>
+            <p className="font-bold">Gmail Sync Error</p>
             <p className="opacity-90">{error}</p>
-            <button
-              type="button"
-              onClick={handleLogin}
-              className="mt-2 px-3 py-1 bg-rose-600 text-white rounded text-[11px] font-bold cursor-pointer hover:bg-rose-700 transition-colors"
-            >
-              Re-authenticate Google Account
-            </button>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleLogin}
+                className="px-3 py-1 bg-rose-600 text-white rounded text-[11px] font-bold cursor-pointer hover:bg-rose-700 transition-colors"
+              >
+                Retry Sign-in
+              </button>
+              <button
+                type="button"
+                onClick={handleDemoSignIn}
+                className="px-3 py-1 bg-white/10 text-white rounded text-[11px] font-bold cursor-pointer hover:bg-white/20 transition-colors"
+              >
+                Switch to Demo Mode
+              </button>
+            </div>
           </div>
         </div>
       ) : messages.length === 0 ? (
         /* Empty unread state */
-        <div className={`p-6 text-center rounded-lg space-y-2 ${
-          isCyberpunk
-            ? 'bg-[#050811] border border-[#00f3ff]/20'
-            : isDeveloper
-            ? 'bg-[#161B22]/50 border border-[#30363D]'
-            : isLight
-            ? 'bg-slate-50 border border-slate-200'
-            : 'bg-slate-900/40 border border-slate-800'
-        }`}>
+        <div
+          className={`p-6 text-center rounded-lg space-y-2 ${
+            isCyberpunk
+              ? 'bg-[#050811] border border-[#00f3ff]/20'
+              : isDeveloper
+              ? 'bg-[#161B22]/50 border border-[#30363D]'
+              : isLight
+              ? 'bg-slate-50 border border-slate-200'
+              : 'bg-slate-900/40 border border-slate-800'
+          }`}
+        >
           <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
           <h4 className={`text-xs font-bold ${titleTextClass}`}>Inbox Zero Clean!</h4>
           <p className={`text-[11px] ${subTextClass}`}>

@@ -9,10 +9,62 @@ export interface GmailMessage {
   unread: boolean;
 }
 
+// Sample fallback unread emails for preview/demo mode
+const SAMPLE_GMAIL_MESSAGES: GmailMessage[] = [
+  {
+    id: 'msg-001',
+    threadId: 'th-001',
+    from: 'GitHub <notifications@github.com>',
+    subject: '[cyber-dashboard] Pull Request #42 merged: Chrome Extension Identity Support',
+    snippet: 'Hey Operator, your pull request #42 has been approved by the core tactical team and merged into main.',
+    date: new Date(Date.now() - 1000 * 60 * 18).toUTCString(),
+    internalDate: String(Date.now() - 1000 * 60 * 18),
+    unread: true,
+  },
+  {
+    id: 'msg-002',
+    threadId: 'th-002',
+    from: 'Google Cloud Platform <alerts@google.com>',
+    subject: 'Security Alert: New Chrome Extension Authorized via OAuth 2.0',
+    snippet: 'Your Google Account granted access to Cyberpunk Pro New Tab Dashboard for reading inbox headers.',
+    date: new Date(Date.now() - 1000 * 60 * 45).toUTCString(),
+    internalDate: String(Date.now() - 1000 * 60 * 45),
+    unread: true,
+  },
+  {
+    id: 'msg-003',
+    threadId: 'th-003',
+    from: 'Vercel Deployments <notifications@vercel.com>',
+    subject: 'Deployment Successful: production build ready for deployment preview',
+    snippet: 'Your project cyberpunk-dashboard has been successfully compiled and distributed to 18 global edge locations.',
+    date: new Date(Date.now() - 1000 * 60 * 120).toUTCString(),
+    internalDate: String(Date.now() - 1000 * 60 * 120),
+    unread: true,
+  },
+  {
+    id: 'msg-004',
+    threadId: 'th-004',
+    from: 'Tactical Flight Control <command@skyhud.aero>',
+    subject: 'Telemetry Synchronization Notice: Jet HUD V4 Firmware Online',
+    snippet: 'New flight vectors and Doppler threat calculation metrics updated for all connected pilots.',
+    date: new Date(Date.now() - 1000 * 60 * 360).toUTCString(),
+    internalDate: String(Date.now() - 1000 * 60 * 360),
+    unread: true,
+  },
+];
+
 export async function fetchUnreadGmailMessages(
   accessToken: string,
   maxResults = 10
 ): Promise<{ messages: GmailMessage[]; totalUnreadCount: number }> {
+  // If demo token, return sample messages
+  if (accessToken === 'demo_token' || accessToken.startsWith('demo_')) {
+    return {
+      messages: SAMPLE_GMAIL_MESSAGES.slice(0, maxResults),
+      totalUnreadCount: SAMPLE_GMAIL_MESSAGES.length,
+    };
+  }
+
   // 1. Fetch unread list
   const listUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=${maxResults}`;
   const listRes = await fetch(listUrl, {

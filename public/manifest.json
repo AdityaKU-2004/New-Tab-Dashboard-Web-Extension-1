@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Cyberpunk Pro New Tab & HUD Dashboard",
+  "version": "1.0.0",
+  "description": "Tactical Cyberpunk HUD New Tab with unread Gmail, Jet avionics telemetry, dev tools, and clock widgets.",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "identity",
+    "storage",
+    "bookmarks",
+    "topSites",
+    "tabs"
+  ],
+  "oauth2": {
+    "client_id": "217330540944-qvlrgelgpl3o216v1sfk6qvf27ohau4p.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "openid"
+    ]
+  },
+  "icons": {
+    "128": "icon.png"
+  }
+}
