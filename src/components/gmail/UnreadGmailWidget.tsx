@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDashboardStore } from '../../store/useDashboardStore';
 import {
   signInWithGoogle,
-  signInWithDemoAccount,
   signInWithAccessToken,
   logoutGoogle,
   initAuthListener,
@@ -19,7 +18,6 @@ import {
   AlertCircle,
   Clock,
   User as UserIcon,
-  Sparkles,
   Key,
   ShieldCheck,
   ChevronDown,
@@ -104,23 +102,6 @@ export const UnreadGmailWidget: React.FC = () => {
         err.message ||
           'Google Sign-in failed. In Chrome Extension (chrome://extensions), Chrome Identity signs in natively! In web preview, you can also use Demo Mode or paste a token below.'
       );
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  // Handle Demo Mode Sign-in
-  const handleDemoSignIn = async () => {
-    setIsLoggingIn(true);
-    setError(null);
-    try {
-      const result = await signInWithDemoAccount();
-      setUser(result.user);
-      setToken(result.accessToken);
-      setNeedsAuth(false);
-      await loadUnreadEmails(result.accessToken);
-    } catch (err: any) {
-      setError(err.message || 'Failed to initialize demo account');
     } finally {
       setIsLoggingIn(false);
     }
@@ -361,7 +342,7 @@ export const UnreadGmailWidget: React.FC = () => {
           <div className="max-w-md mx-auto space-y-1.5">
             <h4 className={`text-xs font-bold ${titleTextClass}`}>Connect Google / Extension Inbox</h4>
             <p className={`text-[11px] ${subTextClass}`}>
-              In an unpacked Chrome Extension, native Chrome Identity connects automatically. In browser preview, use Google Sign-in or click Demo Preview below.
+              In an unpacked Chrome Extension, native Chrome Identity connects automatically. In browser preview, use Google Sign-in or paste an OAuth token below.
             </p>
           </div>
 
@@ -397,17 +378,6 @@ export const UnreadGmailWidget: React.FC = () => {
                 </svg>
               )}
               <span>{isLoggingIn ? 'Authenticating...' : 'Sign in with Google'}</span>
-            </button>
-
-            {/* Instant Demo / Preview Mode Button */}
-            <button
-              type="button"
-              onClick={handleDemoSignIn}
-              disabled={isLoggingIn}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-accent/15 hover:bg-accent/25 text-accent font-semibold text-xs border border-accent/40 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Preview Demo Inbox</span>
             </button>
           </div>
 
@@ -483,13 +453,6 @@ export const UnreadGmailWidget: React.FC = () => {
                 className="px-3 py-1 bg-rose-600 text-white rounded text-[11px] font-bold cursor-pointer hover:bg-rose-700 transition-colors"
               >
                 Retry Sign-in
-              </button>
-              <button
-                type="button"
-                onClick={handleDemoSignIn}
-                className="px-3 py-1 bg-white/10 text-white rounded text-[11px] font-bold cursor-pointer hover:bg-white/20 transition-colors"
-              >
-                Switch to Demo Mode
               </button>
             </div>
           </div>
