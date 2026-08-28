@@ -1,44 +1,27 @@
-import { storage } from '../utils/storage';
+import { browserApi } from './browser/browserApi';
 
 export const storageService = {
   sync: {
     get: async <T>(key: string, defaultValue: T): Promise<T> => {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        return new Promise((resolve) => {
-          chrome.storage.sync.get([key], (result) => {
-            resolve(result[key] !== undefined ? (result[key] as T) : defaultValue);
-          });
-        });
-      }
-      return storage.get<T>(key, defaultValue);
+      return browserApi.storage.sync.get<T>(key, defaultValue);
     },
     set: async <T>(key: string, value: T): Promise<void> => {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        return new Promise((resolve) => {
-          chrome.storage.sync.set({ [key]: value }, () => resolve());
-        });
-      }
-      storage.set<T>(key, value);
+      return browserApi.storage.sync.set<T>(key, value);
     }
   },
   local: {
     get: async <T>(key: string, defaultValue: T): Promise<T> => {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        return new Promise((resolve) => {
-          chrome.storage.local.get([key], (result) => {
-            resolve(result[key] !== undefined ? (result[key] as T) : defaultValue);
-          });
-        });
-      }
-      return storage.get<T>(key, defaultValue);
+      return browserApi.storage.local.get<T>(key, defaultValue);
     },
     set: async <T>(key: string, value: T): Promise<void> => {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        return new Promise((resolve) => {
-          chrome.storage.local.set({ [key]: value }, () => resolve());
-        });
-      }
-      storage.set<T>(key, value);
+      return browserApi.storage.local.set<T>(key, value);
+    },
+    remove: async (key: string): Promise<void> => {
+      return browserApi.storage.local.remove(key);
+    },
+    clear: async (): Promise<void> => {
+      return browserApi.storage.local.clear();
     }
   }
 };
+
