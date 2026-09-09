@@ -260,11 +260,31 @@ This project strictly adheres to browser extension security standards:
 
 ## 🔑 Google & Extension Identity Configuration
 
-When installed as an unpacked Chrome Extension:
-1. Open the dashboard and locate the **Unread Gmail** widget or open the **Settings** drawer.
-2. Click **Sign in with Google**.
-3. Chrome will automatically invoke `chrome.identity` using your current signed-in Google profile.
-4. *(Optional)* If you wish to use a custom Google Cloud Project OAuth Client ID for your own published extension ID, open **Settings → Google & Extension Identity → Configure Custom OAuth Client ID** to provide your custom client ID.
+Gmail authentication is fully implemented for both **Google Chrome** and **Mozilla Firefox**, as well as local web preview.
+
+### Cross-Browser Authentication Architecture
+
+| Environment | Primary Auth Method | Fallback Flow | Requirements / Identifiers |
+|---|---|---|---|
+| **Chrome Extension** | `chrome.identity.getAuthToken` (Native 1-click) | `launchWebAuthFlow` | Stable RSA public key in `manifest.json` ensures consistent extension ID (`gioepkdaagkafdklkofeaplkebhmgnan`) |
+| **Firefox Add-on** | `browser.identity.launchWebAuthFlow` | Direct token entry / Demo | Gecko application ID `cyberpunk-newtab@pro-dashboard.net` and `identity` permission in manifest |
+| **Web Preview / Dev** | Google Identity Services / OAuth popup | Demo mode / Direct token | Allowed JavaScript origin or direct access token |
+
+### 1. In Google Chrome
+1. Open a new tab with the unpacked extension installed.
+2. On the **Unread Gmail** widget, click **Sign in with Google**.
+3. Chrome natively grants an OAuth access token using your signed-in profile through `chrome.identity`.
+
+### 2. In Mozilla Firefox
+1. Open a new tab with the temporary add-on loaded.
+2. Click **Sign in with Google** on the Unread Gmail widget.
+3. Firefox launches an interactive OAuth authentication dialog via `browser.identity.launchWebAuthFlow`.
+4. Upon sign-in approval, the authorization token is automatically captured and Gmail messages synchronize immediately.
+> *Note for Custom OAuth Client IDs*: If using your own Google Cloud Console client ID, copy the extension's redirect URI directly from **Settings → Google & Extension Identity** (or click the copy button on the widget) and add it to **Authorized Redirect URIs** in your Google Cloud Console.
+
+### 3. Instant Testing Options
+- **Demo Mode**: Click the **Demo Mode** button anytime on the widget or settings to test the dashboard with realistic simulated Gmail data without requiring any Google credentials.
+- **Direct Bearer Token**: Click **Direct OAuth Access Token Entry** and paste a token generated from [Google OAuth Playground](https://developers.google.com/oauthplayground) (select Gmail API v1 `https://www.googleapis.com/auth/gmail.readonly`).
 
 ---
 

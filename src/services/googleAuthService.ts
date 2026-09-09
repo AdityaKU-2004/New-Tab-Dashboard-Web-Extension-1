@@ -1,4 +1,9 @@
 import { storageService } from './storageService';
+import { browserApi } from './browser/browserApi';
+
+// Define global types for WebExtension environments
+declare const chrome: any;
+declare const browser: any;
 
 export interface GoogleUser {
   id: string;
@@ -21,7 +26,7 @@ const STORAGE_USER_KEY = 'dashboard_google_user';
 const STORAGE_TOKEN_KEY = 'dashboard_google_access_token';
 const STORAGE_CLIENT_ID_KEY = 'dashboard_google_client_id';
 
-// Default Google OAuth Client ID (can be customized in extension or settings)
+// Default Google OAuth Client ID
 export const DEFAULT_CLIENT_ID = '217330540944-qvlrgelgpl3o216v1sfk6qvf27ohau4p.apps.googleusercontent.com';
 
 export const GMAIL_SCOPES = [
@@ -37,14 +42,48 @@ let cachedAccessToken: string | null = null;
 let authListeners: Array<(state: AuthState) => void> = [];
 
 /**
- * Detects if the app is currently running inside a real Chrome extension environment
+ * Detects if the app is currently running inside an extension environment (Chrome or Firefox)
  */
 export const isExtensionEnvironment = (): boolean => {
   return (
-    typeof chrome !== 'undefined' &&
-    !!chrome?.identity &&
-    typeof chrome.identity?.getAuthToken === 'function'
+    (typeof chrome !== 'undefined' && (!!chrome?.identity || !!chrome?.runtime?.id)) ||
+    (typeof browser !== 'undefined' && (!!browser?.identity || !!browser?.runtime?.id))
   );
+};
+
+/**
+ * Detects if running in Firefox extension
+ */
+export const isFirefoxExtension = (): boolean => {
+  return typeof browser !== 'undefined' && (!!browser?.identity || !!browser?.runtime?.id);
+};
+
+/**
+ * Detects if running in Chrome / Chromium extension
+ */
+export const isChromeExtension = (): boolean => {
+  return !isFirefoxExtension() && typeof chrome !== 'undefined' && (!!chrome?.identity || !!chrome?.runtime?.id);
+};
+
+/**
+ * Checks if native chrome.identity.getAuthToken is supported
+ */
+export const hasChromeNativeIdentity = (): boolean => {
+  return typeof chrome !== 'undefined' && typeof chrome?.identity?.getAuthToken === 'function';
+};
+
+/**
+ * Checks if launchWebAuthFlow is available (Firefox or Chrome)
+ */
+export const hasWebAuthFlow = (): boolean => {
+  return browserApi.identity.hasLaunchWebAuthFlow();
+};
+
+/**
+ * Gets the current extension OAuth redirect URL
+ */
+export const getExtensionRedirectUrl = (): string => {
+  return browserApi.identity.getRedirectURL();
 };
 
 /**
@@ -120,7 +159,7 @@ export const setOAuthClientId = async (clientId: string): Promise<void> => {
 };
 
 /**
- * Initialize Auth state from storage / Chrome extension identity
+ * Initialize Auth state from storage / extension identity
  */
 export const initAuthListener = (
   onSuccess: (user: GoogleUser, token: string) => void,
@@ -139,12 +178,11 @@ export const initAuthListener = (
   // Restore initial state asynchronously
   (async () => {
     try {
-      // 1. Try Chrome extension silent identity check first
-      if (isExtensionEnvironment()) {
-        chrome.identity.getAuthToken({ interactive: false }, async (token) => {
-          if (chrome.runtime.lastError || !token) {
-            // Check storage backup
-            restoreFromStorage();
+      // If in Chrome extension with native identity, attempt silent token check
+      if (hasChromeNativeIdentity()) {
+        chrome.identity.getAuthToken({ interactive: false }, async (token: string) => {
+          if (chrome.runtime?.lastError || !token) {
+            await restoreFromStorage();
           } else {
             try {
               const user = await fetchGoogleUserProfile(token);
@@ -154,7 +192,7 @@ export const initAuthListener = (
               await storageService.local.set(STORAGE_TOKEN_KEY, token);
               notifyListeners();
             } catch {
-              restoreFromStorage();
+              await restoreFromStorage();
             }
           }
         });
@@ -207,7 +245,6 @@ async function restoreFromStorage() {
 
 /**
  * Sign in with Demo / Preview Test Account
- * Perfect for development preview when running outside of an unpacked Chrome Extension!
  */
 export const signInWithDemoAccount = async (
   email = 'pilot.operator@cyberdash.io',
@@ -258,57 +295,72 @@ export const signInWithAccessToken = async (
 
 /**
  * Main Sign In with Google Method:
- * - In Chrome Extension: uses native chrome.identity.getAuthToken
- * - In Web / Preview / Tab: uses Google Identity Services or standard OAuth flow with demo fallback
+ * 1. In Chrome Extension: attempts native chrome.identity.getAuthToken first,
+ *    falling back to launchWebAuthFlow if needed.
+ * 2. In Firefox Extension: uses launchWebAuthFlow directly (Firefox does not support getAuthToken).
+ * 3. In Web / Preview / Tab: uses Google Identity Services or standard web popup flow.
  */
 export const signInWithGoogle = async (): Promise<{ user: GoogleUser; accessToken: string }> => {
-  // 1. Chrome Extension Environment Flow
-  if (isExtensionEnvironment()) {
-    return new Promise<{ user: GoogleUser; accessToken: string }>((resolve, reject) => {
-      chrome.identity.getAuthToken({ interactive: true }, async (token) => {
-        if (chrome.runtime.lastError || !token) {
-          const errorMsg = chrome.runtime.lastError?.message || 'Failed to acquire auth token via chrome.identity';
-          console.warn('chrome.identity.getAuthToken error:', errorMsg);
-
-          // Fallback to launchWebAuthFlow if getAuthToken fails
-          if (typeof chrome.identity.launchWebAuthFlow === 'function') {
-            try {
-              const res = await signInViaWebAuthFlow();
-              resolve(res);
-            } catch (fallbackErr: any) {
-              reject(new Error(fallbackErr?.message || errorMsg));
-            }
-          } else {
-            reject(new Error(errorMsg));
-          }
-          return;
-        }
-
+  // 1. Chrome Extension Environment Flow (Native Identity)
+  if (hasChromeNativeIdentity()) {
+    try {
+      return await signInViaChromeNativeIdentity();
+    } catch (chromeErr: any) {
+      console.warn('Chrome native getAuthToken failed, falling back to launchWebAuthFlow:', chromeErr);
+      if (hasWebAuthFlow()) {
         try {
-          const user = await fetchGoogleUserProfile(token);
-          cachedAccessToken = token;
-          cachedUser = user;
-          await storageService.local.set(STORAGE_USER_KEY, user);
-          await storageService.local.set(STORAGE_TOKEN_KEY, token);
-          notifyListeners();
-          resolve({ user, accessToken: token });
-        } catch (err: any) {
-          reject(new Error(err.message || 'Failed to fetch user info with token'));
+          return await signInViaWebAuthFlow();
+        } catch (webAuthErr: any) {
+          throw webAuthErr;
         }
-      });
-    });
+      }
+      throw chromeErr;
+    }
   }
 
-  // 2. Web / Browser / Standalone Tab Flow
-  return signInViaWebFlow();
+  // 2. Firefox Extension or Extension with launchWebAuthFlow
+  if (isExtensionEnvironment() && hasWebAuthFlow()) {
+    return await signInViaWebAuthFlow();
+  }
+
+  // 3. Web / Browser / Standalone Tab Flow
+  return await signInViaWebFlow();
 };
 
 /**
- * Secondary extension auth flow using launchWebAuthFlow
+ * Chrome Native Identity flow via chrome.identity.getAuthToken
  */
-const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; accessToken: string }> => {
+const signInViaChromeNativeIdentity = async (): Promise<{ user: GoogleUser; accessToken: string }> => {
+  return new Promise<{ user: GoogleUser; accessToken: string }>((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: true }, async (token: string) => {
+      if (chrome.runtime?.lastError || !token) {
+        const errorMsg = chrome.runtime?.lastError?.message || 'Failed to acquire auth token via chrome.identity';
+        reject(new Error(errorMsg));
+        return;
+      }
+
+      try {
+        const user = await fetchGoogleUserProfile(token);
+        cachedAccessToken = token;
+        cachedUser = user;
+        await storageService.local.set(STORAGE_USER_KEY, user);
+        await storageService.local.set(STORAGE_TOKEN_KEY, token);
+        notifyListeners();
+        resolve({ user, accessToken: token });
+      } catch (err: any) {
+        reject(new Error(err.message || 'Failed to fetch user info with token'));
+      }
+    });
+  });
+};
+
+/**
+ * Universal Extension OAuth flow using launchWebAuthFlow (Supported on both Chrome & Firefox)
+ */
+export const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; accessToken: string }> => {
   const clientId = await getOAuthClientId();
-  const redirectUrl = chrome.identity.getRedirectURL();
+  const redirectUrl = getExtensionRedirectUrl();
+
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
     new URLSearchParams({
       client_id: clientId,
@@ -318,35 +370,56 @@ const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; accessToken: 
       prompt: 'select_account',
     }).toString();
 
-  return new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, async (responseUrl) => {
-      if (chrome.runtime.lastError || !responseUrl) {
-        reject(new Error(chrome.runtime.lastError?.message || 'Web auth flow was cancelled or failed'));
-        return;
-      }
-
-      const url = new URL(responseUrl);
-      const hashParams = new URLSearchParams(url.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-
-      if (!accessToken) {
-        reject(new Error('No access token found in OAuth response'));
-        return;
-      }
-
-      try {
-        const user = await fetchGoogleUserProfile(accessToken);
-        cachedAccessToken = accessToken;
-        cachedUser = user;
-        await storageService.local.set(STORAGE_USER_KEY, user);
-        await storageService.local.set(STORAGE_TOKEN_KEY, accessToken);
-        notifyListeners();
-        resolve({ user, accessToken });
-      } catch (err: any) {
-        reject(err);
-      }
+  try {
+    const responseUrl = await browserApi.identity.launchWebAuthFlow({
+      url: authUrl,
+      interactive: true,
     });
-  });
+
+    if (!responseUrl) {
+      throw new Error('OAuth flow returned an empty response');
+    }
+
+    let accessToken: string | null = null;
+    try {
+      const url = new URL(responseUrl);
+      if (url.hash) {
+        const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+        accessToken = hashParams.get('access_token');
+      }
+      if (!accessToken && url.search) {
+        const searchParams = new URLSearchParams(url.search);
+        accessToken = searchParams.get('access_token');
+      }
+    } catch {
+      const match = responseUrl.match(/[#?&]access_token=([^&]+)/);
+      if (match) {
+        accessToken = decodeURIComponent(match[1]);
+      }
+    }
+
+    if (!accessToken) {
+      throw new Error('No access_token found in Google OAuth response');
+    }
+
+    const user = await fetchGoogleUserProfile(accessToken);
+    cachedAccessToken = accessToken;
+    cachedUser = user;
+    await storageService.local.set(STORAGE_USER_KEY, user);
+    await storageService.local.set(STORAGE_TOKEN_KEY, accessToken);
+    notifyListeners();
+    return { user, accessToken };
+  } catch (err: any) {
+    const rawMsg = err?.message || String(err);
+    if (rawMsg.toLowerCase().includes('cancelled') || rawMsg.toLowerCase().includes('closed')) {
+      throw new Error(
+        `Google Sign-In was cancelled. Note: If Google displayed "Error 400: redirect_uri_mismatch", register this Authorized Redirect URI in Google Cloud Console: ${redirectUrl}`
+      );
+    }
+    throw new Error(
+      `Google OAuth failed: ${rawMsg}. Extension Redirect URI is: ${redirectUrl}`
+    );
+  }
 };
 
 /**
@@ -400,7 +473,7 @@ const signInViaWebFlow = async (): Promise<{ user: GoogleUser; accessToken: stri
 };
 
 /**
- * Generic OAuth 2.0 Popup Flow with clean error handling
+ * Generic OAuth 2.0 Popup Flow for web environments
  */
 const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessToken: string }> => {
   return new Promise((resolve, reject) => {
@@ -432,7 +505,6 @@ const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessTok
 
     let isCompleted = false;
 
-    // Polling interval to check popup response
     const interval = setInterval(async () => {
       try {
         if (!popup || popup.closed) {
@@ -440,7 +512,7 @@ const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessTok
           if (!isCompleted) {
             reject(
               new Error(
-                'Google Sign-In popup was closed. (Note: Google OAuth rejects unregistered preview URLs. In Chrome Extension, native chrome.identity works automatically! Or use "Demo Sign-in" in preview).'
+                'Google Sign-In popup was closed. In browser extensions, native identity is used. In web preview, use Demo Mode or paste a token below.'
               )
             );
           }
@@ -484,7 +556,6 @@ const signInViaPopup = (clientId: string): Promise<{ user: GoogleUser; accessTok
       }
     }, 500);
 
-    // Timeout after 2 minutes
     setTimeout(() => {
       clearInterval(interval);
       if (popup && !popup.closed) popup.close();
@@ -506,12 +577,10 @@ export const logoutGoogle = async (): Promise<void> => {
   await storageService.local.set(STORAGE_USER_KEY, null);
   await storageService.local.set(STORAGE_TOKEN_KEY, null);
 
-  // Clear Chrome extension cached token if in extension
+  // Clear cached token via browserApi if in extension
   if (isExtensionEnvironment() && tokenToRevoke && tokenToRevoke !== 'demo_token') {
     try {
-      chrome.identity.removeCachedAuthToken({ token: tokenToRevoke }, () => {
-        // done
-      });
+      await browserApi.identity.removeCachedAuthToken({ token: tokenToRevoke });
     } catch {
       // ignore
     }

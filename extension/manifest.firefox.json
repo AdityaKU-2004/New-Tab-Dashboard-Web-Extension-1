@@ -15,7 +15,8 @@
   "permissions": [
     "storage",
     "bookmarks",
-    "tabs"
+    "tabs",
+    "identity"
   ],
   "background": {
     "scripts": ["service-worker.js"]

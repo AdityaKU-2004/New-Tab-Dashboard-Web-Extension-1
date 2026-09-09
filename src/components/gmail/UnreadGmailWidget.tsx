@@ -3,10 +3,14 @@ import { useDashboardStore } from '../../store/useDashboardStore';
 import {
   signInWithGoogle,
   signInWithAccessToken,
+  signInWithDemoAccount,
   logoutGoogle,
   initAuthListener,
   GoogleUser,
   isExtensionEnvironment,
+  isFirefoxExtension,
+  isChromeExtension,
+  getExtensionRedirectUrl,
 } from '../../services/googleAuthService';
 import { fetchUnreadGmailMessages, GmailMessage } from '../../services/gmailService';
 import {
@@ -22,6 +26,9 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
+  Sparkles,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 export const UnreadGmailWidget: React.FC = () => {
@@ -33,7 +40,11 @@ export const UnreadGmailWidget: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [manualToken, setManualToken] = useState('');
+  const [copiedRedirect, setCopiedRedirect] = useState(false);
   const isExt = isExtensionEnvironment();
+  const isFirefox = isFirefoxExtension();
+  const isChrome = isChromeExtension();
+  const redirectUrl = getExtensionRedirectUrl();
 
   const [messages, setMessages] = useState<GmailMessage[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -105,6 +116,29 @@ export const UnreadGmailWidget: React.FC = () => {
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  // Handle Demo Login
+  const handleDemoLogin = async () => {
+    setIsLoggingIn(true);
+    setError(null);
+    try {
+      const result = await signInWithDemoAccount();
+      setUser(result.user);
+      setToken(result.accessToken);
+      setNeedsAuth(false);
+      await loadUnreadEmails(result.accessToken);
+    } catch (err: any) {
+      setError(err.message || 'Failed to initialize demo mode');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleCopyRedirectUri = () => {
+    navigator.clipboard.writeText(redirectUrl);
+    setCopiedRedirect(true);
+    setTimeout(() => setCopiedRedirect(false), 2500);
   };
 
   // Handle Manual Token Submission
@@ -261,12 +295,14 @@ export const UnreadGmailWidget: React.FC = () => {
                   className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
                     user.isDemo
                       ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      : isExt
+                      : isFirefox
+                      ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                      : isChrome
                       ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                       : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                   }`}
                 >
-                  {user.isDemo ? 'Demo Mode' : isExt ? 'Chrome Identity' : 'OAuth'}
+                  {user.isDemo ? 'Demo Mode' : isFirefox ? 'Firefox WebAuth' : isChrome ? 'Chrome Identity' : 'OAuth'}
                 </span>
               )}
             </div>
@@ -342,7 +378,11 @@ export const UnreadGmailWidget: React.FC = () => {
           <div className="max-w-md mx-auto space-y-1.5">
             <h4 className={`text-xs font-bold ${titleTextClass}`}>Connect Google / Extension Inbox</h4>
             <p className={`text-[11px] ${subTextClass}`}>
-              In an unpacked Chrome Extension, native Chrome Identity connects automatically. In browser preview, use Google Sign-in or paste an OAuth token below.
+              {isChrome
+                ? 'Chrome Extension MV3 detected: uses native Chrome Identity or WebAuthFlow.'
+                : isFirefox
+                ? 'Firefox Extension detected: uses WebAuthFlow with secure extension URI.'
+                : 'Web preview: click Demo Mode for an instant preview, or connect via Google OAuth.'}
             </p>
           </div>
 
@@ -379,6 +419,18 @@ export const UnreadGmailWidget: React.FC = () => {
               )}
               <span>{isLoggingIn ? 'Authenticating...' : 'Sign in with Google'}</span>
             </button>
+
+            {/* Instant Demo Account */}
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={isLoggingIn}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-accent/20 hover:bg-accent/30 text-accent font-semibold text-xs border border-accent/40 transition-all cursor-pointer"
+              title="Instant demo account with simulated emails"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Demo Mode</span>
+            </button>
           </div>
 
           {/* Direct Token Toggle */}
@@ -414,12 +466,30 @@ export const UnreadGmailWidget: React.FC = () => {
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 text-left text-[11px] space-y-1.5">
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 text-left text-[11px] space-y-2">
               <div className="flex items-center gap-1.5 font-bold">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>Sign-In Notice</span>
               </div>
-              <p className="opacity-90">{error}</p>
+              <p className="opacity-90 leading-relaxed">{error}</p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleCopyRedirectUri}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-[10px] font-mono cursor-pointer transition-colors"
+                >
+                  {copiedRedirect ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedRedirect ? 'Copied Redirect URI!' : 'Copy Extension Redirect URI'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[10px] font-semibold cursor-pointer transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Use Demo Mode</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

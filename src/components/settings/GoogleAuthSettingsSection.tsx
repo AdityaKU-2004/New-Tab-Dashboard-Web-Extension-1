@@ -7,6 +7,9 @@ import {
   logoutGoogle,
   GoogleUser,
   isExtensionEnvironment,
+  isFirefoxExtension,
+  isChromeExtension,
+  getExtensionRedirectUrl,
   getOAuthClientId,
   setOAuthClientId,
   DEFAULT_CLIENT_ID,
@@ -22,6 +25,8 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 
 export const GoogleAuthSettingsSection: React.FC = () => {
@@ -34,8 +39,12 @@ export const GoogleAuthSettingsSection: React.FC = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [manualToken, setManualToken] = useState('');
+  const [copiedRedirect, setCopiedRedirect] = useState(false);
 
   const isExt = isExtensionEnvironment();
+  const isFirefox = isFirefoxExtension();
+  const isChrome = isChromeExtension();
+  const redirectUrl = getExtensionRedirectUrl();
 
   useEffect(() => {
     const unsub = initAuthListener(
@@ -65,10 +74,7 @@ export const GoogleAuthSettingsSection: React.FC = () => {
       setUser(res.user);
       setToken(res.accessToken);
     } catch (err: any) {
-      setError(
-        err.message ||
-          'Google Sign-in failed. In Chrome Extension (chrome://extensions), Chrome Identity signs in natively! In web preview, you can also use Demo Mode or paste a token below.'
-      );
+      setError(err.message || 'Google Sign-in failed.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -118,6 +124,12 @@ export const GoogleAuthSettingsSection: React.FC = () => {
     setTimeout(() => setIsSavedId(false), 2000);
   };
 
+  const handleCopyRedirectUri = () => {
+    navigator.clipboard.writeText(redirectUrl);
+    setCopiedRedirect(true);
+    setTimeout(() => setCopiedRedirect(false), 2500);
+  };
+
   return (
     <div className="pt-4 border-t border-white/10 light:border-slate-200 space-y-3">
       <div className="flex items-center justify-between">
@@ -128,12 +140,24 @@ export const GoogleAuthSettingsSection: React.FC = () => {
           className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
             user?.isDemo
               ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+              : isFirefox
+              ? 'bg-purple-500/20 text-purple-400 border-purple-500/40'
+              : isChrome
+              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
               : isExt
               ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
               : 'bg-blue-500/20 text-blue-400 border-blue-500/40'
           }`}
         >
-          {user?.isDemo ? 'Demo Mode' : isExt ? 'Extension Identity' : 'Web OAuth Mode'}
+          {user?.isDemo
+            ? 'Demo Mode'
+            : isFirefox
+            ? 'Firefox Extension'
+            : isChrome
+            ? 'Chrome Extension'
+            : isExt
+            ? 'Extension'
+            : 'Web Preview'}
         </span>
       </div>
 
@@ -213,22 +237,38 @@ export const GoogleAuthSettingsSection: React.FC = () => {
           </div>
 
           {error && (
-            <p className="text-[11px] text-rose-400 flex items-start gap-1.5 p-2 bg-rose-500/10 border border-rose-500/20 rounded-lg">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </p>
+            <div className="text-[11px] text-rose-400 p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-lg space-y-1.5">
+              <div className="flex items-start gap-1.5 font-bold">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>Authentication Notice</span>
+              </div>
+              <p className="opacity-90 leading-relaxed">{error}</p>
+            </div>
           )}
 
           {/* Quick Direct Token Button */}
-          <button
-            type="button"
-            onClick={() => setShowTokenInput(!showTokenInput)}
-            className="text-[10px] text-accent hover:underline flex items-center gap-1 cursor-pointer pt-1"
-          >
-            <Key className="w-3 h-3" />
-            <span>{showTokenInput ? 'Hide Bearer Token Entry' : 'Paste Google OAuth Token'}</span>
-            {showTokenInput ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          </button>
+          <div className="pt-1 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setShowTokenInput(!showTokenInput)}
+              className="text-[10px] text-accent hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <Key className="w-3 h-3" />
+              <span>{showTokenInput ? 'Hide Token Entry' : 'Paste Google OAuth Token'}</span>
+              {showTokenInput ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            <a
+              href="https://developers.google.com/oauthplayground"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-white/60 hover:text-white flex items-center gap-1 light:text-slate-600"
+              title="Open Google OAuth Playground to generate a token"
+            >
+              <span>OAuth Playground</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          </div>
 
           {showTokenInput && (
             <form onSubmit={handleManualTokenSubmit} className="flex gap-2 pt-1">
@@ -251,14 +291,53 @@ export const GoogleAuthSettingsSection: React.FC = () => {
         </div>
       )}
 
-      {/* Extension Deployment Information Card */}
-      <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-1.5 light:bg-slate-50 light:border-slate-200">
-        <div className="flex items-center gap-1.5 text-[11px] font-bold text-white light:text-slate-900">
-          <Info className="w-3.5 h-3.5 text-accent" />
-          <span>Chrome Extension Environment</span>
+      {/* Extension OAuth Details Card */}
+      <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2 light:bg-slate-50 light:border-slate-200">
+        <div className="flex items-center justify-between text-[11px] font-bold text-white light:text-slate-900">
+          <div className="flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5 text-accent" />
+            <span>Extension OAuth Configuration</span>
+          </div>
+          <span className="text-[10px] text-white/50 light:text-slate-500 font-mono">
+            {isFirefox ? 'Firefox (WebAuthFlow)' : isChrome ? 'Chrome (MV3 Native)' : 'Web Mode'}
+          </span>
         </div>
-        <p className="text-[10px] text-white/70 light:text-slate-600 leading-relaxed">
-          When this dashboard is loaded as an unpacked extension via <code className="font-mono text-accent">chrome://extensions</code>, Google sign-in works natively with 1-click through <code className="font-mono text-accent">chrome.identity</code> without requiring popup redirects.
+
+        <div className="space-y-1">
+          <p className="text-[10px] text-white/60 light:text-slate-600">
+            Extension Authorized Redirect URI:
+          </p>
+          <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-black/40 border border-white/10 light:bg-white light:border-slate-200">
+            <code className="flex-1 text-[9px] font-mono text-white/80 light:text-slate-700 truncate select-all">
+              {redirectUrl}
+            </code>
+            <button
+              type="button"
+              onClick={handleCopyRedirectUri}
+              className="p-1 text-accent hover:text-white rounded transition-colors cursor-pointer shrink-0"
+              title="Copy redirect URI to clipboard"
+            >
+              {copiedRedirect ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+            </button>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-white/60 light:text-slate-500 leading-relaxed">
+          {isChrome && (
+            <span>
+              Chrome uses native <code className="text-accent font-mono">chrome.identity</code> with permanent extension ID and manifest OAuth2 configuration.
+            </span>
+          )}
+          {isFirefox && (
+            <span>
+              Firefox uses <code className="text-purple-400 font-mono">browser.identity.launchWebAuthFlow</code> with gecko ID <code className="text-accent font-mono">cyberpunk-newtab@pro-dashboard.net</code>.
+            </span>
+          )}
+          {!isExt && (
+            <span>
+              In web preview, click <strong className="text-accent">Demo Mode</strong> or paste a Google Bearer Token above for testing without Google Cloud credentials.
+            </span>
+          )}
         </p>
       </div>
 
@@ -276,7 +355,7 @@ export const GoogleAuthSettingsSection: React.FC = () => {
         {showAdvanced && (
           <div className="mt-2 p-3 bg-white/5 border border-white/10 rounded-xl space-y-2 light:bg-slate-50 light:border-slate-200">
             <p className="text-[10px] text-white/70 light:text-slate-600">
-              For unpacked/published Chrome Extensions, specify your Google Cloud OAuth 2.0 Web/Extension Client ID:
+              To use your own Google Cloud Project, add the Redirect URI above to your Google Cloud Console OAuth 2.0 Client:
             </p>
             <div className="flex gap-2">
               <input

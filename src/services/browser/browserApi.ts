@@ -331,6 +331,19 @@ const runtime = {
  * Identity Abstraction (Chrome / Firefox OAuth)
  */
 const identity = {
+  hasGetAuthToken: (): boolean => {
+    const ext = getExtensionRuntime();
+    return typeof ext?.identity?.getAuthToken === 'function';
+  },
+
+  hasLaunchWebAuthFlow: (): boolean => {
+    if (typeof browser !== 'undefined' && typeof browser?.identity?.launchWebAuthFlow === 'function') {
+      return true;
+    }
+    const ext = getExtensionRuntime();
+    return typeof ext?.identity?.launchWebAuthFlow === 'function';
+  },
+
   getAuthToken: async (options: { interactive: boolean }): Promise<string> => {
     const ext = getExtensionRuntime();
     if (ext?.identity?.getAuthToken) {
@@ -344,10 +357,24 @@ const identity = {
         });
       });
     }
-    throw new Error('Identity API not available in current environment');
+    throw new Error('Identity getAuthToken API not available in current environment');
   },
 
   launchWebAuthFlow: async (options: { url: string; interactive: boolean }): Promise<string> => {
+    // 1. Check Firefox browser.identity (returns Promise natively)
+    if (typeof browser !== 'undefined' && browser.identity?.launchWebAuthFlow) {
+      try {
+        const responseUrl = await browser.identity.launchWebAuthFlow(options);
+        if (!responseUrl) {
+          throw new Error('Web auth flow returned empty response');
+        }
+        return responseUrl;
+      } catch (err: any) {
+        throw new Error(err?.message || 'Firefox Web auth flow cancelled or failed');
+      }
+    }
+
+    // 2. Check Chrome chrome.identity (uses callback)
     const ext = getExtensionRuntime();
     if (ext?.identity?.launchWebAuthFlow) {
       return new Promise<string>((resolve, reject) => {
@@ -360,7 +387,27 @@ const identity = {
         });
       });
     }
-    throw new Error('launchWebAuthFlow not available');
+    throw new Error('launchWebAuthFlow not available in current environment');
+  },
+
+  getRedirectURL: (path?: string): string => {
+    if (typeof browser !== 'undefined' && browser.identity?.getRedirectURL) {
+      try {
+        return browser.identity.getRedirectURL(path);
+      } catch {}
+    }
+    const ext = getExtensionRuntime();
+    if (ext?.identity?.getRedirectURL) {
+      try {
+        return ext.identity.getRedirectURL(path);
+      } catch {}
+    }
+    if (typeof chrome !== 'undefined' && chrome.identity?.getRedirectURL) {
+      try {
+        return chrome.identity.getRedirectURL(path);
+      } catch {}
+    }
+    return window.location.origin;
   },
 
   removeCachedAuthToken: async (options: { token: string }): Promise<void> => {
