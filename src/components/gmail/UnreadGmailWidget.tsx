@@ -11,6 +11,9 @@ import {
   isFirefoxExtension,
   isChromeExtension,
   getExtensionRedirectUrl,
+  getOAuthClientId,
+  setOAuthClientId,
+  DEFAULT_CLIENT_ID,
 } from '../../services/googleAuthService';
 import { fetchUnreadGmailMessages, GmailMessage } from '../../services/gmailService';
 import {
@@ -29,6 +32,8 @@ import {
   Sparkles,
   Copy,
   Check,
+  HelpCircle,
+  Sliders,
 } from 'lucide-react';
 
 export const UnreadGmailWidget: React.FC = () => {
@@ -50,6 +55,16 @@ export const UnreadGmailWidget: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const [customClientId, setCustomClientId] = useState('');
+  const [isSavedId, setIsSavedId] = useState(false);
+
+  // Load custom client ID on mount
+  useEffect(() => {
+    getOAuthClientId().then((id) => {
+      setCustomClientId(id);
+    });
+  }, []);
 
   // Initialize Auth Listener
   useEffect(() => {
@@ -105,17 +120,33 @@ export const UnreadGmailWidget: React.FC = () => {
         setUser(result.user);
         setToken(result.accessToken);
         setNeedsAuth(false);
+        setShowGuide(false);
         await loadUnreadEmails(result.accessToken);
       }
     } catch (err: any) {
       console.warn('Sign-in attempt notice:', err);
-      setError(
-        err.message ||
-          'Google Sign-in failed. In Chrome Extension (chrome://extensions), Chrome Identity signs in natively! In web preview, you can also use Demo Mode or paste a token below.'
-      );
+      const msg = err.message || 'Google Sign-in failed.';
+      setError(msg);
+      // Auto-open setup guide if error relates to invalid request or redirect URI
+      if (
+        msg.toLowerCase().includes('invalid') ||
+        msg.toLowerCase().includes('redirect_uri') ||
+        msg.toLowerCase().includes('cancel') ||
+        msg.toLowerCase().includes('blocked')
+      ) {
+        setShowGuide(true);
+      }
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  // Handle saving custom client ID
+  const handleSaveClientId = async () => {
+    if (!customClientId.trim()) return;
+    await setOAuthClientId(customClientId.trim());
+    setIsSavedId(true);
+    setTimeout(() => setIsSavedId(false), 2000);
   };
 
   // Handle Demo Login
@@ -431,6 +462,123 @@ export const UnreadGmailWidget: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5" />
               <span>Demo Mode</span>
             </button>
+          </div>
+
+          {/* Setup Guide / "App's request is invalid" Explainer */}
+          <div className="pt-2 border-t border-white/10 light:border-slate-200">
+            <button
+              type="button"
+              onClick={() => setShowGuide(!showGuide)}
+              className="text-[11px] text-accent hover:underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer font-semibold py-1"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>{showGuide ? 'Hide Setup & Troubleshooting Guide' : "Seeing 'App's request is invalid'? Click for 1-minute fix"}</span>
+              {showGuide ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+
+            {showGuide && (
+              <div className="mt-2.5 p-3 rounded-xl bg-white/5 border border-white/10 light:bg-slate-100/80 light:border-slate-300 text-left text-[11px] space-y-3">
+                <div className="space-y-1">
+                  <p className="font-bold text-white light:text-slate-900 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Why Google shows "Access blocked: This app's request is invalid"</span>
+                  </p>
+                  <p className="text-white/70 light:text-slate-600 leading-relaxed text-[10px]">
+                    Google OAuth 2.0 strictly requires that any browser extension or application connecting to personal Gmail data must have its exact Redirect URI registered in the Google Cloud Console for the OAuth Client ID being used.
+                  </p>
+                </div>
+
+                {/* Step 1: Redirect URI */}
+                <div className="space-y-1 p-2 rounded-lg bg-black/40 border border-white/10 light:bg-white light:border-slate-200">
+                  <p className="text-[10px] font-bold text-white/90 light:text-slate-800">
+                    Step 1: Copy your Extension Redirect URI:
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <code className="flex-1 text-[9px] font-mono text-accent light:text-blue-600 truncate select-all">
+                      {redirectUrl}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={handleCopyRedirectUri}
+                      className="px-2 py-1 text-[10px] rounded bg-accent/20 hover:bg-accent/30 text-accent font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                    >
+                      {copiedRedirect ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedRedirect ? 'Copied!' : 'Copy URI'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Step 2: Google Cloud Console */}
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-white/90 light:text-slate-800">
+                    Step 2: Add URI in Google Cloud Console
+                  </p>
+                  <p className="text-[10px] text-white/60 light:text-slate-600 leading-relaxed">
+                    Open{' '}
+                    <a
+                      href="https://console.cloud.google.com/apis/credentials"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent underline font-semibold inline-flex items-center gap-0.5"
+                    >
+                      Google Cloud Credentials
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                    , select your OAuth 2.0 Client (type: Web Application), and paste the copied URI under <strong>Authorized redirect URIs</strong>.
+                  </p>
+                </div>
+
+                {/* Step 3: Enter Client ID */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold text-white/90 light:text-slate-800">
+                    Step 3: Paste your Google OAuth Client ID here:
+                  </p>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={customClientId}
+                      onChange={(e) => setCustomClientId(e.target.value)}
+                      placeholder="Your Google OAuth Client ID (e.g. 123...apps.googleusercontent.com)"
+                      className="flex-1 px-2.5 py-1 text-[10px] rounded-lg bg-black/40 border border-white/20 text-white font-mono light:bg-white light:border-slate-300 light:text-slate-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveClientId}
+                      className="px-3 py-1 bg-accent text-white rounded-lg text-[10px] font-semibold hover:opacity-90 transition-opacity cursor-pointer shrink-0 flex items-center gap-1"
+                    >
+                      {isSavedId ? <Check className="w-3 h-3 text-emerald-300" /> : <Sliders className="w-3 h-3" />}
+                      <span>{isSavedId ? 'Saved!' : 'Save Client ID'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Zero Setup Alternatives */}
+                <div className="pt-2 border-t border-white/10 light:border-slate-200 flex items-center justify-between gap-2">
+                  <span className="text-[10px] text-white/50 light:text-slate-500 font-semibold">
+                    No Google Cloud setup?
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDemoLogin}
+                      className="text-[10px] px-2 py-1 rounded bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 font-semibold cursor-pointer flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      <span>Demo Mode</span>
+                    </button>
+                    <a
+                      href="https://developers.google.com/oauthplayground"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] px-2 py-1 rounded bg-white/10 text-white hover:bg-white/20 font-semibold cursor-pointer flex items-center gap-1 light:text-slate-700"
+                    >
+                      <span>OAuth Playground</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Direct Token Toggle */}

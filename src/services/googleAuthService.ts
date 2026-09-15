@@ -355,20 +355,69 @@ const signInViaChromeNativeIdentity = async (): Promise<{ user: GoogleUser; acce
 };
 
 /**
+ * Helper to generate high-entropy random string for PKCE
+ */
+const generateRandomString = (length = 64): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const array = new Uint8Array(length);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(array);
+  } else {
+    for (let i = 0; i < length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  return Array.from(array, (byte) => chars[byte % chars.length]).join('');
+};
+
+/**
+ * Generate SHA-256 base64url code challenge for PKCE
+ */
+const generateCodeChallenge = async (verifier: string): Promise<string> => {
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    const bytes = new Uint8Array(digest);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  return verifier;
+};
+
+/**
  * Universal Extension OAuth flow using launchWebAuthFlow (Supported on both Chrome & Firefox)
+ * Supports modern OAuth 2.0 PKCE Authorization Code flow with automatic token extraction fallback.
  */
 export const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; accessToken: string }> => {
   const clientId = await getOAuthClientId();
   const redirectUrl = getExtensionRedirectUrl();
 
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    new URLSearchParams({
-      client_id: clientId,
-      response_type: 'token',
-      redirect_uri: redirectUrl,
-      scope: GMAIL_SCOPES,
-      prompt: 'select_account',
-    }).toString();
+  const codeVerifier = generateRandomString(64);
+  let codeChallenge = '';
+  try {
+    codeChallenge = await generateCodeChallenge(codeVerifier);
+  } catch (err) {
+    console.warn('Could not generate SHA-256 code challenge, falling back to plain verifier', err);
+    codeChallenge = codeVerifier;
+  }
+
+  // Construct PKCE Authorization URL
+  const params: Record<string, string> = {
+    client_id: clientId,
+    response_type: 'code',
+    redirect_uri: redirectUrl,
+    scope: GMAIL_SCOPES,
+    prompt: 'select_account',
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+    access_type: 'online',
+  };
+
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams(params).toString()}`;
 
   try {
     const responseUrl = await browserApi.identity.launchWebAuthFlow({
@@ -381,25 +430,85 @@ export const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; access
     }
 
     let accessToken: string | null = null;
+    let authCode: string | null = null;
+    let oauthError: string | null = null;
+    let oauthErrorDesc: string | null = null;
+
     try {
       const url = new URL(responseUrl);
+      if (url.search) {
+        const searchParams = new URLSearchParams(url.search);
+        authCode = searchParams.get('code');
+        accessToken = searchParams.get('access_token');
+        oauthError = searchParams.get('error');
+        oauthErrorDesc = searchParams.get('error_description');
+      }
       if (url.hash) {
         const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
-        accessToken = hashParams.get('access_token');
-      }
-      if (!accessToken && url.search) {
-        const searchParams = new URLSearchParams(url.search);
-        accessToken = searchParams.get('access_token');
+        if (!authCode) authCode = hashParams.get('code');
+        if (!accessToken) accessToken = hashParams.get('access_token');
+        if (!oauthError) oauthError = hashParams.get('error');
+        if (!oauthErrorDesc) oauthErrorDesc = hashParams.get('error_description');
       }
     } catch {
-      const match = responseUrl.match(/[#?&]access_token=([^&]+)/);
-      if (match) {
-        accessToken = decodeURIComponent(match[1]);
+      const codeMatch = responseUrl.match(/[?&]code=([^&]+)/);
+      if (codeMatch) authCode = decodeURIComponent(codeMatch[1]);
+
+      const tokenMatch = responseUrl.match(/[#?&]access_token=([^&]+)/);
+      if (tokenMatch) accessToken = decodeURIComponent(tokenMatch[1]);
+
+      const errorMatch = responseUrl.match(/[?&#]error=([^&]+)/);
+      if (errorMatch) oauthError = decodeURIComponent(errorMatch[1]);
+    }
+
+    if (oauthError) {
+      const desc = oauthErrorDesc ? ` (${oauthErrorDesc})` : '';
+      if (oauthError === 'redirect_uri_mismatch' || oauthError.includes('invalid_request')) {
+        throw new Error(
+          `Google blocked request: "This app's request is invalid" / Error 400: ${oauthError}${desc}. Your extension's Redirect URI is: ${redirectUrl}. Add this URI to your Google Cloud Console OAuth Client Authorized Redirect URIs.`
+        );
+      }
+      throw new Error(`Google OAuth error: ${oauthError}${desc}`);
+    }
+
+    // If PKCE authorization code was returned, exchange it for access token
+    if (authCode) {
+      try {
+        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            code: authCode,
+            grant_type: 'authorization_code',
+            redirect_uri: redirectUrl,
+            code_verifier: codeVerifier,
+          }),
+        });
+
+        const tokenData = await tokenRes.json();
+        if (tokenData.access_token) {
+          accessToken = tokenData.access_token;
+        } else if (tokenData.error) {
+          console.warn('Code exchange returned error:', tokenData);
+          throw new Error(
+            tokenData.error_description || tokenData.error || 'Failed to exchange authorization code for token'
+          );
+        }
+      } catch (exchangeErr: any) {
+        console.warn('PKCE exchange failed, checking if implicit token available:', exchangeErr);
+        if (!accessToken) {
+          throw exchangeErr;
+        }
       }
     }
 
     if (!accessToken) {
-      throw new Error('No access_token found in Google OAuth response');
+      throw new Error(
+        `No access token received from Google Sign-In. Redirect URI is: ${redirectUrl}`
+      );
     }
 
     const user = await fetchGoogleUserProfile(accessToken);
@@ -413,7 +522,12 @@ export const signInViaWebAuthFlow = async (): Promise<{ user: GoogleUser; access
     const rawMsg = err?.message || String(err);
     if (rawMsg.toLowerCase().includes('cancelled') || rawMsg.toLowerCase().includes('closed')) {
       throw new Error(
-        `Google Sign-In was cancelled. Note: If Google displayed "Error 400: redirect_uri_mismatch", register this Authorized Redirect URI in Google Cloud Console: ${redirectUrl}`
+        `Google Sign-In was cancelled or closed. Note: If Google displayed "This app's request is invalid" (Error 400: redirect_uri_mismatch), add this Authorized Redirect URI to your Google Cloud Console OAuth Client: ${redirectUrl}`
+      );
+    }
+    if (rawMsg.toLowerCase().includes('invalid_request') || rawMsg.toLowerCase().includes('redirect_uri_mismatch')) {
+      throw new Error(
+        `Google Error: "This app's request is invalid" (Error 400: redirect_uri_mismatch). Add this URI in Google Cloud Console -> Credentials -> OAuth Client -> Authorized redirect URIs:\n${redirectUrl}`
       );
     }
     throw new Error(

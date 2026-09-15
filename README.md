@@ -286,6 +286,29 @@ Gmail authentication is fully implemented for both **Google Chrome** and **Mozil
 - **Demo Mode**: Click the **Demo Mode** button anytime on the widget or settings to test the dashboard with realistic simulated Gmail data without requiring any Google credentials.
 - **Direct Bearer Token**: Click **Direct OAuth Access Token Entry** and paste a token generated from [Google OAuth Playground](https://developers.google.com/oauthplayground) (select Gmail API v1 `https://www.googleapis.com/auth/gmail.readonly`).
 
+### 🛠️ Troubleshooting: "Access blocked: This app's request is invalid" (Error 400)
+
+If clicking **Sign in with Google** displays Google's error page stating **"Access blocked: This app's request is invalid"** (or under error details: `Error 400: redirect_uri_mismatch`), here is why and how to resolve it in under a minute:
+
+#### Why does Google display this?
+Google OAuth 2.0 strictly enforces security by refusing to authorize requests unless the exact `redirect_uri` sent by the extension matches an entry in **Authorized redirect URIs** in your Google Cloud project's OAuth 2.0 Client credentials.
+
+#### 1-Minute Resolution:
+1. **Copy your Extension Redirect URI**:
+   - On the **Unread Gmail** widget, click **Copy URI** (or open the setup accordion).
+   - Chrome URI: `https://gioepkdaagkafdklkofeaplkebhmgnan.chromiumapp.org/`
+   - Firefox URI: `https://cyberpunk-newtab.extensions.allizom.org/` (or your Firefox add-on URI).
+2. **Add to Google Cloud Console**:
+   - Visit [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials).
+   - Under **OAuth 2.0 Client IDs**, select your Client ID (Application type: **Web application**).
+   - Under **Authorized redirect URIs**, click **Add URI** and paste the copied URI.
+   - Click **Save**.
+3. **Connect**:
+   - In the dashboard widget or **Settings → Google & Extension Identity**, paste your **Client ID** and click **Save**.
+   - Click **Sign in with Google** — authentication will now succeed immediately!
+
+*(Alternatively, click **Demo Mode** on the widget for instant zero-configuration testing with simulated Gmail data!)*
+
 ---
 
 ## 📜 Available NPM Scripts

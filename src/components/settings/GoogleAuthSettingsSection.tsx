@@ -304,22 +304,44 @@ export const GoogleAuthSettingsSection: React.FC = () => {
         </div>
 
         <div className="space-y-1">
-          <p className="text-[10px] text-white/60 light:text-slate-600">
+          <p className="text-[10px] text-white/60 light:text-slate-600 font-medium">
             Extension Authorized Redirect URI:
           </p>
           <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-black/40 border border-white/10 light:bg-white light:border-slate-200">
-            <code className="flex-1 text-[9px] font-mono text-white/80 light:text-slate-700 truncate select-all">
+            <code className="flex-1 text-[9px] font-mono text-accent light:text-blue-600 truncate select-all">
               {redirectUrl}
             </code>
             <button
               type="button"
               onClick={handleCopyRedirectUri}
-              className="p-1 text-accent hover:text-white rounded transition-colors cursor-pointer shrink-0"
+              className="px-2 py-1 text-[10px] rounded bg-accent/20 hover:bg-accent/30 text-accent font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
               title="Copy redirect URI to clipboard"
             >
               {copiedRedirect ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              <span>{copiedRedirect ? 'Copied!' : 'Copy'}</span>
             </button>
           </div>
+        </div>
+
+        {/* 1-Minute Troubleshooting Notice for Error 400 */}
+        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-200/90 space-y-1">
+          <p className="font-bold text-amber-400 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            <span>Fix "Access blocked: This app's request is invalid" (Error 400)</span>
+          </p>
+          <p className="leading-relaxed text-white/70 light:text-slate-600">
+            Google rejects requests when your Extension Redirect URI is not registered. In{' '}
+            <a
+              href="https://console.cloud.google.com/apis/credentials"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent underline font-semibold inline-flex items-center gap-0.5"
+            >
+              Google Cloud Console
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+            , select your OAuth 2.0 Client (Web application) and paste the Redirect URI above into <strong>Authorized redirect URIs</strong>.
+          </p>
         </div>
 
         <p className="text-[10px] text-white/60 light:text-slate-500 leading-relaxed">
