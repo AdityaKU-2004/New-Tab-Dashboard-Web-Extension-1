@@ -12,7 +12,6 @@ import { RecentTabsList } from '../recentTabs/RecentTabsList';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { GitHubDashboard, GitHubSubTab } from './github/GitHubDashboard';
 import { GitHubDailyTasks } from './github/GitHubDailyTasks';
-import { UnreadGmailWidget } from '../gmail/UnreadGmailWidget';
 import { CyberpunkHudContainer } from '../cyberpunk/CyberpunkHudContainer';
 import { DeveloperCommandPalette } from './DeveloperCommandPalette';
 
@@ -88,19 +87,10 @@ export const DeveloperLayout: React.FC = () => {
               {/* Daily Brief - Primary Dashboard Section */}
               <DailyBrief onNavigate={handleNavigate} />
 
-              {/* Unread Gmail & Daily Tasks Grid */}
-              {(settings.widgetVisibility.dailyTasks !== false || settings.widgetVisibility.gmail !== false) && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                  {settings.widgetVisibility.dailyTasks !== false && (
-                    <div className={settings.widgetVisibility.gmail !== false ? 'lg:col-span-7' : 'lg:col-span-12'}>
-                      <GitHubDailyTasks />
-                    </div>
-                  )}
-                  {settings.widgetVisibility.gmail !== false && (
-                    <div className={settings.widgetVisibility.dailyTasks !== false ? 'lg:col-span-5' : 'lg:col-span-12'}>
-                      <UnreadGmailWidget />
-                    </div>
-                  )}
+              {/* Daily Tasks Section */}
+              {settings.widgetVisibility.dailyTasks !== false && (
+                <div>
+                  <GitHubDailyTasks />
                 </div>
               )}
 
@@ -117,14 +107,7 @@ export const DeveloperLayout: React.FC = () => {
 
           {activeTab === 'tasks' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                <div className="lg:col-span-7">
-                  <GitHubDailyTasks />
-                </div>
-                <div className="lg:col-span-5">
-                  <UnreadGmailWidget />
-                </div>
-              </div>
+              <GitHubDailyTasks />
               <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-5">
                 <TodoList />
               </div>

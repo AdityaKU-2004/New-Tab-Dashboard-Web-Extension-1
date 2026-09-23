@@ -393,7 +393,6 @@ export const SettingsDrawer: React.FC = () => {
                         { key: 'quote', label: 'Daily Quote' },
                         { key: 'recentTabs', label: 'Recent Tabs' },
                         { key: 'wallpaperPicker', label: 'Wallpaper Picker' },
-                        { key: 'gmail', label: 'Unread Gmail' },
                         { key: 'cyberSystemMonitor', label: 'CPU/RAM/Disk Stats' },
                         { key: 'cyberAudioPlayer', label: 'Cyber Audio Player' }
                       ];

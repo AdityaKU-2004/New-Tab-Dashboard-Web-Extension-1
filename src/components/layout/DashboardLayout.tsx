@@ -15,7 +15,6 @@ import { CyberpunkHudContainer } from '../cyberpunk/CyberpunkHudContainer';
 import { LiveCanvasWallpaper } from '../wallpaper/LiveCanvasWallpaper';
 import { DeveloperLayout } from '../developer/DeveloperLayout';
 import { GitHubDailyTasks } from '../developer/github/GitHubDailyTasks';
-import { UnreadGmailWidget } from '../gmail/UnreadGmailWidget';
 import { useTheme } from '../../hooks/useTheme';
 
 export const DashboardLayout: React.FC = () => {
@@ -111,19 +110,10 @@ export const DashboardLayout: React.FC = () => {
             )}
           </div>
 
-          {/* Daily Tasks & Gmail Section */}
-          {(widgetVisibility.dailyTasks !== false || widgetVisibility.gmail !== false) && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {widgetVisibility.dailyTasks !== false && (
-                <div className={widgetVisibility.gmail !== false ? 'lg:col-span-7' : 'lg:col-span-12'}>
-                  <GitHubDailyTasks />
-                </div>
-              )}
-              {widgetVisibility.gmail !== false && (
-                <div className={widgetVisibility.dailyTasks !== false ? 'lg:col-span-5' : 'lg:col-span-12'}>
-                  <UnreadGmailWidget />
-                </div>
-              )}
+          {/* Daily Tasks Section */}
+          {widgetVisibility.dailyTasks !== false && (
+            <div>
+              <GitHubDailyTasks />
             </div>
           )}
 
